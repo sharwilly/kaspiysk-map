@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Kaspiysk Map - Админ</title>
+
+    <link rel="stylesheet" href="css/admin.css">
+
+</head>
+
+<body>
+
+<h1>Панель администрации</h1>
+
+<div class="tabs">
+
+    <button
+        id="activeTab"
+        class="tab-button active"
+        onclick="loadActive()">
+
+        Активные
+        (<span id="activeCount"></span>)
+
+    </button>
+
+    <button
+        id="archiveTab"
+        class="tab-button"
+        onclick="loadArchive()">
+
+        Архив
+        (<span id="archiveCount"></span>)
+
+    </button>
+
+</div>
+
+
+<hr>
+
+<div id="filters"></div>
+
+<div id="problems">
+    Загрузка обращений...
+</div>
+
+<script  src="js/admin.js"></script>
+
+</body>
+</html>

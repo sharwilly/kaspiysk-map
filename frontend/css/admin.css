@@ -1,0 +1,417 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background: #f5f6fa;
+}
+
+h1 {
+    text-align: center;
+}
+
+.admin-button{
+
+    display:inline-block;
+
+    padding:7px 12px;
+
+    background:#f3f4f6;
+
+    color:#333;
+
+    border:1px solid #d6d6d6;
+
+    border-radius:8px;
+
+    text-decoration:none;
+
+    font-size:14px;
+
+    transition:scale(1.05);
+
+}
+
+
+.admin-button:hover{
+
+    background:#e7e9ec;
+
+}
+
+select {
+
+    padding: 6px;
+
+    border-radius: 6px;
+
+}
+
+/* Общий стиль кнопок */
+
+button {
+
+    padding: 8px 14px;
+
+    border: none;
+
+    border-radius: 6px;
+
+    font-size: 14px;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+
+    background: #3498db;
+
+    color: white;
+
+    font-weight: 600;
+
+}
+
+
+button:hover {
+
+    opacity: 0.85;
+
+}
+
+button:active{
+    transform: scale(0.98);
+
+}
+
+
+/* Переключатели разделов */
+
+.section-button {
+
+    background: #3498db;
+
+    margin-right: 8px;
+
+}
+
+
+.section-button.archive {
+
+    background: #7f8c8d;
+
+}
+
+
+/* Кнопка сохранения */
+
+.save-button {
+
+    background: #3498db;
+
+}
+
+
+/* В работу */
+
+.work-button {
+
+    background: #f39c12;
+
+}
+
+
+/* Выполнено */
+
+.done-button {
+
+    background: #27ae60;
+
+}
+
+
+/* Вернуть */
+
+.restore-button {
+
+    background: #95a5a6;
+
+}
+
+.filters{
+
+    margin:20px 0;
+
+}
+
+.filters input{
+
+    width:100%;
+
+    padding:10px;
+
+    font-size:15px;
+
+    border:1px solid #ccc;
+
+    border-radius:8px;
+
+    box-sizing:border-box;
+
+}
+
+.filters select{
+
+    padding:10px;
+
+    border:1px solid #ccc;
+
+    border-radius:8px;
+
+    font-size:15px;
+
+}
+
+.tabs{
+
+    display:flex;
+
+    margin-bottom:20px;
+
+    border-bottom:2px solid #ddd;
+
+}
+
+.tab-button{
+
+    background:none;
+
+    border:none;
+
+    padding:12px 20px;
+
+    font-size:16px;
+    
+    font-weight: 400;
+
+    cursor:pointer;
+
+    color:#666;
+
+    border-bottom:3px solid transparent;
+
+    transition:.2s;
+    
+}
+
+.tab-button:hover{
+
+    color:#3498db;
+
+}
+
+.tab-button.active{
+
+    color:#3498db;
+
+    font-weight:bold;
+
+    border-bottom:3px solid #3498db;
+
+}
+
+.problem-card {
+
+    background: white;
+
+    padding: 18px 16px;
+
+    margin-bottom: 12px;
+
+    border-radius: 10px;
+
+    box-shadow: 0 3px 10px rgba(0,0,0,.06);
+
+    border-left: 5px solid #999;
+
+    transition: .2s;
+
+}
+
+.problem-card:hover {
+    box-shadow: 0 5px 16px rgba(0,0,0,.08);
+}
+
+.problem-card p{
+    margin:4px 0;
+    line-height:1.4;
+}
+
+.problem-card h3{
+    margin:0 0 8px 0;
+}
+
+
+.problem-card.priority-high {
+    border-left-color: #e74c3c;
+}
+
+
+.problem-card.priority-medium {
+    border-left-color: #f39c12;
+}
+
+
+.problem-card.priority-low {
+    border-left-color: #2ecc71;
+}
+
+.problem-photo:hover{
+
+    transform: scale(1.05);
+
+}
+
+.problem-top{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-start;
+
+    gap:20px;
+
+}
+
+.problem-info{
+
+    flex:1;
+
+}
+
+.photo-gallery::-webkit-scrollbar{
+
+    display: none;
+
+    width:250px;
+
+    display:flex;
+
+    gap:10px;
+
+    overflow-x:auto;
+
+    scroll-behavior:smooth;
+    
+    align-items: center;
+
+}
+
+.problem-photo{
+
+    width:90px;
+
+    height:90px;
+
+    object-fit:cover;
+
+    flex-shrink: 0;
+
+    border-radius:8px;
+
+    border: 1px solid #ddd;
+
+    cursor:pointer;
+
+    transition: 2s;
+
+}
+
+.photo-overlay{
+
+    position:fixed;
+
+    inset:0;
+
+    background:rgba(0,0,0,.8);
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    z-index:9999;
+
+}
+
+.photo-full{
+
+    max-width:90vw;
+
+    max-height:90vh;
+
+    border-radius:10px;
+
+}
+
+.photo-prev,
+.photo-next{
+
+    position:absolute;
+
+    top:50%;
+
+    transform:translateY(-50%);
+
+    width:50px;
+
+    height:50px;
+
+    border-radius:50%;
+
+    border:none;
+
+    background:rgba(255,255,255,.25);
+
+    color:white;
+
+    font-size:28px;
+
+    cursor:pointer;
+
+    backdrop-filter:blur(6px);
+
+}
+
+.photo-prev{
+
+    left:25px;
+
+}
+
+.photo-next{
+
+    right:25px;
+
+}
+
+.photo-counter{
+
+    position:absolute;
+
+    bottom:25px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+    color:white;
+
+    font-size:18px;
+
+    background:rgba(0,0,0,.45);
+
+    padding:8px 16px;
+
+    border-radius:20px;
+
+}

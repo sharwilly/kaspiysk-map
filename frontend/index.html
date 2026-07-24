@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaspiysk Map</title>
+
+    <!-- Leaflet карта -->
+    <link 
+        rel="stylesheet" 
+        href="https://unpkg.com/leaflet/dist/leaflet.css"
+    />
+
+      <link rel="stylesheet" href="css/style.css">
+      
+</head>
+
+<body>
+
+<h1>Kaspiysk Map</h1>
+
+<div id="container">
+
+    <div id="map"></div>
+
+    <div id="panel">
+
+        <h2>Новое обращение</h2>
+
+        <label>Тип проблемы</label>
+
+        <div class="problem-types">
+
+            <button 
+                type="button"
+                class="type-button"
+                data-type="подтопление">
+                💧 Подтопление
+            </button>
+
+
+            <button 
+                type="button"
+                class="type-button"
+                data-type="яма">
+                🕳 Яма
+            </button>
+
+
+            <button 
+                type="button"
+                class="type-button"
+                data-type="мусор">
+                🗑 Мусор
+            </button>
+
+
+            <button 
+                type="button"
+                class="type-button"
+                data-type="освещение">
+                💡 Освещение
+            </button>
+
+
+            <button 
+                type="button"
+                class="type-button"
+                data-type="другое">
+                ❗ Другое
+            </button>
+
+        </div>
+
+
+        <input 
+            type="hidden"
+            id="problemType"
+            value="">
+
+        <label>
+            Адрес (необязательно):
+        </label>
+
+        <input 
+            type="text"
+            id="problemAddress"
+            placeholder="Например: ул. Ленина, 24"
+        >
+
+
+        <button id="findAddress">
+            Найти адрес
+        </button>
+
+        <button id="myLocation" type="button">
+            📍 Моё местоположение
+        </button>
+
+        <div id="addressResults"></div>
+
+        <br>
+        <label>Описание</label>
+
+        <textarea 
+            id="problemDescription"
+            rows="5">
+        </textarea>
+
+        <label>
+            Фотографии (до 3):
+        </label>
+
+        <label class="photo-button">
+
+            📷 Добавить фото
+
+            <input
+                type="file"
+                id="photos"
+                multiple
+                accept="image/*"
+                capture="environment"
+            >
+
+        </label>
+
+        <div id="photoPreview"></div>
+
+        <button id="saveProblem">
+
+            🚀 Отправить обращение
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+
+<script src="js/index.js"></script>
+
+</body>
+</html>
