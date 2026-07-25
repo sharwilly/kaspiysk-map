@@ -64,7 +64,7 @@ L.tileLayer(
 
 
 // получаем проблемы из нашего API
-fetch("http://localhost:3000/problems")
+fetch('${API_URL}/problems')
 .then(response => response.json())
 .then(data => {
 
@@ -604,7 +604,7 @@ document
     }
 
     const response = await fetch(
-        "http://localhost:3000/problems",
+        '${API_URL}/problems',
         {
             method: "POST",
             body: formData
