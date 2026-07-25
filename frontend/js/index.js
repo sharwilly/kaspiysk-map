@@ -84,11 +84,8 @@ fetch(`${API_URL}/problems`)
             <b>${problem.type}</b><br>
             ${problem.description}<br><br>
 
-            📅 <b>Дата:</b>
-            ${new Date(problem.created_at).toLocaleDateString("ru-RU")}<br>
-
-            📍 <b>Адрес:</b><br>
-            ${problem.address || "Адрес не определён"}
+            📅 <b>Дата:</b> ${new Date(problem.created_at).toLocaleDateString("ru-RU")}<br>
+            📍 <b>Адрес:</b> ${problem.address || "не определён"}
         `);
 
     });
