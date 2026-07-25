@@ -1,1 +1,1 @@
-const API_URL = "http://localhost:3000/problems";
+const API_URL = "https://kaspiysk-map-1.onrender.com/";
