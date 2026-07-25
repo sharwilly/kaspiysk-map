@@ -82,7 +82,10 @@ fetch(`${API_URL}/problems`)
         .addTo(map)
         .bindPopup(`
             <b>${problem.type}</b><br>
-            ${problem.description}<br>
+            ${problem.description}<br><br>
+
+            📅 Дата:
+            ${new Date(problem.created_at).toLocaleDateString("ru-RU")}
         `);
 
     });
