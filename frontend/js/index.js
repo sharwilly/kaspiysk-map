@@ -65,7 +65,7 @@ L.tileLayer(
 
 
 // получаем проблемы из нашего API
-fetch(`${API_URL}/problems`)
+fetch(`${API_URL}/problems/active`)
 .then(response => response.json())
 .then(data => {
 
@@ -86,6 +86,19 @@ fetch(`${API_URL}/problems`)
 
             📅 <b>Дата:</b> ${new Date(problem.created_at).toLocaleDateString("ru-RU")}<br>
             📍 <b>Адрес:</b> ${problem.address || "не определён"}
+
+            ${
+                problem.photos && problem.photos.length
+                    ? `<br><br>
+                    <img
+                        src="${API_URL}${problem.photos[0]}"
+                        style="
+                            width:220px;
+                            border-radius:8px;
+                            margin-top:8px;
+                        ">`
+                    : ""
+            }
         `);
 
     });
