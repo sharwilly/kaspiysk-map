@@ -603,6 +603,7 @@ document
 
     }
 
+    console.log("Отправляем на:", `${API_URL}/problems`);
     const response = await fetch(
         `${API_URL}/problems`,
         {
