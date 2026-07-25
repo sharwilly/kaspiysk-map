@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
+const cloudinary = require("cloudinary").v2;
+
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -9,8 +11,14 @@ const fs = require("fs");
 const pool = require("./db");
 
 const app = express();
-console.log("Сервер запущен");
 
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+console.log("Сервер запущен");
 
 app.use(cors());
 app.use(express.json());
@@ -40,46 +48,22 @@ async function savePhotos(files, problemId) {
         return [];
     }
 
-
-    const folder = path.join(
-        "uploads",
-        String(problemId)
-    );
-
-
-    fs.mkdirSync(folder, {
-        recursive: true
-    });
-
-
     const paths = [];
 
+    for (let i = 0; i < files.length; i++) {
 
-    files.forEach((file, index) => {
+        const file = files[i];
 
-
-        const filename =
-            `${index + 1}${path.extname(file.originalname)}`;
-
-
-        const filepath =
-            path.join(
-                folder,
-                filename
-            );
-
-
-        fs.writeFileSync(
-            filepath,
-            file.buffer
+        const result = await cloudinary.uploader.upload(
+            `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
+            {
+                folder: `kaspiysk-map/${problemId}`
+            }
         );
 
+        paths.push(result.secure_url);
 
-        paths.push(
-            filepath.replaceAll("\\", "/"));
-
-    });
-
+    }
 
     return paths;
 
