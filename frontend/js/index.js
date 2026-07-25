@@ -8,6 +8,7 @@ const map = L.map('map', {
     [42.8913, 47.6397],
     13
 );
+map.attributionControl.remove();
 
 let tempMarker = null; // Временный маркер для отображения выбранной точки
 let selectedLocation = null; // Выбранная точка на карте
