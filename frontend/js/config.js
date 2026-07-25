@@ -1,1 +1,1 @@
-const API_URL = "https://kaspiysk-map-1.onrender.com/";
+const API_URL = "https://kaspiysk-map-1.onrender.com";
