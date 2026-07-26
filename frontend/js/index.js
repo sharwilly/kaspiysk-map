@@ -27,6 +27,76 @@ if (!addr) {
 let street = addr.road;
 
 let selectedPhotos = [];
+let currentPhotos = [];
+let currentPhotoIndex = 0;
+
+
+const viewer = document.getElementById("photoViewer");
+const viewerImage = document.getElementById("viewerImage");
+
+
+function openPhotoViewer(photos,index){
+
+    currentPhotos = photos;
+
+    currentPhotoIndex = index;
+
+    viewerImage.src =
+        currentPhotos[currentPhotoIndex];
+
+    viewer.style.display = "flex";
+
+}
+
+
+function closePhotoViewer(){
+
+    viewer.style.display = "none";
+
+}
+
+
+function showNextPhoto(){
+
+    currentPhotoIndex++;
+
+    if(currentPhotoIndex >= currentPhotos.length){
+        currentPhotoIndex = 0;
+    }
+
+    viewerImage.src =
+        currentPhotos[currentPhotoIndex];
+
+}
+
+
+function showPrevPhoto(){
+
+    currentPhotoIndex--;
+
+    if(currentPhotoIndex < 0){
+        currentPhotoIndex = currentPhotos.length - 1;
+    }
+
+    viewerImage.src =
+        currentPhotos[currentPhotoIndex];
+
+}
+
+
+document
+.getElementById("closeViewer")
+.onclick = closePhotoViewer;
+
+
+document
+.getElementById("nextPhoto")
+.onclick = showNextPhoto;
+
+
+document
+.getElementById("prevPhoto")
+.onclick = showPrevPhoto;
 
 
 if (street) {
@@ -100,6 +170,7 @@ fetch(`${API_URL}/problems/active`)
                             <img
                                 src="${photo}"
                                 class="popup-thumb"
+                                onclick="openPhotoViewer($JSON.stringify(problem.photos)}, ${index})'
                             >
                         `).join("")}
 

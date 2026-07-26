@@ -389,3 +389,76 @@ footer {
     cursor:pointer;
 
 }
+
+#photoViewer{
+
+    display:none;
+
+    position:fixed;
+
+    z-index:9999;
+
+    top:0;
+    left:0;
+
+    width:100%;
+    height:100%;
+
+    background:rgba(0,0,0,0.85);
+
+    align-items:center;
+    justify-content:center;
+
+}
+
+
+#viewerImage{
+
+    max-width:90%;
+    max-height:85%;
+
+    border-radius:10px;
+
+}
+
+
+#photoViewer button{
+
+    position:absolute;
+
+    background:white;
+
+    border:none;
+
+    border-radius:50%;
+
+    width:40px;
+    height:40px;
+
+    font-size:22px;
+
+    cursor:pointer;
+
+}
+
+
+#closeViewer{
+
+    top:20px;
+    right:20px;
+
+}
+
+
+#prevPhoto{
+
+    left:20px;
+
+}
+
+
+#nextPhoto{
+
+    right:20px;
+
+}
