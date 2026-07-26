@@ -26,6 +26,8 @@ if (!addr) {
 
 let street = addr.road;
 
+let selectedPhotos = [];
+
 
 if (street) {
 
@@ -581,8 +583,7 @@ document
 
     }
 
-    const photos =
-        document.getElementById("photos").files;
+    const photos = selectedPhotos;
 
     if (photos.length > 3) {
 
@@ -617,18 +618,14 @@ document
         selectedLocation.latitude
     );
 
-    for (let i = 0; i < photos.length; i++) {
+    selectedPhotos.forEach(file => {
 
-        selectedPhotos.forEach(file => {
+        formData.append(
+            "photos",
+            file
+        );
 
-            formData.append(
-                "photos",
-                file
-            );
-
-        });
-
-    }
+    });
 
     console.log("Отправляем на:", `${API_URL}/problems`);
     const response = await fetch(
