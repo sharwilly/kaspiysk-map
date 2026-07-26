@@ -91,12 +91,13 @@ fetch(`${API_URL}/problems/active`)
                 problem.photos && problem.photos.length
                     ? `<br><br>
                     <img
-                        src="${API_URL}${problem.photos[0]}"
+                        src="${problem.photos[0]}"
                         style="
                             width:220px;
                             border-radius:8px;
                             margin-top:8px;
-                        ">`
+                        "
+                    >`
                     : ""
             }
         `);
