@@ -62,6 +62,14 @@ function loginAdmin(){
 
 }
 
+function logoutAdmin(){
+
+    localStorage.removeItem("adminKey");
+
+    location.reload();
+
+}
+
 function getStatusText(status) {
 
     switch(status) {
