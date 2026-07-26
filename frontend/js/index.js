@@ -619,10 +619,14 @@ document
 
     for (let i = 0; i < photos.length; i++) {
 
-        formData.append(
-            "photos",
-            photos[i]
-        );
+        selectedPhotos.forEach(file => {
+
+            formData.append(
+                "photos",
+                file
+            );
+
+        });
 
     }
 
@@ -783,42 +787,69 @@ document
 
 });
 
-document
-.getElementById("photos")
-.addEventListener("change", function(){
+const photoInput = document.getElementById("photos");
+const photoPreview = document.getElementById("photoPreview");
+
+let selectedPhotos = [];
 
 
-    const preview =
-    document.getElementById("photoPreview");
+photoInput.addEventListener("change", () => {
+
+    const files = Array.from(photoInput.files);
+
+    selectedPhotos = [
+        ...selectedPhotos,
+        ...files
+    ].slice(0,3);
 
 
-    preview.innerHTML = "";
-
-
-    const files = this.files;
-
-
-    for(let i = 0; i < files.length; i++){
-
-
-        const img =
-        document.createElement("img");
-
-
-        img.src =
-        URL.createObjectURL(files[i]);
-
-
-        img.className =
-        "preview-photo";
-
-
-        preview.appendChild(img);
-
-    }
-
+    renderPhotoPreview();
 
 });
+
+
+function renderPhotoPreview(){
+
+    photoPreview.innerHTML = "";
+
+
+    selectedPhotos.forEach((file,index)=>{
+
+        const url = URL.createObjectURL(file);
+
+
+        const block = document.createElement("div");
+
+        block.className = "photo-item";
+
+
+        block.innerHTML = `
+
+            <img src="${url}">
+
+            <button
+                type="button"
+                onclick="removePhoto(${index})">
+                ❌
+            </button>
+
+        `;
+
+
+        photoPreview.appendChild(block);
+
+    });
+
+}
+
+
+function removePhoto(index){
+
+    selectedPhotos.splice(index,1);
+
+    renderPhotoPreview();
+
+}
 
 function showSuccessMessage(id){
 

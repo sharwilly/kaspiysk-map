@@ -344,3 +344,48 @@ footer {
     border-color:#3498db;
 
 }
+
+#photoPreview{
+
+    display:flex;
+    gap:10px;
+    margin-top:10px;
+
+}
+
+
+.photo-item{
+
+    position:relative;
+
+}
+
+
+.photo-item img{
+
+    width:90px;
+    height:90px;
+
+    object-fit:cover;
+
+    border-radius:10px;
+
+}
+
+
+.photo-item button{
+
+    position:absolute;
+
+    top:-8px;
+    right:-8px;
+
+    border:none;
+
+    background:white;
+
+    border-radius:50%;
+
+    cursor:pointer;
+
+}
