@@ -28,12 +28,37 @@ const problemIcons = {
 
 async function apiRequest(url, options = {}) {
 
+    options.headers = {
+        "Content-Type": "application/json",
+        "x-admin-key": localStorage.getItem("adminKey"),
+        ...(options.headers || {})
+    };
+
+
     const response = await fetch(
         API + url,
         options
     );
 
+
     return await response.json();
+}
+
+function loginAdmin(){
+
+    const password =
+        document.getElementById("adminPassword").value;
+
+
+    localStorage.setItem(
+        "adminKey",
+        password
+    );
+
+
+    alert("Вход выполнен");
+
+    location.reload();
 
 }
 
@@ -709,10 +734,6 @@ async function changeStatus(id, status) {
         {
             method: "PUT",
 
-            headers: {
-                "Content-Type": "application/json"
-            },
-
             body: JSON.stringify({
                 status: status
             })
@@ -743,10 +764,6 @@ async function finishProblem(id) {
         `/problems/${id}`,
         {
             method: "PUT",
-
-            headers: {
-                "Content-Type": "application/json"
-            },
 
             body: JSON.stringify({
 
@@ -779,10 +796,6 @@ async function changePriority(id) {
         `/problems/${id}/priority`,
         {
             method:"PUT",
-
-            headers:{
-                "Content-Type":"application/json"
-            },
 
             body:JSON.stringify({
                 priority
