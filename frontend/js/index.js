@@ -89,15 +89,20 @@ fetch(`${API_URL}/problems/active`)
 
             ${
                 problem.photos && problem.photos.length
-                    ? `<br><br>
-                    <img
-                        src="${problem.photos[0]}"
-                        style="
-                            width:220px;
-                            border-radius:8px;
-                            margin-top:8px;
-                        "
-                    >`
+                    ? `
+                    <br><br>
+
+                    <div class="popup-gallery">
+
+                        ${problem.photos.map(photo => `
+                            <img
+                                src="${photo}"
+                                class="popup-thumb"
+                            >
+                        `).join("")}
+
+                    </div>
+                    `
                     : ""
             }
         `);
