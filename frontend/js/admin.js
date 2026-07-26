@@ -249,7 +249,7 @@ function createProblemCard(problem) {
     const photosHtml = (problem.photos || [])
     .map((photo, index) => `
         <img
-            src="http://localhost:3000/${photo}"
+            src="${photo}"
             class="problem-photo"
             onclick='openPhoto(${JSON.stringify(problem.photos)}, ${index})'
         >
@@ -881,7 +881,6 @@ function showPhoto(){
     currentOverlay
         .querySelector(".photo-full")
         .src =
-            "http://localhost:3000/" +
             currentPhotos[currentPhotoIndex];
 
 
