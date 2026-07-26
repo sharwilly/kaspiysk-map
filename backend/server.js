@@ -23,6 +23,22 @@ console.log("Сервер запущен");
 app.use(cors());
 app.use(express.json());
 
+
+function adminAuth(req, res, next) {
+
+    const key = req.headers["x-admin-key"];
+
+    if (key !== process.env.ADMIN_KEY) {
+
+        return res.status(403).json({
+            error: "Нет доступа"
+        });
+
+    }
+
+    next();
+}
+
 app.use("/uploads", express.static("uploads"));
 
 const PORT = process.env.PORT || 3000;
@@ -529,7 +545,7 @@ app.post(
     }
 });
 
-app.put("/problems/:id", async (req, res) => {
+app.put("/problems/:id", adminAuth, async (req, res) => {
     try {
 
         const { id } = req.params;
@@ -634,7 +650,7 @@ app.put("/problems/:id", async (req, res) => {
 });
 
 // Вернуть проблему из архива в активные
-app.put("/problems/:id/restore", async (req, res) => {
+app.put("/problems/:id/restore", adminAuth, async (req, res) => {
 
     try {
 
@@ -690,7 +706,7 @@ app.put("/problems/:id/restore", async (req, res) => {
 
 });
 
-app.put("/problems/:id/priority", async (req, res) => {
+app.put("/problems/:id/priority", adminAuth, async (req, res) => {
 
     try {
 

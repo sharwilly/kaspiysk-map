@@ -1,4 +1,4 @@
-const API = "http://localhost:3000";
+const API = "https://kaspiysk-map-1.onrender.com";
 
 let currentMode = "active";
 

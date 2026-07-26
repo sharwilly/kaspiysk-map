@@ -34,7 +34,7 @@ const problemIcons = {
 
 // получаем проблемы
 
-fetch("http://localhost:3000/problems/active")
+fetch("https://kaspiysk-map-1.onrender.com")
 
 .then(response => response.json())
 
