@@ -9,6 +9,8 @@ const urlParams = new URLSearchParams(
 
 const selectedProblemId = urlParams.get("id");
 
+const API_URL = "https://kaspiysk-map-1.onrender.com";
+
 
 L.tileLayer(
 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -34,9 +36,9 @@ const problemIcons = {
 
 // получаем проблемы
 
-fetch("https://kaspiysk-map-1.onrender.com")
+fetch(`${API_URL}/problems/active`)
 
-.then(response => response.json())
+.then(res => res.json())
 
 .then(data => {
 
