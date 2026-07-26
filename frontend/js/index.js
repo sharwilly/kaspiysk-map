@@ -166,7 +166,7 @@ fetch(`${API_URL}/problems/active`)
 
                     <div class="popup-gallery">
 
-                        ${problem.photos.map(photo => `
+                        ${problem.photos.map((photo, index) => `
                             <img
                                 src="${photo}"
                                 class="popup-thumb"
