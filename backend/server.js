@@ -514,15 +514,32 @@ app.post(
         throw new Error("Ошибка получения адреса");
     }
 
-    const geoData = await geoResponse.json();
+    let address = "Адрес не определён";
+    let landmark = "";
 
-        const address = geoData.address
-            ? formatAddress(geoData.address)
-            : "Адрес не определён";
+    try {
 
-        const landmark = formatLandmark(
-            geoData
+        if (geoResponse.ok) {
+
+            const geoData = await geoResponse.json();
+
+            address = formatAddress(
+                geoData.address || {}
+            );
+
+            landmark = formatLandmark(
+                geoData
+            );
+        }
+
+    } catch(error) {
+
+        console.log(
+            "Не удалось определить адрес:",
+            error.message
         );
+
+    }
 
         const result = await pool.query(
             `
