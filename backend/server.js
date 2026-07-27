@@ -501,7 +501,11 @@ app.post(
 
         );
 
-        const geoData = await geoResponse.json();
+        const geoText = await geoResponse.text();
+
+        console.log("GEO RESPONSE:", geoText.substring(0,300));
+
+        const geoData = JSON.parse(geoText);
 
         const address = formatAddress(
             geoData.address
@@ -561,23 +565,23 @@ app.post(
             });
         }
 
-const problemId = result.rows[0].id;
+        const problemId = result.rows[0].id;
 
-        await sendTelegram(`
-🚨 Новая заявка
+                await sendTelegram(`
+        🚨 Новая заявка
 
-Тип:
-${type}
+        Тип:
+        ${type}
 
-Адрес:
-${address}
+        Адрес:
+        ${address}
 
-Описание:
-${description}
+        Описание:
+        ${description}
 
-ID:
-${problemId}
-`);
+        ID:
+        ${problemId}
+        `);
 
 
         const photoPaths = await savePhotos(
