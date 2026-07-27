@@ -12,6 +12,11 @@ const pool = require("./db");
 
 const app = express();
 
+app.set("trust proxy", 1);
+
+app.use(cors());
+app.use(express.json());
+
 const rateLimit = require("express-rate-limit");
 
 cloudinary.config({
@@ -56,9 +61,6 @@ async function sendTelegram(message) {
 }
 
 console.log("Сервер запущен");
-
-app.use(cors());
-app.use(express.json());
 
 
 function adminAuth(req, res, next) {
