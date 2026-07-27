@@ -156,12 +156,57 @@ fetch(`${API_URL}/problems/active`)
             return;
         }
 
-        L.marker([
+        let color;
+
+        if (problem.status === "new") {
+            color = "red";
+        }
+        else if (problem.status === "in_progress") {
+            color = "orange";
+        }
+        else {
+            color = "green";
+        }
+
+
+        const icon = problemIcons[problem.type] || "❗";
+
+
+        const marker = L.marker(
+        [
             problem.latitude,
             problem.longitude
-        ])
-        .addTo(map)
-        .bindPopup(`
+        ],
+        {
+            icon: L.divIcon({
+
+                className: "",
+
+                html: `
+                    <div style="
+                        background:${color};
+                        width:32px;
+                        height:32px;
+                        border-radius:50%;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:18px;
+                        border:2px solid white;
+                    ">
+                        ${icon}
+                    </div>
+                `,
+
+                iconSize:[32,32],
+                iconAnchor:[16,16]
+
+            })
+        })
+        .addTo(map);
+
+
+        marker.bindPopup(`
             <b>${problem.type}</b><br>
             ${problem.description}<br><br>
 
