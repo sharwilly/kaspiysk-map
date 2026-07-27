@@ -135,6 +135,15 @@ L.tileLayer(
 }
 ).addTo(map);
 
+const problemIcons = {
+
+        "подтопление": "🌊",
+        "мусор": "🗑",
+        "яма": "🕳",
+        "освещение": "💡"
+
+    };
+
 
 // получаем проблемы из нашего API
 fetch(`${API_URL}/problems/active`)
@@ -147,58 +156,12 @@ fetch(`${API_URL}/problems/active`)
             return;
         }
 
-        let color;
-
-        if (problem.status === "new") {
-            color = "red";
-        }
-        else if (problem.status === "in_progress") {
-            color = "orange";
-        }
-        else {
-            color = "green";
-        }
-
-
-        const icon = problemIcons[problem.type] || "❗";
-
-
-        const marker = L.marker(
-            [
-                problem.latitude,
-                problem.longitude
-            ],
-            {
-                icon: L.divIcon({
-
-                    className: "",
-
-                    html: `
-                        <div style="
-                            background:${color};
-                            width:32px;
-                            height:32px;
-                            border-radius:50%;
-                            display:flex;
-                            align-items:center;
-                            justify-content:center;
-                            font-size:18px;
-                            border:2px solid white;
-                        ">
-                            ${icon}
-                        </div>
-                    `,
-
-                    iconSize:[32,32],
-                    iconAnchor:[16,16]
-
-                })
-            }
-        )
-        .addTo(map);
-
-
-        marker.bindPopup(`
+        L.marker([
+            problem.latitude,
+            problem.longitude
+        ])
+        .addTo(map)
+        .bindPopup(`
             <b>${problem.type}</b><br>
             ${problem.description}<br><br>
 
@@ -755,16 +718,6 @@ document
 
 
     const problem = await response.json();
-
-    const problemIcons = {
-
-        "подтопление": "🌊",
-        "мусор": "🗑",
-        "яма": "🕳",
-        "освещение": "💡"
-
-    };
-
 
     function getStatusName(status) {
 
