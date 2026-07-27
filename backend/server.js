@@ -12,6 +12,8 @@ const pool = require("./db");
 
 const app = express();
 
+const rateLimit = require("express-rate-limit");
+
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
@@ -416,8 +418,25 @@ function updatePriorityByTime(problem) {
 
 }
 
+const createProblemLimiter = rateLimit({
+
+    windowMs: 10 * 60 * 1000, // 10 минут
+
+    max: 3,
+
+    message: {
+        error: "Слишком много заявок. Попробуйте позже."
+    },
+
+    standardHeaders: true,
+
+    legacyHeaders: false
+
+});
+
 app.post(
     "/problems",
+    createProblemLimiter,
     upload.array("photos", 3),
     async (req, res) => {
     try {
