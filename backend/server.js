@@ -501,15 +501,15 @@ app.post(
 
         );
 
-        const geoText = await geoResponse.text();
+        if (!geoResponse.ok) {
+            throw new Error("Ошибка получения адреса");
+        }
 
-        console.log("GEO RESPONSE:", geoText.substring(0,300));
+        const geoData = await geoResponse.json();
 
-        const geoData = JSON.parse(geoText);
-
-        const address = formatAddress(
-            geoData.address
-        );
+        const address = geoData.address
+            ? formatAddress(geoData.address)
+            : "Адрес не определён";
 
         const landmark = formatLandmark(
             geoData
@@ -566,6 +566,16 @@ app.post(
         }
 
         const problemId = result.rows[0].id;
+
+        console.log(
+            `[${new Date().toISOString()}] Создана проблема #${problemId}:`,
+            {
+                type,
+                address,
+                latitude,
+                longitude
+            }
+        );
 
                 await sendTelegram(`
         🚨 Новая заявка
