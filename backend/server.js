@@ -502,10 +502,19 @@ app.post(
         );
 
         if (!geoResponse.ok) {
-            throw new Error("Ошибка получения адреса");
-        }
 
-        const geoData = await geoResponse.json();
+    const errorText = await geoResponse.text();
+
+        console.log(
+            "Nominatim error:",
+            geoResponse.status,
+            errorText
+        );
+
+        throw new Error("Ошибка получения адреса");
+    }
+
+    const geoData = await geoResponse.json();
 
         const address = geoData.address
             ? formatAddress(geoData.address)
