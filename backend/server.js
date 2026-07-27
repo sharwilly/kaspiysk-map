@@ -561,23 +561,23 @@ app.post(
             });
         }
 
-        const problemId = result.rows[0].id;
+const problemId = result.rows[0].id;
 
-                await sendTelegram(`
-        🚨 Новая заявка
+        await sendTelegram(`
+🚨 Новая заявка
 
-        Тип:
-        ${type}
+Тип:
+${type}
 
-        Адрес:
-        ${address}
+Адрес:
+${address}
 
-        Описание:
-        ${description}
+Описание:
+${description}
 
-        ID:
-        ${problemId}
-        `);
+ID:
+${problemId}
+`);
 
 
         const photoPaths = await savePhotos(
