@@ -20,6 +20,41 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+async function sendTelegram(message) {
+
+    try {
+
+        await fetch(
+            `https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMessage`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    chat_id: process.env.TELEGRAM_CHAT_ID,
+
+                    text: message
+
+                })
+
+            }
+        );
+
+    } catch(error) {
+
+        console.error(
+            "Ошибка Telegram:",
+            error
+        );
+
+    }
+
+}
+
 console.log("Сервер запущен");
 
 app.use(cors());
@@ -525,6 +560,22 @@ app.post(
         }
 
         const problemId = result.rows[0].id;
+
+                await sendTelegram(`
+        🚨 Новая заявка
+
+        Тип:
+        ${type}
+
+        Адрес:
+        ${address}
+
+        Описание:
+        ${description}
+
+        ID:
+        ${problemId}
+        `);
 
 
         const photoPaths = await savePhotos(
