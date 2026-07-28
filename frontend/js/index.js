@@ -1019,3 +1019,6 @@ window.addEventListener("load", ()=>{
     },300);
 
 });
+
+console.log("index.js загружен");
+console.log("openPhotoViewer:", window.openPhotoViewer);
