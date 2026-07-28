@@ -634,6 +634,8 @@ document
 .getElementById("saveProblem")
 .addEventListener("click", async function () {
 
+    const saveButton = document.getElementById("saveProblem");
+
     if (!selectedLocation) {
 
         alert(
@@ -701,6 +703,17 @@ document
     });
 
     console.log("Отправляем на:", `${API_URL}/problems`);
+
+    saveButton.disabled = true;
+    saveButton.textContent = "Отправляем..."
+
+    const loadingTimer = setTimeout(() => {
+
+        saveButton.textContent =
+            "⏳ Сервер запускается... Подождите";
+
+    }, 10000);
+
     const response = await fetch(
         `${API_URL}/problems`,
         {
@@ -710,6 +723,11 @@ document
     );
 
     const problem = await response.json();
+
+    clearTimeout(loadingTimer);
+
+    saveButton.disabled = false;
+    saveButton.textContent = "Отправить";
 
     const marker = createProblemMarker(problem)
         .addTo(map);
