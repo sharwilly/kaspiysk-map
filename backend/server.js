@@ -603,20 +603,16 @@ app.post(
             }
         );
 
-                await sendTelegram(`
+        await sendTelegram(`
         🚨 Новая заявка
 
-        Тип:
-        ${type}
+        🛠 Тип: ${type}
 
-        Адрес:
-        ${address}
+        📍 Адрес: ${address}
 
-        Описание:
-        ${description}
+        📝 Описание: ${description || "нет описания"}
 
-        ID:
-        ${problemId}
+        🆔 ID: ${problemId}
         `);
 
 
