@@ -635,6 +635,7 @@ document
 .addEventListener("click", async function () {
 
     const saveButton = document.getElementById("saveProblem");
+    const serverNotice = document.getElementById("serverNotice");
 
     if (!selectedLocation) {
 
@@ -705,12 +706,11 @@ document
     console.log("Отправляем на:", `${API_URL}/problems`);
 
     saveButton.disabled = true;
-    saveButton.textContent = "Отправляем..."
+    saveButton.textContent = "⏳ Отправляем...";
 
     const loadingTimer = setTimeout(() => {
 
-        saveButton.textContent =
-            "⏳ Сервер запускается... Подождите";
+        serverNotice.classList.remove("hidden");
 
     }, 10000);
 
@@ -725,6 +725,8 @@ document
     const problem = await response.json();
 
     clearTimeout(loadingTimer);
+
+    serverNotice.classList.add("hidden");
 
     saveButton.disabled = false;
     saveButton.textContent = "Отправить";

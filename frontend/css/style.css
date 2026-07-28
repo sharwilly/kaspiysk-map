@@ -467,3 +467,16 @@ footer {
     right:20px;
 
 }
+
+.server-notice {
+    background: #fff3cd;
+    color: #664d03;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.hidden {
+    display: none;
+}
