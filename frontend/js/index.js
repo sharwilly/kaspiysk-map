@@ -35,7 +35,7 @@ const viewer = document.getElementById("photoViewer");
 const viewerImage = document.getElementById("viewerImage");
 
 
-function openPhotoViewer(photos,index){
+window.openPhotoViewer = function(photos,index){
 
     currentPhotos = photos;
 
