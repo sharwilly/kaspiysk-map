@@ -604,15 +604,15 @@ app.post(
         );
 
         await sendTelegram(`
-        🚨 Новая заявка
+🚨 Новая заявка
 
-        🛠 Тип: ${type}
+🛠 Тип: ${type}
 
-        📍 Адрес: ${address}
+📍 Адрес: ${address}
 
-        📝 Описание: ${description || "нет описания"}
+📝 Описание: ${description || "нет описания"}
 
-        🆔 ID: ${problemId}
+🆔 ID: ${problemId}
         `);
 
 
