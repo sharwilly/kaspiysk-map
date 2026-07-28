@@ -19,109 +19,18 @@ L.tileLayer(
 }
 ).addTo(map);
 
-
-const problemIcons = {
-
-    "подтопление": "🌊",
-
-    "мусор": "🗑",
-
-    "яма": "🕳",
-
-    "освещение": "💡"
-
-};
-
-
-
 // получаем проблемы
 
 fetch(`${API_URL}/problems/active`)
-
 .then(res => res.json())
-
 .then(data => {
 
     console.log(data);
 
-
     data.forEach(problem => {
 
-
-        let color;
-
-
-        if(problem.status === "new") {
-
-            color = "red";
-
-        }
-
-        else if(problem.status === "in_progress") {
-
-            color = "orange";
-
-        }
-
-        else if(problem.status === "done") {
-
-            color = "green";
-
-        }
-
-        const icon = problemIcons[problem.type] || "❗";
-
-        let size;
-
-        if (problem.priority === "high") {
-
-            size = 42;
-
-        } else if (problem.priority === "medium") {
-
-            size = 34;
-
-        } else {
-
-            size = 26;
-
-        }
-
-
-        const marker = L.marker(
-            [
-                problem.latitude,
-                problem.longitude
-            ],
-            {
-                icon: L.divIcon({
-
-                    className: "",
-
-                    html: `
-                        <div style="
-                            background:${color};
-                            width:${size}px;
-                            height:${size}px;
-                            border-radius:50%;
-                            display:flex;
-                            align-items:center;
-                            justify-content:center;
-                            font-size:${size * 0.55}px;
-                            border:2px solid white;
-                        ">
-                            ${icon}
-                        </div>
-                    `,
-
-                    iconSize:[size, size],
-
-                    iconAnchor:[size / 2, size / 2]
-
-                })
-            }
-        )
-        .addTo(map);
+        const marker = createProblemMarker(problem)
+            .addTo(map);
 
         if (problem.id == selectedProblemId) {
 
@@ -135,12 +44,10 @@ fetch(`${API_URL}/problems/active`)
 
         }
 
-
-
         marker.bindPopup(`
 
             <b>
-            ${icon} ${problem.type}
+            ${getProblemIcon(problem.type)} ${problem.type}
             </b>
 
             <br><br>
@@ -161,7 +68,7 @@ fetch(`${API_URL}/problems/active`)
             <br><br>
 
             Статус:
-            ${problem.status}
+            ${getStatusName(problem.status)}
 
         `);
 
@@ -173,8 +80,6 @@ fetch(`${API_URL}/problems/active`)
 
         }
 
-
     });
-
 
 });

@@ -135,16 +135,6 @@ L.tileLayer(
 }
 ).addTo(map);
 
-const problemIcons = {
-
-        "подтопление": "🌊",
-        "мусор": "🗑",
-        "яма": "🕳",
-        "освещение": "💡"
-
-    };
-
-
 // получаем проблемы из нашего API
 fetch(`${API_URL}/problems/active`)
 .then(response => response.json())
@@ -156,82 +146,40 @@ fetch(`${API_URL}/problems/active`)
             return;
         }
 
-        let color;
-
-        if (problem.status === "new") {
-            color = "red";
-        }
-        else if (problem.status === "in_progress") {
-            color = "orange";
-        }
-        else {
-            color = "green";
-        }
-
-
-        const icon = problemIcons[problem.type] || "❗";
-
-
-        const marker = L.marker(
-        [
-            problem.latitude,
-            problem.longitude
-        ],
-        {
-            icon: L.divIcon({
-
-                className: "",
-
-                html: `
-                    <div style="
-                        background:${color};
-                        width:32px;
-                        height:32px;
-                        border-radius:50%;
-                        display:flex;
-                        align-items:center;
-                        justify-content:center;
-                        font-size:18px;
-                        border:2px solid white;
-                    ">
-                        ${icon}
-                    </div>
-                `,
-
-                iconSize:[32,32],
-                iconAnchor:[16,16]
-
-            })
-        })
-        .addTo(map);
-
+        const marker = createProblemMarker(problem)
+            .addTo(map);
 
         marker.bindPopup(`
+
             <b>${problem.type}</b><br>
             ${problem.description}<br><br>
 
-            📅 <b>Дата:</b> ${new Date(problem.created_at).toLocaleDateString("ru-RU")}<br>
-            📍 <b>Адрес:</b> ${problem.address || "не определён"}
+            📅 <b>Дата:</b>
+            ${new Date(problem.created_at).toLocaleDateString("ru-RU")}<br>
+
+            📍 <b>Адрес:</b>
+            ${problem.address || "не определён"}
 
             ${
                 problem.photos && problem.photos.length
-                    ? `
-                    <br><br>
+                ? `
+                <br><br>
 
-                    <div class="popup-gallery">
+                <div class="popup-gallery">
 
-                        ${problem.photos.map((photo, index) => `
-                            <img
-                                src="${photo}"
-                                class="popup-thumb"
-                                onclick="openPhotoViewer($JSON.stringify(problem.photos)}, ${index})'
-                            >
-                        `).join("")}
+                    ${problem.photos.map((photo, index) => `
+                        <img
+                            src="${photo}"
+                            class="popup-thumb"
+                            onclick='openPhotoViewer(${JSON.stringify(problem.photos)}, ${index})'
+                        >
+                    `).join("")}
 
-                    </div>
-                    `
-                    : ""
+                </div>
+                `
+                : ""
             }
+
         `);
 
     });
@@ -761,73 +709,12 @@ document
         }
     );
 
-
     const problem = await response.json();
 
-    function getStatusName(status) {
-
-        if (status === "new")
-            return "🟡 Новая";
-
-        if (status === "in_progress")
-            return "🟠 В работе";
-
-        if (status === "done")
-            return "🟢 Выполнена";
-
-        return status;
-
-    }  
-
-    // добавляем новый постоянный маркер
-
-    let color;
-
-    if (problem.status === "new") {
-        color = "red";
-    }
-    else if (problem.status === "in_progress") {
-        color = "orange";
-    }
-
-
-    const icon = problemIcons[problem.type] || "❗";
-
-
-    const marker = L.marker(
-    [
-        problem.latitude,
-        problem.longitude
-    ],
-    {
-        icon: L.divIcon({
-
-            className: "",
-
-            html: `
-                <div style="
-                    background:${color};
-                    width:32px;
-                    height:32px;
-                    border-radius:50%;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    font-size:18px;
-                    border:2px solid white;
-                ">
-                    ${icon}
-                </div>
-            `,
-
-            iconSize:[32,32],
-            iconAnchor:[16,16]
-
-        })
-    })
-    .addTo(map)
+    const marker = createProblemMarker(problem)
+        .addTo(map);
     marker.bindPopup(`
-        <b>${icon} ${problem.type}</b><br><br>
+        <b>${getProblemIcon(problem.type)} ${problem.type}</b>
 
         ${problem.description}
 
