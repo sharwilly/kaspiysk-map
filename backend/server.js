@@ -501,45 +501,43 @@ app.post(
 
         );
 
+        let address = "Адрес не определён";
+        let landmark = "";
+
         if (!geoResponse.ok) {
 
-    const errorText = await geoResponse.text();
+            const errorText = await geoResponse.text();
 
-        console.log(
-            "Nominatim error:",
-            geoResponse.status,
-            errorText
-        );
-
-        throw new Error("Ошибка получения адреса");
-    }
-
-    let address = "Адрес не определён";
-    let landmark = "";
-
-    try {
-
-        if (geoResponse.ok) {
-
-            const geoData = await geoResponse.json();
-
-            address = formatAddress(
-                geoData.address || {}
+            console.log(
+                "Nominatim error:",
+                geoResponse.status,
+                errorText
             );
 
-            landmark = formatLandmark(
-                geoData
-            );
+        } else {
+
+            try {
+
+                const geoData = await geoResponse.json();
+
+                address = formatAddress(
+                    geoData.address || {}
+                );
+
+                landmark = formatLandmark(
+                    geoData
+                );
+
+            } catch (error) {
+
+                console.log(
+                    "Не удалось определить адрес:",
+                    error.message
+                );
+
+            }
+
         }
-
-    } catch(error) {
-
-        console.log(
-            "Не удалось определить адрес:",
-            error.message
-        );
-
-    }
 
         const result = await pool.query(
             `
