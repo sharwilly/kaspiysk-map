@@ -48,6 +48,7 @@ window.openPhotoViewer = function(photos,index){
 
 }
 
+console.log("Функция объявлена");
 console.log(
     "Проверка:",
     window.openPhotoViewer
