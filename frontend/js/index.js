@@ -34,7 +34,7 @@ let currentPhotoIndex = 0;
 const viewer = document.getElementById("photoViewer");
 const viewerImage = document.getElementById("viewerImage");
 
-
+console.log("Дошли до OPV");
 window.openPhotoViewer = function(photos,index){
 
     currentPhotos = photos;
