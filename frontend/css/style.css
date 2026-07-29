@@ -291,6 +291,10 @@ h1 {
     gap: 15px;
     padding: 10px 20px;
     background: white;
+
+    justify-content: space-between;
+
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .city-logo {
@@ -308,6 +312,20 @@ h1 {
     margin: 3px 0 0;
     color: #666;
     font-size: 14px;
+}
+
+.menu {
+    display: flex;
+    gap: 20px;
+}
+
+.menu a {
+    text-decoration: none;
+    color: #333;
+}
+
+.menu a:hover {
+    color: #0d6efd;
 }
 
 footer {
