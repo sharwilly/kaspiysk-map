@@ -916,9 +916,6 @@ document
 const photoInput = document.getElementById("photos");
 const photoPreview = document.getElementById("photoPreview");
 
-let selectedPhotos = [];
-
-
 photoInput.addEventListener("change", () => {
 
     const files = Array.from(photoInput.files);
