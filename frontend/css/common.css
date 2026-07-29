@@ -67,3 +67,83 @@
     color:#0d6efd;
 
 }
+
+.header {
+
+    display:flex;
+
+    align-items:center;
+
+    gap:15px;
+
+    padding:10px 20px;
+
+    background:white;
+
+    box-shadow:
+    0 2px 8px rgba(0,0,0,0.1);
+
+}
+
+
+.city-logo {
+
+    width:60px;
+
+    height:60px;
+
+    object-fit:contain;
+
+}
+
+
+.header-title {
+
+    flex:1;
+
+}
+
+
+.header h1 {
+
+    margin:0;
+
+    font-size:28px;
+
+}
+
+
+.header p {
+
+    margin:3px 0 0;
+
+    color:#666;
+
+    font-size:14px;
+
+}
+
+
+.menu {
+
+    display:flex;
+
+    gap:20px;
+
+}
+
+
+.menu a {
+
+    text-decoration:none;
+
+    color:#333;
+
+}
+
+
+.menu a:hover {
+
+    color:#0d6efd;
+
+}
