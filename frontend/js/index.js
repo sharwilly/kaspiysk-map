@@ -48,6 +48,11 @@ window.openPhotoViewer = function(photos,index){
 
 }
 
+console.log(
+    "Проверка:",
+    window.openPhotoViewer
+);
+
 
 function closePhotoViewer(){
 
