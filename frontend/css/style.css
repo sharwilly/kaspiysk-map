@@ -9,7 +9,7 @@ h1 {
 
 #container {
     display: flex;
-    height: 600px;
+    height: calc(100vh - 80px);
 }
 
 
