@@ -17,8 +17,6 @@
 
     align-items:center;
 
-    justify-content:space-between;
-
     padding:0 30px;
 
     box-sizing:border-box;
@@ -100,6 +98,8 @@
 .header-title {
 
     flex:1;
+
+    white-space: nowrap;
 
 }
 
