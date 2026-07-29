@@ -17,14 +17,42 @@ let selectedTooltip = null;
 
 function shortAddress(item){
 
-const addr = item.address;
+    const addr = item.address;
 
-if (!addr) {
+    if (!addr) {
+        return item.display_name;
+    }
+
+
+    let street = addr.road;
+
+    if (street) {
+
+        if (street.startsWith("улица ")) {
+            street = street.replace("улица ", "ул. ");
+        }
+
+        if (street.startsWith("проспект ")) {
+            street = street.replace("проспект ", "пр-т ");
+        }
+
+        if (street.startsWith("переулок ")) {
+            street = street.replace("переулок ", "пер. ");
+        }
+
+    }
+
+
+    if (street && addr.house_number) {
+
+        return `${street}, ${addr.house_number}`;
+
+    }
+
+
     return item.display_name;
+
 }
-
-
-let street = addr.road;
 
 let selectedPhotos = [];
 let currentPhotos = [];
@@ -103,35 +131,6 @@ document
 document
 .getElementById("prevPhoto")
 .onclick = showPrevPhoto;
-
-
-if (street) {
-
-    if (street.startsWith("улица ")) {
-        street = street.replace("улица ", "ул. ");
-    }
-
-    if (street.startsWith("проспект ")) {
-        street = street.replace("проспект ", "пр-т ");
-    }
-
-    if (street.startsWith("переулок ")) {
-        street = street.replace("переулок ", "пер. ");
-    }
-
-}
-
-
-if (street && addr.house_number) {
-
-    return `${street}, ${addr.house_number}`;
-
-}
-
-
-return item.display_name;
-
-}
 
 // подключаем подложку OpenStreetMap
 L.tileLayer(
