@@ -33,7 +33,8 @@ async function parseTelegram() {
                 text.includes("Фидер") ||
                 text.includes("фидер") ||
                 text.includes("отключение электроснабжения") ||
-                text.includes("ограничение электроснабжения")
+                text.includes("ограничение электроснабжения") ||
+                text.includes("горэлектросетей")
             ){
 
                 messages.push(text);
