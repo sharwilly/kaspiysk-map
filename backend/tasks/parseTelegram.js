@@ -20,6 +20,40 @@ async function parseTelegram() {
 
         const $ = cheerio.load(response.data);
 
+        const messages = [];
+
+        $(".tgme_widget_message_text").each((i, el)=>{
+
+            const text = $(el)
+                .text()
+                .trim();
+
+
+            if(
+                text.includes("Фидер") ||
+                text.includes("фидер")
+            ){
+
+                messages.push(text);
+
+            }
+
+        });
+
+
+        console.log(
+            "Найдено сообщений:",
+            messages.length
+        );
+
+
+        messages.forEach(msg=>{
+
+            console.log("----------------");
+            console.log(msg);
+
+        });
+
 
         $(".tgme_widget_message_text").each((i, el)=>{
 
