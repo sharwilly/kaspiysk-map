@@ -8,9 +8,13 @@ fetch("components/header.html")
 
     const currentPage = document.body.dataset.page;
 
+    console.log("Текущая страница:", currentPage);
+
     const activeLink = document.querySelector(
         `.menu a[data-page="${currentPage}"]`
     );
+
+    console.log("Найдена ссылка:", activeLink);
 
     if (activeLink) {
         activeLink.classList.add("active");
