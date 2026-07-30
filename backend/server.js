@@ -4,6 +4,8 @@ require("dotenv").config();
 
 const cloudinary = require("cloudinary").v2;
 
+const parseTelegram = require("./tasks/parseTelegram");
+
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -898,3 +900,10 @@ app.put("/problems/:id/priority", adminAuth, async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Сервер запущен на порту ${PORT}`);
 });
+
+parseTelegram();
+
+setInterval(
+    parseTelegram,
+    5 * 60 * 1000
+);
