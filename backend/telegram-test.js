@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const { TelegramClient } = require("telegram");
 const { StringSession } = require("telegram/sessions");
 
@@ -13,7 +15,8 @@ const client = new TelegramClient(
     apiId,
     apiHash,
     {
-        connectionRetries: 5
+        connectionRetries: 10,
+        useWSS: true
     }
 );
 
