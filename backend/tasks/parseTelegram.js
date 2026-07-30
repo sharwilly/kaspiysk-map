@@ -2,6 +2,9 @@ const cheerio = require("cheerio");
 
 const axios = require("axios");
 
+const parseOutage = require("../utils/parseOutage");
+const saveOutage = require("../saveOutage");
+
 
 async function parseTelegram() {
 
@@ -50,10 +53,14 @@ async function parseTelegram() {
             "Найдено сообщений:",
             messages.length
         );
-        messages.forEach(msg=>{
+        messages.forEach(async msg=>{
+
+            const outage = parseOutage(msg);
 
             console.log("----------------");
-            console.log(msg);
+            console.log(outage);
+
+            await saveOutage(outage);
 
         });
 
@@ -68,6 +75,5 @@ async function parseTelegram() {
     }
 
 }
-
 
 module.exports = parseTelegram;
