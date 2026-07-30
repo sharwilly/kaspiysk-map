@@ -47,10 +47,14 @@ async function parseTelegram() {
                     .attr("data-post");
 
 
-                messages.push({
-                    text: text,
-                    telegram_id: postId
-                });
+                if(postId){
+
+                    messages.push({
+                        text: text,
+                        telegram_id: postId
+                    });
+
+                }
 
             }
 
@@ -61,7 +65,8 @@ async function parseTelegram() {
             "Найдено сообщений:",
             messages.length
         );
-        messages.forEach(async msg=>{
+        
+        for (const msg of messages) {
 
             const outage = parseOutage(msg.text);
 
@@ -72,7 +77,7 @@ async function parseTelegram() {
 
             await saveOutage(outage);
 
-        });
+        }
 
 
     } catch(error){
