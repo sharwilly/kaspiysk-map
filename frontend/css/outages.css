@@ -1,0 +1,51 @@
+.outages-page {
+
+    padding:30px;
+
+}
+
+
+.outage-card {
+
+    background:white;
+
+    border-radius:12px;
+
+    padding:20px;
+
+    margin-bottom:20px;
+
+    box-shadow:
+    0 2px 10px rgba(0,0,0,0.1);
+
+}
+
+
+.outage-card h2 {
+
+    margin-top:0;
+
+}
+
+
+.outage-active {
+
+    color:#d35400;
+
+    font-weight:bold;
+
+}
+
+
+.address-list {
+
+    margin-top:10px;
+
+}
+
+
+.address-list div {
+
+    margin-bottom:5px;
+
+}
