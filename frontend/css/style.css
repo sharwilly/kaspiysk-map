@@ -316,12 +316,33 @@ body {
 }
 
 .menu a {
+
     text-decoration: none;
+
     color: #333;
+
+    padding: 8px 14px;
+
+    border-radius: 8px;
+
+    transition: 0.2s;
+
 }
 
 .menu a:hover {
     color: #0d6efd;
+
+    background: #eef5ff;
+}
+
+.menu a.active {
+
+    color: white;
+
+    background: #0d6efd;
+
+    font-weight: 600;
+
 }
 
 footer {
@@ -493,4 +514,28 @@ footer {
 
 .hidden {
     display: none;
+}
+
+.menu a.active {
+
+    color: white;
+
+    background: #0d6efd;
+
+    padding: 8px 14px;
+
+    border-radius: 8px;
+
+    font-weight: 600;
+
+}
+
+.menu a {
+
+    padding: 8px 14px;
+
+    border-radius: 8px;
+
+    transition: 0.2s;
+
 }

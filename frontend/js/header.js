@@ -6,4 +6,14 @@ fetch("components/header.html")
     .getElementById("header-container")
     .innerHTML = data;
 
+    const currentPage = document.body.dataset.page;
+
+    const activeLink = document.querySelector(
+        `.menu a[data-page="${currentPage}"]`
+    );
+
+    if (activeLink) {
+        activeLink.classList.add("active");
+    }
+
 });
