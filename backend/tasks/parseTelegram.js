@@ -5,6 +5,8 @@ const axios = require("axios");
 
 async function parseTelegram() {
 
+    console.log("НОВАЯ ВЕРСИЯ ПАРСЕРА ЗАПУЩЕНА");
+
     try {
 
         console.log("Проверка Telegram...");
