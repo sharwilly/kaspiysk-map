@@ -341,12 +341,11 @@ app.get("/outages", async (req, res) => {
 
     } catch(error) {
 
-        console.log("Ошибка загрузки отключений:", error);
+        console.error("Ошибка загрузки отключений:", error);
 
         res.status(500).json({
             error: "Ошибка сервера"
         });
-
     }
 
 });
