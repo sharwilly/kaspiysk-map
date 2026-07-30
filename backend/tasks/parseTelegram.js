@@ -50,23 +50,10 @@ async function parseTelegram() {
             "Найдено сообщений:",
             messages.length
         );
-
-
         messages.forEach(msg=>{
 
             console.log("----------------");
             console.log(msg);
-
-        });
-
-
-        $(".tgme_widget_message_text").each((i, el)=>{
-
-            console.log("----------------");
-
-            console.log(
-                $(el).text().trim()
-            );
 
         });
 
