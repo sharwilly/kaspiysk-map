@@ -31,7 +31,9 @@ async function parseTelegram() {
 
             if(
                 text.includes("Фидер") ||
-                text.includes("фидер")
+                text.includes("фидер") ||
+                text.includes("отключение электроснабжения") ||
+                text.includes("ограничение электроснабжения")
             ){
 
                 messages.push(text);
