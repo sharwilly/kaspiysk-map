@@ -5,6 +5,36 @@ async function saveOutage(outage) {
 
     try {
 
+
+        // Проверяем, было ли это сообщение уже сохранено
+        if (outage.telegram_id) {
+
+            const exists = await pool.query(
+                `
+                SELECT id 
+                FROM power_outages
+                WHERE telegram_id = $1
+                `,
+                [
+                    outage.telegram_id
+                ]
+            );
+
+
+            if (exists.rows.length > 0) {
+
+                console.log(
+                    "⏭ Сообщение уже есть, пропускаем:",
+                    outage.telegram_id
+                );
+
+                return;
+
+            }
+
+        }
+
+
         await pool.query(
             `
             INSERT INTO power_outages
@@ -15,10 +45,11 @@ async function saveOutage(outage) {
                 description,
                 addresses,
                 restore_time,
-                status
+                status,
+                telegram_id
             )
             VALUES
-            ($1,$2,$3,$4,$5,$6,$7)
+            ($1,$2,$3,$4,$5,$6,$7,$8)
             `,
             [
                 outage.type,
@@ -27,7 +58,8 @@ async function saveOutage(outage) {
                 outage.description,
                 outage.addresses,
                 outage.restore_time,
-                outage.status
+                outage.status,
+                outage.telegram_id
             ]
         );
 

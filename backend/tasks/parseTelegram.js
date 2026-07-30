@@ -42,7 +42,15 @@ async function parseTelegram() {
                 text.includes("горэлектросетей")
             ){
 
-                messages.push(text);
+                const postId = $(el)
+                    .closest(".tgme_widget_message")
+                    .attr("data-post");
+
+
+                messages.push({
+                    text: text,
+                    telegram_id: postId
+                });
 
             }
 
@@ -55,7 +63,9 @@ async function parseTelegram() {
         );
         messages.forEach(async msg=>{
 
-            const outage = parseOutage(msg);
+            const outage = parseOutage(msg.text);
+
+            outage.telegram_id = msg.telegram_id;
 
             console.log("----------------");
             console.log(outage);
