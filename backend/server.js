@@ -320,6 +320,35 @@ app.get("/problems/counts", async (req, res) => {
 
 });
 
+app.get("/outages", async (req, res) => {
+
+    try {
+
+        const result = await pool.query(
+            `
+            SELECT *
+            FROM power_outages
+            WHERE status = 'active'
+            ORDER BY created_at DESC
+            `
+        );
+
+
+        res.json(result.rows);
+
+
+    } catch(error) {
+
+        console.log("Ошибка загрузки отключений:", error);
+
+        res.status(500).json({
+            error: "Ошибка сервера"
+        });
+
+    }
+
+});
+
 function formatAddress(address) {
 
     if (!address) {
