@@ -47,7 +47,7 @@ function parseOutage(text) {
 
     // Вариант 1: "Затронутые улицы: ..."
     let addressMatch =
-        text.match(/(?:адреса:|улицы:|попали следующие адреса:|Под отключения попали)\s*(.*?)(?:\.|Ориентировочное|$)/is);
+        text.match(/(?:адреса:|улицы:|попали следующие адреса:|Под отключения попали)\s+([\s\S]*?)(?=\nОриентировочное|$)/i);
 
 
 
@@ -63,6 +63,7 @@ function parseOutage(text) {
     if (addressMatch) {
 
         result.addresses = addressMatch[1]
+            .replace(/\.$/, "")
             .replace(/\s+и\s+/gi, ", ")
             .split(",")
             .map(a => a.trim())
