@@ -22,6 +22,18 @@ async function parseTelegram() {
             }
         );
 
+        console.log("Есть сообщения:",
+            response.data.includes("tgme_widget_message")
+        );
+
+        console.log("Количество .tgme_widget_message:",
+            $(".tgme_widget_message").length
+        );
+
+        console.log("Количество .tgme_widget_message_text:",
+            $(".tgme_widget_message_text").length
+        );
+
 
         const $ = cheerio.load(response.data);
 
