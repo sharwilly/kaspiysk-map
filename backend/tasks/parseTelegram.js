@@ -53,6 +53,25 @@ async function parseTelegram() {
 
             const lower = text.toLowerCase();
 
+            if (
+                lower.includes("завершены") ||
+                lower.includes("восстановлено") ||
+                lower.includes("аварийно-восстановительные")
+            ) {
+
+                const message = $(el);
+
+                console.log("========== ЗАВЕРШЕНИЕ ==========");
+                console.log("POST:", message.attr("data-post"));
+
+                console.log("REPLY HTML:");
+                console.log(message.find(".tgme_widget_message_reply").html());
+
+                console.log("REPLY TEXT:");
+                console.log(message.find(".tgme_widget_message_reply").text());
+
+                console.log("================================");
+            }
 
             if(
                 lower.includes("фидер") ||
