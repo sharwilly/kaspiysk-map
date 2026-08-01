@@ -33,6 +33,19 @@ async function parseTelegram() {
                 .text()
                 .trim();
 
+            if (text.includes("завершены")) {
+
+                const message = $(el).closest(".tgme_widget_message");
+
+                console.log("POST:", message.attr("data-post"));
+
+                console.log("ATTRS:", message.attr());
+
+                console.log("REPLY:");
+                console.log(message.find(".tgme_widget_message_reply").html());
+
+            }
+
 
             if(
                 text.includes("Фидер") ||
@@ -59,6 +72,7 @@ async function parseTelegram() {
             }
 
         });
+        
 
 
         console.log(
