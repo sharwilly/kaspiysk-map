@@ -38,47 +38,36 @@ async function parseTelegram() {
 
         const messages = [];
 
-        $(".tgme_widget_message_text").each((i, el)=>{
+        $(".tgme_widget_message").each((i, el)=>{
 
             const text = $(el)
+                .find(".tgme_widget_message_text")
                 .text()
                 .trim();
 
-            if (text.includes("завершены")) {
+            console.log("Сообщение", i, ":", text.substring(0,100));
 
-                const message = $(el).closest(".tgme_widget_message");
 
-                console.log("POST:", message.attr("data-post"));
+            if(!text) return;
 
-                console.log("ATTRS:", message.attr());
 
-                console.log("REPLY:");
-                console.log(message.find(".tgme_widget_message_reply").html());
-
-            }
+            const lower = text.toLowerCase();
 
 
             if(
-                text.includes("Фидер") ||
-                text.includes("фидер") ||
-                text.includes("отключение электроснабжения") ||
-                text.includes("ограничение электроснабжения") ||
-                text.includes("горэлектросетей")
+                lower.includes("фидер") ||
+                lower.includes("отключение электроснабжения") ||
+                lower.includes("ограничение электроснабжения") ||
+                lower.includes("горэлектросет")
             ){
 
-                const postId = $(el)
-                    .closest(".tgme_widget_message")
-                    .attr("data-post");
+                const postId = $(el).attr("data-post");
 
 
-                if(postId){
-
-                    messages.push({
-                        text: text,
-                        telegram_id: postId
-                    });
-
-                }
+                messages.push({
+                    text,
+                    telegram_id: postId
+                });
 
             }
 
