@@ -46,20 +46,22 @@ async function saveOutage(outage) {
                 addresses,
                 restore_time,
                 status,
-                telegram_id
+                telegram_id,
+                source
             )
             VALUES
-            ($1,$2,$3,$4,$5,$6,$7,$8)
+            ($1,$2,$3,$4,$5,$6,$7,$8,$9)
             `,
             [
                 outage.type,
                 outage.feeder,
                 outage.substation,
                 outage.description,
-                outage.addresses,
+                JSON.stringify(outage.addresses),
                 outage.restore_time,
                 outage.status,
-                outage.telegram_id
+                outage.telegram_id,
+                "telegram"
             ]
         );
 

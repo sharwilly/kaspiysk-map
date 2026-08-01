@@ -7,6 +7,7 @@ function parseOutage(text) {
         substation: "",
         description: "",
         addresses: [],
+        address_sourse: null,
         restore_time: null,
         status: "active"
     };
@@ -69,6 +70,9 @@ function parseOutage(text) {
             .split(",")
             .map(a => a.trim())
             .filter(Boolean);
+            if (result.addresses.length) {
+                result.address_source = "telegram";
+            }
 
     }
 
@@ -82,6 +86,7 @@ function parseOutage(text) {
     ) {
 
         result.addresses = [...feederMap[result.feeder]];
+        result.address_source = "feederMap";
 
     }
 

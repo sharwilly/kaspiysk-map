@@ -4,6 +4,7 @@ const axios = require("axios");
 
 const parseOutage = require("../utils/parseOutage");
 const saveOutage = require("../saveOutage");
+const closeOutage = require("../closeOutage");
 
 
 async function parseTelegram() {
@@ -59,6 +60,12 @@ async function parseTelegram() {
 
 
             const lower = text.toLowerCase();
+
+            const replyLink = $(el)
+                .find(".tgme_widget_message_reply a")
+                .attr("href");
+
+            console.log("REPLY LINK:", replyLink);
 
             if (
                 lower.includes("завершены") ||
