@@ -22,9 +22,16 @@ async function parseTelegram() {
             }
         );
 
+        console.log(response.data.length);
+
         console.log("Есть сообщения:",
             response.data.includes("tgme_widget_message")
         );
+        
+
+        const posts = response.data.match(/data-post="/g);
+
+        console.log("Всего data-post:", posts ? posts.length : 0);
 
         const $ = cheerio.load(response.data);
 
