@@ -26,6 +26,8 @@ async function parseTelegram() {
             response.data.includes("tgme_widget_message")
         );
 
+        const $ = cheerio.load(response.data);
+
         console.log("Количество .tgme_widget_message:",
             $(".tgme_widget_message").length
         );
@@ -33,9 +35,6 @@ async function parseTelegram() {
         console.log("Количество .tgme_widget_message_text:",
             $(".tgme_widget_message_text").length
         );
-
-
-        const $ = cheerio.load(response.data);
 
         const messages = [];
 
