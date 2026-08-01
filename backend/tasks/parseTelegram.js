@@ -45,16 +45,6 @@ async function parseTelegram() {
 
         const messages = [];
 
-        const testText = `
-        ⚡️Поступило сообщение от диспетчера горэлектросетей:
-        аварийное отключение Фидера-9 ГПП.
-        Под отключения попали ул. Акулиничева и Рекреационная зона.
-        Ориентировочное время завершения аварийно-восстановительных работ - 17:00
-        `;
-
-        console.log("ТЕСТ PARSE:");
-        console.log(parseOutage(testText));
-
         $(".tgme_widget_message").each((i, el)=>{
 
             const text = $(el)
@@ -91,10 +81,15 @@ async function parseTelegram() {
             }
 
             if(
-                lower.includes("фидер") ||
-                lower.includes("отключение электроснабжения") ||
-                lower.includes("ограничение электроснабжения") ||
-                lower.includes("горэлектросет")
+                !lower.includes("восстановлено") &&
+                !lower.includes("работы завершены") &&
+                !lower.includes("завершены") &&
+                (
+                    lower.includes("фидер") ||
+                    lower.includes("отключение электроснабжения") ||
+                    lower.includes("ограничение электроснабжения") ||
+                    lower.includes("горэлектросет")
+                )
             ){
 
                 const postId = $(el).attr("data-post");

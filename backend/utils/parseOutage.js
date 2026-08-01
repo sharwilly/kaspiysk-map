@@ -1,3 +1,4 @@
+const feederMap = require("./feederMap");
 function parseOutage(text) {
 
     const result = {
@@ -12,7 +13,7 @@ function parseOutage(text) {
 
 
     // Фидер
-    const feederMatch = text.match(/Фидер[а-я]*[-\s]*(\d+)/i);
+    const feederMatch = text.match(/Фидер[а-я]*\s*[-]?\s*(\d+)/i);
 
     if (feederMatch) {
         result.feeder = feederMatch[1];
@@ -68,6 +69,19 @@ function parseOutage(text) {
             .split(",")
             .map(a => a.trim())
             .filter(Boolean);
+
+    }
+
+    // Если адреса не нашли или нашли некорректно — берём из словаря
+
+    if (
+        (!result.addresses.length ||
+        result.addresses.some(a => a.length < 4)) &&
+        result.feeder &&
+        feederMap[result.feeder]
+    ) {
+
+        result.addresses = [...feederMap[result.feeder]];
 
     }
 
