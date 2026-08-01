@@ -35,7 +35,7 @@ function parseOutage(text) {
 
     // Время восстановления
     const timeMatch =
-        text.match(/(?:до|восстановления|работ -)\s*(\d{1,2}:\d{2})/i);
+        text.match(/(?:до|восстановления|работ\s*-\s*|завершения.*?работ\s*-\s*)(\d{1,2}:\d{2})/i);
 
 
     if (timeMatch) {
@@ -44,14 +44,25 @@ function parseOutage(text) {
 
 
     // Адреса
-    const addressMatch =
+
+    // Вариант 1: "Затронутые улицы: ..."
+    let addressMatch =
         text.match(/(?:адреса:|улицы:|попали следующие адреса:)(.*)/i);
+
+
+    // Вариант 2: Telegram "Под отключения попали ..."
+    if (!addressMatch) {
+
+        addressMatch =
+            text.match(/Под отключения попали\s+(.+?)(?:\.|Ориентировочное|$)/i);
+
+    }
 
 
     if (addressMatch) {
 
         result.addresses = addressMatch[1]
-            .replace(" и ", ", ")
+            .replace(/\s+и\s+/g, ", ")
             .split(",")
             .map(a => a.trim().replace(/\.$/, ""))
             .filter(Boolean);
