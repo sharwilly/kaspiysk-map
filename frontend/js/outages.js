@@ -22,11 +22,11 @@ async function loadOutages(type = "active"){
 
     if(type === "done"){
 
-        url = ${API_URL}/outages/done;
+        url = `${API_URL}/outages/done`;
 
     } else {
 
-        url = ${API_URL}/outages;
+        url = `${API_URL}/outages`;
 
     }
 
