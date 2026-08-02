@@ -7,7 +7,7 @@ function parseOutage(text) {
         substation: "",
         description: "",
         addresses: [],
-        address_sourse: null,
+        address_source: null,
         restore_time: null,
         status: "active"
     };
@@ -48,8 +48,9 @@ function parseOutage(text) {
     // Адреса
 
     // Вариант 1: "Затронутые улицы: ..."
-    let addressMatch =
-        text.match(/(?:адреса:|улицы:|попали следующие адреса:|Под отключения попали)\s+([\s\S]*?)(?=\nОриентировочное|$)/i);
+    let addressMatch = text.match(
+        /(?:адреса:|улицы:|попали(?:\s+частично)?(?:\s+следующие)?\s+адреса:?|Под отключения попали(?:\s+частично)?)([\s\S]*?)(?=\n(?:Ориентировочное|Аварийная бригада|Дальнейшая информация|На место выехала|Работы проводятся|$))/i
+    );
 
 
 
@@ -64,15 +65,25 @@ function parseOutage(text) {
 
     if (addressMatch) {
 
-        result.addresses = addressMatch[1]
-            .replace(/\.$/, "")
+        let addressesText = addressMatch[1];
+
+        addressesText = addressesText
+            .replace(/Аварийная бригада.*$/i, "")
+            .replace(/Дальнейшая информация.*$/i, "")
+            .replace(/Ориентировочное время.*$/i, "")
+            .replace(/На место выехала.*$/i, "")
+            .replace(/Работы проводятся.*$/i, "")
+            .replace(/\.$/, "");
+
+        result.addresses = addressesText
             .replace(/\s+и\s+/gi, ", ")
             .split(",")
             .map(a => a.trim())
             .filter(Boolean);
-            if (result.addresses.length) {
-                result.address_source = "telegram";
-            }
+
+        if (result.addresses.length) {
+            result.address_source = "telegram";
+        }
 
     }
 
