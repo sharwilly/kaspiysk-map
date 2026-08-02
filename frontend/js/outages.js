@@ -144,7 +144,7 @@ ${outage.restore_time || "не указано"}
 ${
 (outage.addresses || [])
 .map(address =>
-<div>${address}</div>
+    `<div>${address}</div>`
 )
 .join("")
 }
