@@ -350,6 +350,36 @@ app.get("/outages", async (req, res) => {
 
 });
 
+app.get("/outages/active", async (req,res)=>{
+
+    const result = await pool.query(
+        `
+        SELECT *
+        FROM power_outages
+        WHERE status='active'
+        ORDER BY created_at DESC
+        `
+    );
+
+    res.json(result.rows);
+
+});
+
+app.get("/outages/done", async (req,res)=>{
+
+    const result = await pool.query(
+        `
+        SELECT *
+        FROM power_outages
+        WHERE status='done'
+        ORDER BY created_at DESC
+        `
+    );
+
+    res.json(result.rows);
+
+});
+
 function formatAddress(address) {
 
     if (!address) {
