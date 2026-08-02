@@ -57,7 +57,7 @@ async function saveOutage(outage) {
                 outage.feeder,
                 outage.substation,
                 outage.description,
-                JSON.stringify(outage.addresses),
+                outage.addresses,
                 outage.restore_time,
                 outage.status,
                 outage.telegram_id,
