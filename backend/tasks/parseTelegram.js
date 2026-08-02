@@ -45,6 +45,7 @@ async function parseTelegram() {
         );
 
         const messages = [];
+        const completed = [];
 
         $(".tgme_widget_message").each((i, el)=>{
 
@@ -75,16 +76,31 @@ async function parseTelegram() {
 
                 const message = $(el);
 
-                console.log("========== ЗАВЕРШЕНИЕ ==========");
-                console.log("POST:", message.attr("data-post"));
+                const replyText = message
+                    .find(".tgme_widget_message_reply")
+                    .text()
+                    .trim();
 
-                console.log("REPLY HTML:");
-                console.log(message.find(".tgme_widget_message_reply").html());
 
-                console.log("REPLY TEXT:");
-                console.log(message.find(".tgme_widget_message_reply").text());
+                if (replyText) {
 
-                console.log("================================");
+                    const oldOutage = parseOutage(replyText);
+
+                    console.log(
+                        "НАЙДЕНО ЗАВЕРШЕНИЕ ФИДЕРА:",
+                        oldOutage.feeder
+                    );
+
+                    if (oldOutage.feeder) {
+
+                        completed.push({
+                            feeder: oldOutage.feeder
+                        });
+
+                    }
+
+                }
+
             }
 
             if(
@@ -128,6 +144,17 @@ async function parseTelegram() {
             console.log(outage);
 
             await saveOutage(outage);
+
+        }
+
+        for (const item of completed) {
+
+            console.log(
+                "Закрываем фидер:",
+                item.feeder
+            );
+
+            await closeOutage(item.feeder);
 
         }
 
