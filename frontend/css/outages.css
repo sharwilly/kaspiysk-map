@@ -1,51 +1,248 @@
+/* ===========================
+   Страница отключений
+=========================== */
+
 .outages-page {
 
-    padding:30px;
+    max-width: 1000px;
+
+    margin: 0 auto;
+
+    padding: 30px 20px;
 
 }
 
+
+.outages-page h1 {
+
+    margin-bottom: 25px;
+
+    font-size: 32px;
+
+    color: #222;
+
+}
+
+
+/* ===========================
+   Карточка отключения
+=========================== */
 
 .outage-card {
 
-    background:white;
+    background: #ffffff;
 
-    border-radius:12px;
+    border-radius: 16px;
 
-    padding:20px;
+    padding: 22px;
 
-    margin-bottom:20px;
+    margin-bottom: 20px;
 
     box-shadow:
-    0 2px 10px rgba(0,0,0,0.1);
+        0 4px 15px rgba(0,0,0,0.08);
+
+    border-left: 5px solid #e74c3c;
+
+    transition: 0.2s ease;
 
 }
 
+
+.outage-card:hover {
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 6px 20px rgba(0,0,0,0.12);
+
+}
+
+
+
+/* Заголовок */
 
 .outage-card h2 {
 
-    margin-top:0;
+    margin: 0 0 12px 0;
+
+    font-size: 24px;
+
+    color: #333;
 
 }
 
 
+
+/* Активное отключение */
+
 .outage-active {
 
-    color:#d35400;
+    display: inline-block;
 
-    font-weight:bold;
+    background: #ffe5e5;
+
+    color: #c0392b;
+
+    font-weight: bold;
+
+    padding: 6px 12px;
+
+    border-radius: 20px;
+
+    margin-bottom: 15px;
+
+}
+
+
+
+/* Описание */
+
+.outage-card p {
+
+    font-size: 16px;
+
+    line-height: 1.5;
+
+    color: #555;
+
+}
+
+
+
+/* Время восстановления */
+
+.outage-card p:nth-of-type(2) {
+
+    background:#f7f7f7;
+
+    padding:10px 14px;
+
+    border-radius:10px;
+
+}
+
+
+
+/* ===========================
+   Адреса
+=========================== */
+
+.outage-card h3 {
+
+    margin-top:20px;
+
+    margin-bottom:10px;
+
+    font-size:18px;
+
+    color:#333;
 
 }
 
 
 .address-list {
 
-    margin-top:10px;
+    background:#f8f9fa;
+
+    border-radius:12px;
+
+    padding:12px 15px;
 
 }
 
 
 .address-list div {
 
-    margin-bottom:5px;
+    padding:8px 0;
+
+    border-bottom:1px solid #e5e5e5;
+
+    color:#444;
+
+    font-size:15px;
+
+}
+
+
+.address-list div:last-child {
+
+    border-bottom:none;
+
+}
+
+
+
+/* ===========================
+   Нет отключений
+=========================== */
+
+#outagesList > p {
+
+    background:white;
+
+    padding:25px;
+
+    border-radius:12px;
+
+    text-align:center;
+
+    color:#666;
+
+    box-shadow:
+        0 3px 12px rgba(0,0,0,0.08);
+
+}
+
+
+
+/* ===========================
+   Мобильная версия
+=========================== */
+
+@media (max-width:600px) {
+
+
+    .outages-page {
+
+        padding:20px 12px;
+
+    }
+
+
+    .outages-page h1 {
+
+        font-size:24px;
+
+    }
+
+
+    .outage-card {
+
+        padding:16px;
+
+        border-radius:12px;
+
+    }
+
+
+    .outage-card h2 {
+
+        font-size:20px;
+
+    }
+
+
+    .outage-card p {
+
+        font-size:14px;
+
+    }
+
+
+    .address-list div {
+
+        font-size:14px;
+
+    }
 
 }
