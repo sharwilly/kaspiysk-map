@@ -202,6 +202,14 @@ function loadCounts() {
             document.getElementById("archiveCount").innerText = data.archive;
 
         });
+    fetch(`${API}/outages`)
+    .then(r=>r.json())
+    .then(data=>{
+
+        document.getElementById("outageCount").innerText =
+            data.length;
+
+    });
 
 }
 
@@ -426,12 +434,25 @@ function createProblemCard(problem) {
 
         </div>
 
+        ${
+        !problem.outage
+        ?
+        `
         <p>
-            <a class="admin-button" href="admin_map.html?id=${problem.id}">
-                📍 Открыть на карте
-            </a>
+        <a class="admin-button"
+        href="admin_map.html?id=${problem.id}">
+        📍 Открыть на карте
+        </a>
         </p>
+        `
+        :
+        ""
+        }
 
+        ${
+        !problem.outage
+        ?
+        `
         <p>
             Приоритет:
 
@@ -464,6 +485,11 @@ function createProblemCard(problem) {
             </button>
 
         </p>
+         `
+        :
+        ""
+        }
+
 
         ${
             problem.status === "new"
@@ -940,6 +966,9 @@ function loadOutages(){
 
     });
 
+    document.getElementById("outageCount").innerText =
+        data.length;
+
 }
 
 
@@ -1084,6 +1113,20 @@ refreshProblems();
 
 loadOutagesAdmin();
 
+
+}
+
+async function finishOutage(id){
+
+    if(!confirm("Закрыть отключение?")){
+        return;
+    }
+
+    await apiRequest(`/outages/${id}/done`,{
+        method:"PUT"
+    });
+
+    loadOutages();
 
 }
 
