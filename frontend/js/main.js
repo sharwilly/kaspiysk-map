@@ -42,3 +42,45 @@ fetch(`${API_URL}/outages`)
     console.log(error);
 
 });
+
+function loadProblemsSummary(){
+
+    fetch(`${API}/problems/counts`)
+    .then(response => response.json())
+    .then(data => {
+
+        const count = data.active;
+
+        let icon = "🟢";
+
+
+        if(count >= 50 && count < 100){
+
+            icon = "🟡";
+
+        }
+
+
+        if(count >= 100){
+
+            icon = "🔴";
+
+        }
+
+
+        document.getElementById("problemsSummary").innerHTML =
+            `${icon} Количество проблем: ${count}`;
+
+    })
+    .catch(error => {
+
+        console.error(error);
+
+        document.getElementById("problemsSummary").innerHTML =
+            "⚪ Нет данных";
+
+    });
+
+}
+
+loadProblemsSummary();
