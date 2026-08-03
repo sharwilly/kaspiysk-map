@@ -904,6 +904,44 @@ onclick="closeOutageAdmin(${outage.id})">
 
 }
 
+function loadOutages(){
+
+    currentMode="outages";
+
+    fetch(`${API}/outages`)
+    .then(r=>r.json())
+    .then(data=>{
+
+        currentData=data.map(outage=>({
+
+            id:outage.id,
+
+            outage:true,
+
+            type:"электричество",
+
+            feeder:outage.feeder,
+
+            address:
+            outage.addresses.join(", "),
+
+            description:
+            outage.description,
+
+            status:
+            outage.status,
+
+            created_at:
+            outage.created_at
+
+        }));
+
+        showProblems(currentData);
+
+    });
+
+}
+
 
 async function changeStatus(id, status) {
 
