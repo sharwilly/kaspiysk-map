@@ -954,6 +954,20 @@ app.put("/problems/:id/priority", adminAuth, async (req, res) => {
 
 });
 
+app.put("/outages/:id/done", async (req,res)=>{
+
+    await pool.query(`
+        UPDATE power_outages
+        SET status='done'
+        WHERE id=$1
+    `,[req.params.id]);
+
+    res.json({
+        success:true
+    });
+
+});
+
 app.put("/admin/outages/:id/done", async(req,res)=>{
 
     try {
