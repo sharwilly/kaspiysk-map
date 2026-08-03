@@ -497,7 +497,7 @@ function createProblemCard(problem) {
         class="done-button"
         onclick="finishOutage(${problem.id})">
 
-        ✅ Завершить вручную
+            Завершить вручную
 
         </button>
         `
