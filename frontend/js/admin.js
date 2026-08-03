@@ -4,6 +4,8 @@ let currentMode = "active";
 
 let currentData = [];
 
+let currentOutages = [];
+
 let filters = {
     search: "",
     status: "",
@@ -208,26 +210,90 @@ function loadActive() {
 
     currentMode = "active";
 
-    fetch(`${API}/problems/active`)
-        .then(response => response.json())
-        .then(data => {
+    Promise.all([
+
+        fetch(`${API}/problems/active`)
+            .then(r => r.json()),
+
+        fetch(`${API}/outages`)
+            .then(r => r.json())
+
+    ])
+    .then(([problems, outages]) => {
 
 
-            document.getElementById("activeCount").innerText = data.length;
+        const outageProblems = outages.map(outage => ({
 
-            currentMode = "active";
-            
-            currentData = data;
+            id: "outage_" + outage.id,
 
-            updateTabs();
+            type: "электричество",
 
-            renderFilters();
+            address:
+                (outage.addresses || []).join(", "),
 
-            connectFilterEvents();
+            description:
+                outage.description,
 
-            applyFilters();
+            priority: "high",
 
-        });
+            status:
+                outage.status === "done"
+                ?
+                "done"
+                :
+                "new",
+
+            outage: true,
+
+            feeder:
+                outage.feeder,
+
+            created_at:
+                outage.created_at,
+
+            restore_time:
+                outage.restore_time,
+
+            addresses:
+                outage.addresses
+
+        }));
+
+
+        const all = [
+            ...problems,
+            ...outageProblems
+        ];
+
+
+        document.getElementById("activeCount").innerText =
+            all.length;
+
+
+        currentData = all;
+
+
+        updateTabs();
+
+        renderFilters();
+
+        connectFilterEvents();
+
+        applyFilters();
+
+
+    })
+    .catch(error => {
+
+        console.error(
+            "Ошибка загрузки:",
+            error
+        );
+
+        document.getElementById("problems").innerHTML =
+            "Ошибка загрузки данных";
+
+    });
 
 }
 
@@ -307,6 +373,22 @@ function createProblemCard(problem) {
                 <p>
                 📍 ${problem.address || "Адрес неизвестен"}
                 </p>
+                ${
+                problem.outage
+                ?
+                `
+                <p>
+                ⚡ Фидер-${problem.feeder}
+                </p>
+
+                <p>
+                🕒 Восстановление:
+                ${problem.restore_time || "не указано"}
+                </p>
+                `
+                :
+                ""
+                }
 
                 <p>
                 🕒 Создано:
@@ -733,6 +815,95 @@ function connectFilterEvents() {
 
 }
 
+function showOutagesAdmin(){
+
+
+const container =
+document.getElementById("problems");
+
+
+container.innerHTML +=
+`
+
+<h2>
+⚡ Коммунальные отключения
+</h2>
+
+`;
+
+
+currentOutages.forEach(outage=>{
+
+
+container.innerHTML +=
+`
+
+<div class="problem-card">
+
+
+<h3>
+⚡ Фидер-${outage.feeder}
+</h3>
+
+
+<p>
+Статус:
+${outage.status==="done"
+?
+"✅ Решено"
+:
+"🔴 Активно"
+}
+</p>
+
+
+<p>
+${outage.description}
+</p>
+
+
+<p>
+📍
+
+${outage.addresses.join(", ")}
+
+</p>
+
+
+${
+outage.status==="active"
+
+?
+
+`
+
+<button
+class="done-button"
+onclick="closeOutageAdmin(${outage.id})">
+
+Закрыть вручную
+
+</button>
+
+`
+
+:
+
+""
+
+}
+
+
+</div>
+
+`;
+
+
+});
+
+
+}
+
 
 async function changeStatus(id, status) {
 
@@ -829,6 +1000,52 @@ async function restoreProblem(id) {
     alert("Проблема возвращена в активные");
 
     refreshProblems();
+
+}
+
+async function loadOutagesAdmin(){
+
+
+    const response =
+        await fetch(
+            `${API}/admin/outages`
+        );
+
+
+    currentOutages =
+        await response.json();
+
+
+    showOutagesAdmin();
+
+}
+
+async function closeOutageAdmin(id){
+
+
+await fetch(
+`${API}/admin/outages/${id}/done`,
+{
+
+method:"PUT",
+
+headers:{
+"x-admin-key":
+localStorage.getItem("adminKey")
+}
+
+});
+
+
+alert(
+"Отключение закрыто"
+);
+
+
+refreshProblems();
+
+loadOutagesAdmin();
+
 
 }
 
