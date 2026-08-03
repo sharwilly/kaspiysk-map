@@ -4,8 +4,6 @@ let currentMode = "active";
 
 let currentData = [];
 
-let currentOutages = [];
-
 let filters = {
     search: "",
     status: "",
@@ -864,133 +862,34 @@ function connectFilterEvents() {
 
 }
 
-function showOutagesAdmin(){
-
-
-const container =
-document.getElementById("problems");
-
-
-container.innerHTML +=
-`
-
-<h2>
-⚡ Коммунальные отключения
-</h2>
-
-`;
-
-
-currentOutages.forEach(outage=>{
-
-
-container.innerHTML +=
-`
-
-<div class="problem-card">
-
-
-<h3>
-⚡ Фидер-${outage.feeder}
-</h3>
-
-
-<p>
-Статус:
-${outage.status==="done"
-?
-"✅ Решено"
-:
-"🔴 Активно"
-}
-</p>
-
-
-<p>
-${outage.description}
-</p>
-
-
-<p>
-📍
-
-${outage.addresses.join(", ")}
-
-</p>
-
-
-${
-outage.status==="active"
-
-?
-
-`
-
-<button
-class="done-button"
-onclick="closeOutageAdmin(${outage.id})">
-
-Закрыть вручную
-
-</button>
-
-`
-
-:
-
-""
-
-}
-
-
-</div>
-
-`;
-
-
-});
-
-
-}
-
 function loadOutages(){
 
     currentMode="outages";
 
     fetch(`${API}/outages`)
-    .then(r=>r.json())
-    .then(data=>{
+    .then(r => r.json())
+    .then(data => {
 
-        currentData=data.map(outage=>({
-
-            id:outage.id,
-
-            outage:true,
-
-            type:"электричество",
-
-            feeder:outage.feeder,
-
-            address:
-            outage.addresses.join(", "),
-
-            description:
-            outage.description,
-
-            status:
-            outage.status,
-
-            created_at:
-            outage.created_at
-
+        currentData = data.map(outage => ({
+            id: outage.id,
+            outage: true,
+            type: "электричество",
+            feeder: outage.feeder,
+            address: outage.addresses.join(", "),
+            description: outage.description,
+            status: outage.status,
+            created_at: outage.created_at,
+            restore_time: outage.restore_time
         }));
 
-        showProblems(currentData);
+        document.getElementById("outagesCount").innerText = data.length;
+
+        updateTabs();
+        renderFilters();
+        connectFilterEvents();
+        applyFilters();
 
     });
-
-    document.getElementById("outagesCount").innerText =
-        data.length;
 
 }
 
@@ -1093,39 +992,6 @@ async function restoreProblem(id) {
 
 }
 
-async function loadOutagesAdmin(){
-
-
-    const response =
-        await fetch(
-            `${API}/admin/outages`
-        );
-
-
-    currentOutages =
-        await response.json();
-
-
-    showOutagesAdmin();
-
-}
-
-async function closeOutageAdmin(id){
-
-
-await fetch(
-`${API}/admin/outages/${id}/done`,
-{
-
-method:"PUT",
-
-headers:{
-"x-admin-key":
-localStorage.getItem("adminKey")
-}
-
-});
-
 
 alert(
 "Отключение закрыто"
@@ -1133,11 +999,6 @@ alert(
 
 
 refreshProblems();
-
-loadOutagesAdmin();
-
-
-}
 
 async function finishOutage(id){
 
@@ -1149,6 +1010,7 @@ async function finishOutage(id){
         method:"PUT"
     });
 
+    loadCounts();
     loadOutages();
 
 }
