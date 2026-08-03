@@ -45,7 +45,7 @@ fetch(`${API_URL}/outages`)
 
 function loadProblemsSummary(){
 
-    fetch(`${API}/problems/counts`)
+    fetch(`${API_URL}/problems/counts`)
     .then(response => response.json())
     .then(data => {
 
