@@ -84,3 +84,19 @@ function loadProblemsSummary(){
 }
 
 loadProblemsSummary();
+
+const problemsSummary = document.getElementById("problemsSummary");
+
+if (problemsSummary) {
+
+    loadProblemsSummary();
+
+}
+
+const outageSummary = document.getElementById("outageSummary");
+
+if (outageSummary) {
+
+    loadOutagesSummary();
+
+}
