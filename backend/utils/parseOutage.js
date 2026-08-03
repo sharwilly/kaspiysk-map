@@ -18,13 +18,13 @@ function parseOutage(text) {
     // Фидер
     // =========================
 
-    const feederMatch = text.match(
-        /Фидер[а-я]*\s*[-]?\s*(\d+)/i
-    );
+    const feederMatches = [
+        ...text.matchAll(/Фидер[а-я]*\s*-?\s*(\d+)/gi)
+    ];
 
-    if (feederMatch) {
-        result.feeder = feederMatch[1];
-    }
+    result.feeders = feederMatches.map(m => m[1]);
+
+    result.feeder = result.feeders[0] || null;
 
 
 

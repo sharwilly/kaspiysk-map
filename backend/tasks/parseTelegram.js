@@ -6,6 +6,8 @@ const parseOutage = require("../utils/parseOutage");
 const saveOutage = require("../saveOutage");
 const closeOutage = require("../closeOutage");
 
+const feederMap = require("../utils/feederMap");
+
 
 async function parseTelegram() {
 
@@ -138,12 +140,28 @@ async function parseTelegram() {
 
             const outage = parseOutage(msg.text);
 
-            outage.telegram_id = msg.telegram_id;
+            if (outage.feeders.length > 1) {
 
-            console.log("----------------");
-            console.log(outage);
+                for (const feeder of outage.feeders) {
 
-            await saveOutage(outage);
+                    const item = {
+                        ...outage,
+                        feeder,
+                        addresses: feederMap[feeder] || outage.addresses,
+                        telegram_id: `${msg.telegram_id}_${feeder}`
+                    };
+
+                    await saveOutage(item);
+
+                }
+
+            } else {
+
+                outage.telegram_id = msg.telegram_id;
+
+                await saveOutage(outage);
+
+            }
 
         }
 
