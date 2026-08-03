@@ -92,3 +92,17 @@ header {
     margin-top:30px;
 
 }
+
+.summary {
+
+    margin-top:15px;
+
+    padding-top:10px;
+
+    border-top:1px solid #eee;
+
+    font-size:14px;
+
+    font-weight:600;
+
+}
