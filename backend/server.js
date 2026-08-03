@@ -380,6 +380,34 @@ app.get("/outages/done", async (req,res)=>{
 
 });
 
+app.get("/admin/outages", async (req,res)=>{
+
+    try {
+
+        const result = await pool.query(
+            `
+            SELECT *
+            FROM power_outages
+            ORDER BY created_at DESC
+            `
+        );
+
+
+        res.json(result.rows);
+
+
+    } catch(error){
+
+        console.error(error);
+
+        res.status(500).json({
+            error:"Ошибка загрузки отключений"
+        });
+
+    }
+
+});
+
 function formatAddress(address) {
 
     if (!address) {
@@ -920,6 +948,39 @@ app.put("/problems/:id/priority", adminAuth, async (req, res) => {
 
         res.status(500).json({
             error: error.message
+        });
+
+    }
+
+});
+
+app.put("/admin/outages/:id/done", async(req,res)=>{
+
+    try {
+
+
+        const result = await pool.query(
+            `
+            UPDATE power_outages
+            SET status='done'
+            WHERE id=$1
+            RETURNING *
+            `,
+            [
+                req.params.id
+            ]
+        );
+
+
+        res.json(result.rows[0]);
+
+
+    } catch(error){
+
+        console.error(error);
+
+        res.status(500).json({
+            error:"Ошибка закрытия"
         });
 
     }
