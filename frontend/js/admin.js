@@ -489,10 +489,25 @@ function createProblemCard(problem) {
         :
         ""
         }
+        ${
+        problem.outage && problem.status !== "done"
+        ?
+        `
+        <button
+        class="done-button"
+        onclick="finishOutage(${problem.id})">
+
+        ✅ Завершить вручную
+
+        </button>
+        `
+        :
+        ""
+        }
 
 
         ${
-            problem.status === "new"
+            !problem.outage && problem.status === "new"
             ?
             `
             <button 
@@ -509,7 +524,7 @@ function createProblemCard(problem) {
 
 
         ${
-            problem.status === "in_progress"
+            !problem.outage && problem.status === "in_progress"
             ?
             `
             <button 
@@ -528,7 +543,7 @@ function createProblemCard(problem) {
 
 
         ${
-            problem.status === "done"
+            !problem.outage && problem.status === "done"
             ?
             `
             <button 
