@@ -992,14 +992,6 @@ async function restoreProblem(id) {
 
 }
 
-
-alert(
-"Отключение закрыто"
-);
-
-
-refreshProblems();
-
 async function finishOutage(id){
 
     if(!confirm("Закрыть отключение?")){
