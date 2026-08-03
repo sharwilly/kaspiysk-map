@@ -206,7 +206,7 @@ function loadCounts() {
     .then(r=>r.json())
     .then(data=>{
 
-        document.getElementById("outageCount").innerText =
+        document.getElementById("outagesCount").innerText =
             data.length;
 
     });
@@ -653,7 +653,7 @@ function applyFilters() {
 
 }
 
-function updateTabs(){
+function updateTabs() {
 
     document
         .getElementById("activeTab")
@@ -661,6 +661,14 @@ function updateTabs(){
         .toggle(
             "active",
             currentMode === "active"
+        );
+
+    document
+        .getElementById("outagesTab")
+        .classList
+        .toggle(
+            "active",
+            currentMode === "outages"
         );
 
     document
@@ -981,7 +989,7 @@ function loadOutages(){
 
     });
 
-    document.getElementById("outageCount").innerText =
+    document.getElementById("outagesCount").innerText =
         data.length;
 
 }
