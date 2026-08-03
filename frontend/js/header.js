@@ -1,3 +1,12 @@
+const header = document.getElementById("header-container");
+
+if(header){
+
+    header.innerHTML = `
+        ...
+    `;
+
+}
 fetch("components/header.html")
 .then(response => response.text())
 .then(data => {
