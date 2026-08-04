@@ -23,7 +23,7 @@ body {
 
 .hero {
 
-    min-height:720px;
+    height:700px;
 
     position:relative;
 
@@ -565,7 +565,7 @@ nav a.active {
 .hero-map {
 
 
-    height:560px;
+    height:520px;
 
 
     border-radius:32px;
