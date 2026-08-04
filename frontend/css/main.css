@@ -284,16 +284,20 @@ nav a.active {
 
     grid-template-columns:
 
-    42% 58%;
+    minmax(320px, 40%) minmax(500px, 60%);
 
 
-    gap:30px;
+    gap:40px;
 
 
     padding:
 
-    55px 70px 0;
+    55px 60px 0;
 
+
+    max-width:1600px;
+
+    margin:auto;
 
 
 }
