@@ -31,25 +31,24 @@
 <body data-page="main">
 
 
-
 <div id="header-container"></div>
-
 
 
 
 <main>
 
 
-
 <section class="city-screen">
 
 
-
-    <div class="city-background"></div>
-
+<div class="city-background"></div>
 
 
-    <div class="city-header">
+
+<div class="city-top">
+
+
+    <div class="city-title">
 
 
         <h1>
@@ -67,96 +66,124 @@
 
 
 
-
-    <div class="city-layout">
-
+    <div class="city-tools">
 
 
+        <div class="tool">
 
+            🔔
+            Уведомления
 
-        <div class="search-panel">
-
-
-
-            <h2>
-                Найти объект
-            </h2>
+        </div>
 
 
 
-            <input 
-            type="text"
-            placeholder="Введите адрес..."
-            >
+        <div class="tool">
 
-
-
-            <button>
-                🔍 Найти
-            </button>
-
-
-
-
-            <div class="quick-links">
-
-
-            <a href="index.html" class="main-action">
-
-                ⚠️
-                Сообщить о проблеме
-
-            </a>
-
-
-            <a href="index.html" class="main-action secondary">
-
-                🗺
-                Открыть карту
-
-            </a>
-
-
-            </div>
-
-
+            🌡
+            +28°C
 
         </div>
 
 
 
 
+        <div class="tool">
 
-
-
-        <div class="map-panel">
-
-
-
-            <div id="city-map"></div>
-
-
-
-
-            <a href="index.html" class="open-map">
-
-                🗺 Открыть полную карту
-
-            </a>
-
-
+            👤
+            Войти
 
         </div>
-
-
-
 
 
     </div>
 
 
+</div>
+
+
+
+
+
+<div class="city-layout">
+
+
+
+<div class="search-panel">
+
+
+<h2>
+    Найти объект
+</h2>
+
+
+<input 
+type="text"
+placeholder="Введите адрес..."
+>
+
+
+
+<button>
+🔍 Найти
+</button>
+
+
+
+
+<div class="main-buttons">
+
+
+<a href="index.html">
+
+⚠️
+
+Сообщить о проблеме
+
+
+</a>
+
+
+
+<a href="index.html">
+
+
+🗺
+
+Открыть карту
+
+
+</a>
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+<div class="map-panel">
+
+
+<div id="city-map"></div>
+
+
+
+</div>
+
+
+
+</div>
+
+
+
 
 </section>
+
 
 
 
@@ -165,64 +192,90 @@
 <section class="city-info">
 
 
-    <div class="info-card">
-
-        ⚠️
-
-        <h3>
-            Проблемы города
-        </h3>
-
-        <p id="problemsSummary">
-            Загрузка...
-        </p>
-
-    </div>
+<div class="info-card">
 
 
+<div class="info-icon">
+⚠️
+</div>
 
 
-    <div class="info-card">
+<h3>
+Проблемы города
+</h3>
 
-        ⚡
 
-        <h3>
-            Отключения
-        </h3>
+<p id="problemsSummary">
+Загрузка...
+</p>
 
-        <p id="outageSummary">
-            Загрузка...
-        </p>
 
-    </div>
+</div>
 
 
 
 
 
-    <div class="info-card">
+<div class="info-card">
 
-        🏙
 
-        <h3>
-            Объекты города
-        </h3>
+<div class="info-icon">
+⚡
+</div>
 
-        <p>
-            Скоро доступно
-        </p>
 
-    </div>
+<h3>
+Отключения
+</h3>
+
+
+<p id="outageSummary">
+Загрузка...
+</p>
+
+
+</div>
+
+
+
+
+
+<div class="info-card">
+
+
+<div class="info-icon">
+🏙
+</div>
+
+
+<h3>
+Объекты города
+</h3>
+
+
+<p>
+Скоро доступно
+</p>
+
+
+</div>
 
 
 </section>
+
+
+
+
+
+
 
 <section class="services">
 
 
 <h2>
-    Популярные сервисы
+Популярные сервисы
 </h2>
+
 
 
 
@@ -232,15 +285,14 @@
 <a href="index.html" class="service">
 
 
-    <h3>
-        ⚠️ Проблемы города
-    </h3>
+<h3>
+⚠️ Проблемы
+</h3>
 
 
-    <p>
-        Сообщить о яме,
-        мусоре или освещении
-    </p>
+<p>
+Сообщить о городской проблеме
+</p>
 
 
 </a>
@@ -252,17 +304,18 @@
 <a href="outages.html" class="service">
 
 
-    <h3>
-        ⚡ Отключения
-    </h3>
+<h3>
+⚡ Отключения
+</h3>
 
 
-    <p>
-        Аварийные и плановые работы
-    </p>
+<p>
+Аварийные работы и ограничения
+</p>
 
 
 </a>
+
 
 
 
@@ -271,17 +324,18 @@
 <div class="service">
 
 
-    <h3>
-        🏗 Объекты города
-    </h3>
+<h3>
+🏗 Объекты
+</h3>
 
 
-    <p>
-        Здания и инфраструктура
-    </p>
+<p>
+Инфраструктура города
+</p>
 
 
 </div>
+
 
 
 
@@ -290,17 +344,18 @@
 <a href="about.html" class="service">
 
 
-    <h3>
-        ℹ️ О проекте
-    </h3>
+<h3>
+ℹ️ О проекте
+</h3>
 
 
-    <p>
-        Как работает система
-    </p>
+<p>
+Как работает система
+</p>
 
 
 </a>
+
 
 
 
@@ -309,7 +364,12 @@
 
 </section>
 
+
+
 </main>
+
+
+
 
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -322,8 +382,6 @@
 <script src="js/mainMap.js"></script>
 
 <script src="js/main.js"></script>
-
-
 
 
 </body>
