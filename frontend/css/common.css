@@ -32,13 +32,13 @@
     bottom:0;
 
 
-    width:260px;
+    width:220px;
 
 
     background:white;
 
 
-    padding:30px 20px;
+    padding:25px 15px;
 
 
     z-index:1000;
@@ -57,9 +57,9 @@
 
 .sidebar-logo img {
 
-    width:60px;
+    width:55px;
 
-    height:60px;
+    height:55px;
 
     object-fit:contain;
 
@@ -69,11 +69,15 @@
 
 .sidebar-title h1 {
 
-    font-size:22px;
 
-    margin-top:15px;
+    font-size:20px;
 
-    line-height:1.2;
+
+    margin:15px 0 0;
+
+
+    line-height:1.15;
+
 
 }
 
@@ -163,5 +167,17 @@
     background:#0d6efd;
 
     color:white;
+
+}
+
+.sidebar hr {
+
+    width:100%;
+
+    border:0;
+
+    border-top:1px solid #eee;
+
+    margin:25px 0;
 
 }
