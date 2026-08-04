@@ -20,43 +20,81 @@ header {
 
 .cards {
 
+    max-width:1200px;
+
+    margin:auto;
+
     display:grid;
 
     grid-template-columns:
-    repeat(auto-fit,minmax(250px,1fr));
+    repeat(auto-fit,minmax(280px,1fr));
 
-    gap:20px;
+    gap:25px;
 
-    padding:30px;
+    padding:20px;
 
 }
+
 
 
 .card {
 
     background:white;
 
-    padding:25px;
+    border-radius:24px;
 
-    border-radius:15px;
+    padding:30px;
 
     text-decoration:none;
 
-    color:#222;
+    color:#111;
+
+    min-height:220px;
+
 
     box-shadow:
-    0 4px 12px rgba(0,0,0,0.1);
+    0 10px 30px rgba(0,0,0,.08);
 
-    text-align: center;
-    
-    margin-bottom: 15px;
+
+    transition:.3s;
 
 }
 
 
+
 .card:hover {
 
-    transform:translateY(-3px);
+    transform:translateY(-6px);
+
+}
+
+
+
+.card h2 {
+
+    font-size:24px;
+
+}
+
+
+
+.card p {
+
+    color:#666;
+
+    line-height:1.5;
+
+}
+
+
+
+.summary {
+
+    margin-top:25px;
+
+    font-size:18px;
+
+    font-weight:600;
 
 }
 
@@ -107,5 +145,63 @@ header {
     font-size:14px;
 
     font-weight:600;
+
+}
+
+* {
+    box-sizing: border-box;
+}
+
+
+body {
+
+    margin:0;
+
+    font-family:"Inter", sans-serif;
+
+    background:#f5f7fa;
+
+    color:#1a1a1a;
+
+}
+
+body {
+
+    font-family: "Inter", sans-serif;
+
+}
+
+
+/* главный экран */
+
+.hero {
+
+    max-width:900px;
+
+    margin:60px auto 40px;
+
+    text-align:center;
+
+}
+
+
+.hero h1 {
+
+    font-size:48px;
+
+    font-weight:700;
+
+    margin-bottom:20px;
+
+}
+
+
+.hero p {
+
+    font-size:20px;
+
+    color:#666;
+
+    line-height:1.5;
 
 }
