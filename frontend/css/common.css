@@ -13,59 +13,6 @@
 }
 
 
-.menu {
-    display: flex;
-    gap: 20px;
-}
-
-.menu a {
-
-    text-decoration: none;
-
-    color: #333;
-
-    padding: 8px 14px;
-
-    border-radius: 8px;
-
-    transition: 0.2s;
-
-}
-
-.menu a:hover {
-    color: #0d6efd;
-
-    background: #eef5ff;
-}
-
-.menu a.active {
-
-    color: white;
-
-    background: #0d6efd;
-
-    font-weight: 600;
-
-}
-
-.header {
-
-    display:flex;
-
-    align-items:center;
-
-    gap:15px;
-
-    padding:10px 20px;
-
-    background:white;
-
-    box-shadow:
-    0 2px 8px rgba(0,0,0,0.1);
-
-}
-
-
 .city-logo {
 
     width:60px;
@@ -76,34 +23,156 @@
 
 }
 
+.sidebar {
 
-.header-title {
 
-    flex:1;
+    position:fixed;
+
+
+    left:20px;
+
+    top:20px;
+
+    bottom:20px;
+
+
+    width:230px;
+
+
+
+    background:
+    rgba(255,255,255,.85);
+
+
+    backdrop-filter:
+    blur(20px);
+
+
+
+    border-radius:30px;
+
+
+
+    padding:25px;
+
+
+
+    z-index:1000;
+
+
+
+    box-shadow:
+
+    0 20px 50px rgba(0,0,0,.15);
+
+
+
+    display:flex;
+
+    flex-direction:column;
+
 
 }
 
 
-.header h1 {
 
-    margin:0;
+.sidebar-logo img {
 
-    font-size:28px;
 
-    text-align: left;
+    width:70px;
+
+    height:70px;
+
+    object-fit:contain;
+
+
+}
+
+
+
+.sidebar-title h1 {
+
+
+    font-size:24px;
+
+    line-height:1.2;
 
 }
 
 
-.header p {
 
-    margin:3px 0 0;
+.sidebar-menu {
 
-    color:#666;
 
-    font-size:14px;
+    margin-top:40px;
 
-    text-align: left;
+
+    display:flex;
+
+    flex-direction:column;
+
+
+    gap:10px;
+
 
 }
 
+
+
+.sidebar-menu a {
+
+
+    display:flex;
+
+    align-items:center;
+
+
+    gap:12px;
+
+
+
+    padding:14px;
+
+
+
+    border-radius:15px;
+
+
+
+    text-decoration:none;
+
+
+    color:#333;
+
+
+    font-weight:500;
+
+
+    transition:.2s;
+
+
+}
+
+
+
+.sidebar-menu a:hover {
+
+
+    background:#eef5ff;
+
+
+    color:#0d6efd;
+
+
+}
+
+
+
+.sidebar-menu a.active {
+
+
+    background:#0d6efd;
+
+    color:white;
+
+}
