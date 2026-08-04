@@ -1,36 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+
+<head>
+
+
+<meta charset="UTF-8">
+
+
+<title>
+Открытый Каспийск
+</title>
+
+
+
+<link 
+rel="stylesheet" 
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+
+
+<link rel="stylesheet" href="css/common.css">
+
+<link rel="stylesheet" href="css/main.css">
+
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+
+
+<link 
+href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" 
+rel="stylesheet"
+>
+
+
+
+</head>
+
+
+
+
+<body data-page="main">
+
+
+
+
+
 <main>
 
 
+
 <section class="hero">
+
+
+
 
 
 <div class="hero-bg"></div>
 
 
 
+
+
+
+
+
 <header class="glass-header">
+
+
+
 
 
 <div class="brand">
 
 
-<img src="images/kaspiysk-logo.png">
+
+<img 
+src="images/kaspiysk-logo.png"
+alt="Герб Каспийска"
+>
+
+
 
 
 <div>
+
 
 <h2>
 Открытый Каспийск
 </h2>
 
+
 <span>
 Геоинформационная система
 </span>
 
+
+
 </div>
 
 
 </div>
+
+
+
+
 
 
 
@@ -38,25 +117,45 @@
 
 <nav>
 
-<a class="active">
+
+<a href="main.html" class="active">
+
 Главная
+
 </a>
 
-<a>
+
+
+<a href="index.html">
+
 Карта
+
 </a>
 
-<a>
+
+
+<a href="index.html">
+
 Проблемы
+
 </a>
 
-<a>
+
+
+<a href="outages.html">
+
 Отключения
+
 </a>
 
+
+
 <a>
+
 Объекты
+
 </a>
+
 
 
 </nav>
@@ -66,28 +165,47 @@
 
 
 
+
+
 <div class="header-actions">
 
 
-<span>
+
+<span title="Уведомления">
+
 🔔
+
 </span>
 
 
-<span>
+
+
+<span title="Погода">
+
 🌤 28°
+
 </span>
 
 
-<span>
+
+
+<span title="Авторизация">
+
 👤
+
 </span>
+
 
 
 </div>
 
 
+
+
+
 </header>
+
+
 
 
 
@@ -99,12 +217,18 @@
 
 
 
+
+
 <div class="hero-left">
+
+
+
 
 
 <h1>
 
 Открытый
+
 <br>
 
 Каспийск
@@ -113,10 +237,14 @@
 
 
 
+
+
 <p>
 
 Все городские сервисы
+
 <br>
+
 в одном месте
 
 </p>
@@ -125,13 +253,29 @@
 
 
 
+
+
+
+
 <div class="search-box">
 
 
-<input placeholder="Поиск улицы...">
+
+<input 
+
+type="text"
+
+placeholder="Поиск улицы..."
+
+>
+
 
 
 </div>
+
+
+
+
 
 
 
@@ -140,24 +284,49 @@
 <div class="hero-buttons">
 
 
-<a class="primary">
+
+
+
+<a 
+href="index.html"
+class="primary"
+>
+
 
 ⚠️
+
 Сообщить проблему
 
+
 </a>
 
 
 
-<a class="secondary">
+
+
+<a 
+href="index.html"
+class="secondary"
+>
+
 
 🗺
+
 Открыть карту
 
+
 </a>
+
+
+
+
 
 
 </div>
+
+
+
+
 
 
 
@@ -166,17 +335,25 @@
 <div class="mini-stat">
 
 
+
+
+
 <div>
 
 <b>
 123 000
 </b>
 
+
 <span>
 жителей
 </span>
 
+
 </div>
+
+
+
 
 
 
@@ -186,11 +363,15 @@
 1845
 </b>
 
+
 <span>
 объектов
 </span>
 
+
 </div>
+
+
 
 
 
@@ -201,11 +382,16 @@
 20
 </b>
 
+
 <span>
 проблем
 </span>
 
+
 </div>
+
+
+
 
 
 
@@ -216,18 +402,29 @@
 96%
 </b>
 
+
 <span>
 решено
 </span>
 
-</div>
-
 
 </div>
 
 
 
+
+
 </div>
+
+
+
+
+
+
+
+</div>
+
+
 
 
 
@@ -238,11 +435,20 @@
 <div class="hero-map">
 
 
+
+
+
 <div id="city-map"></div>
 
 
 
+
+
+
+
+
 <div class="layers">
+
 
 
 <b>
@@ -250,9 +456,16 @@
 </b>
 
 
+
 <label>
 ☑ Дороги
 </label>
+
+
+<label>
+☑ Отключения
+</label>
+
 
 <label>
 ☑ Камеры
@@ -269,9 +482,6 @@
 </label>
 
 
-</div>
-
-
 
 </div>
 
@@ -279,11 +489,101 @@
 
 
 
+
 </div>
+
+
+
+
+
+
+
+</div>
+
+
+
+
 
 
 
 </section>
+
+
+
+
+
+
+
+
+
+<section class="statistics">
+
+
+
+<div>
+
+<b>
+123 000
+</b>
+
+<span>
+Жителей
+</span>
+
+</div>
+
+
+
+<div>
+
+<b>
+20
+</b>
+
+<span>
+Активных проблем
+</span>
+
+</div>
+
+
+
+
+<div>
+
+<b>
+1845
+</b>
+
+<span>
+Объектов
+</span>
+
+</div>
+
+
+
+
+<div>
+
+<b>
+96%
+</b>
+
+<span>
+Решено
+</span>
+
+</div>
+
+
+
+
+</section>
+
+
+
+
 
 
 
@@ -291,68 +591,206 @@
 
 <section class="services">
 
+
+
+
+
 <h2>
 Популярные сервисы
 </h2>
 
 
 
+
+
+
+
+
 <div class="service-grid">
 
 
-<div class="service red">
+
+
+
+<a 
+href="index.html"
+class="service red"
+>
+
+
+
+<div class="service-icon">
 
 ⚠️
+
+</div>
+
 
 <h3>
 Проблемы города
 </h3>
 
-</div>
+
+
+<p>
+Сообщить о проблемах
+</p>
 
 
 
-<div class="service orange">
+</a>
+
+
+
+
+
+
+
+
+
+<a 
+href="outages.html"
+class="service orange"
+>
+
+
+
+<div class="service-icon">
 
 ⚡
+
+</div>
+
 
 <h3>
 Отключения
 </h3>
 
-</div>
+
+
+<p>
+Аварийные работы
+</p>
 
 
 
-<div class="service blue">
+</a>
+
+
+
+
+
+
+
+
+
+<a 
+href="index.html"
+class="service blue"
+>
+
+
+
+<div class="service-icon">
 
 🗺
+
+</div>
+
 
 <h3>
 Карта города
 </h3>
 
-</div>
+
+
+<p>
+Интерактивная ГИС
+</p>
+
+
+
+</a>
+
+
+
+
+
+
 
 
 
 <div class="service green">
 
+
+
+<div class="service-icon">
+
 🏫
+
+</div>
+
 
 <h3>
 Учреждения
 </h3>
 
-</div>
+
+
+<p>
+Школы, сады, объекты
+</p>
 
 
 
 </div>
+
+
+
+
+
+
+
+</div>
+
+
+
+
 
 
 </section>
 
 
 
+
+
+
 </main>
+
+
+
+
+
+
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+
+<script src="js/markers.js"></script>
+
+
+<script src="js/mainMap.js"></script>
+
+
+<script src="js/main.js"></script>
+
+
+
+
+
+</body>
+
+
+</html>
