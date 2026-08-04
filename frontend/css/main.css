@@ -296,8 +296,34 @@ body {
 
 .open-map {
 
+    display:block;
 
-    display:none;
+    position:absolute;
+
+    bottom:20px;
+
+    right:20px;
+
+
+    background:white;
+
+    padding:12px 18px;
+
+
+    border-radius:15px;
+
+
+    text-decoration:none;
+
+
+    color:#222;
+
+
+    font-weight:600;
+
+
+    box-shadow:
+    0 5px 20px rgba(0,0,0,.2);
 
 }
 
