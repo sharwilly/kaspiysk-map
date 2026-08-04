@@ -81,3 +81,13 @@ function createProblemMarker(problem) {
     );
 
 }
+
+const statusColors = {
+
+    new:"#ff4757",
+
+    in_progress:"#ffa502",
+
+    done:"#2ed573"
+
+};
