@@ -1,6 +1,10 @@
 const API_URL = "https://kaspiysk-map-1.onrender.com";
 
 
+// ===============================
+// ОТКЛЮЧЕНИЯ
+// ===============================
+
 fetch(`${API_URL}/outages`)
 .then(response => response.json())
 .then(data => {
@@ -10,30 +14,49 @@ fetch(`${API_URL}/outages`)
     document.getElementById("outageSummary");
 
 
-    if (!data.length) {
+    const mini =
+    document.getElementById("outagesCount");
 
-        summary.innerHTML =
-        "🟢 Активных отключений нет";
 
-        return;
+
+    if(mini){
+
+        mini.innerHTML = data.length;
 
     }
 
 
-    const last = data[0];
+
+    if(summary){
 
 
-    summary.innerHTML = `
+        if (!data.length) {
 
-    🔴 Активных отключений:
-    ${data.length}
+            summary.innerHTML =
+            "🟢 Активных отключений нет";
 
-    <br>
+        }
+        else {
 
-    Последнее:
-    Фидер-${last.feeder}
 
-    `;
+            const last = data[0];
+
+
+            summary.innerHTML = `
+
+            🔴 Активных отключений:
+            ${data.length}
+
+            <br>
+
+            Последнее:
+            Фидер-${last.feeder}
+
+            `;
+
+        }
+
+    }
 
 
 })
@@ -43,60 +66,79 @@ fetch(`${API_URL}/outages`)
 
 });
 
-function loadProblemsSummary(){
-
-    fetch(`${API_URL}/problems/counts`)
-    .then(response => response.json())
-    .then(data => {
-
-        const count = data.active;
-
-        let icon = "🟢";
 
 
-        if(count >= 50 && count < 100){
 
-            icon = "🟡";
+// ===============================
+// ПРОБЛЕМЫ
+// ===============================
 
-        }
-
-
-        if(count >= 100){
-
-            icon = "🔴";
-
-        }
+fetch(`${API_URL}/problems/counts`)
+.then(response => response.json())
+.then(data => {
 
 
-        document.getElementById("problemsSummary").innerHTML =
-            `${icon} Количество проблем: ${count}`;
+    const count = data.active;
 
-    })
-    .catch(error => {
 
-        console.error(error);
+    let icon = "🟢";
 
-        document.getElementById("problemsSummary").innerHTML =
-            "⚪ Нет данных";
 
-    });
+    if(count >= 50 && count < 100){
 
-}
+        icon = "🟡";
 
-loadProblemsSummary();
+    }
 
-const problemsSummary = document.getElementById("problemsSummary");
 
-if (problemsSummary) {
+    if(count >= 100){
 
-    loadProblemsSummary();
+        icon = "🔴";
 
-}
+    }
 
-const outageSummary = document.getElementById("outageSummary");
 
-if (outageSummary) {
 
-    loadOutagesSummary();
+    const summary =
+    document.getElementById("problemsSummary");
 
-}
+
+    if(summary){
+
+        summary.innerHTML =
+        `${icon} Количество проблем: ${count}`;
+
+    }
+
+
+
+    const mini =
+    document.getElementById("problemsCount");
+
+
+    if(mini){
+
+        mini.innerHTML = count;
+
+    }
+
+
+})
+.catch(error => {
+
+    console.error(error);
+
+
+    const summary =
+    document.getElementById("problemsSummary");
+
+
+    if(summary){
+
+        summary.innerHTML =
+        "⚪ Нет данных";
+
+    }
+
+
+});
