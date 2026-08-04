@@ -9,31 +9,47 @@
 Открытый Каспийск
 </title>
 
-<link rel="stylesheet" href="css/main.css">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+
+
 <link rel="stylesheet" href="css/common.css">
+<link rel="stylesheet" href="css/main.css">
+
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+
 
 </head>
+
 
 
 <body data-page="main">
 
 
+
 <div id="header-container"></div>
+
+
 
 
 <main>
 
 
-<section class="hero">
+
+<section class="city-screen">
 
 
-    <div class="hero-content">
+
+    <div class="city-background"></div>
+
+
+
+    <div class="city-header">
 
 
         <h1>
@@ -42,41 +58,142 @@
 
 
         <p>
-            Цифровая карта города.
-            Следите за проблемами,
-            отключениями и развитием инфраструктуры.
+            Цифровая карта города
         </p>
-
-
-        <a href="index.html" class="hero-button">
-            Открыть карту
-        </a>
 
 
     </div>
 
 
+
+
+
+    <div class="city-layout">
+
+
+
+
+
+        <div class="search-panel">
+
+
+
+            <h2>
+                Найти объект
+            </h2>
+
+
+
+            <input 
+            type="text"
+            placeholder="Введите адрес..."
+            >
+
+
+
+            <button>
+                🔍 Найти
+            </button>
+
+
+
+
+            <div class="quick-links">
+
+
+
+                <a href="index.html">
+
+                    ⚠️
+                    Проблемы города
+
+                </a>
+
+
+
+                <a href="outages.html">
+
+                    ⚡
+                    Отключения
+
+                </a>
+
+
+
+                <a>
+
+                    🏗
+                    Объекты города
+
+                </a>
+
+
+
+            </div>
+
+
+
+        </div>
+
+
+
+
+
+
+
+        <div class="map-panel">
+
+
+
+            <div id="city-map"></div>
+
+
+
+
+            <a href="index.html" class="open-map">
+
+                🗺 Открыть полную карту
+
+            </a>
+
+
+
+        </div>
+
+
+
+
+
+    </div>
+
+
+
 </section>
 
-<section class="map-preview">
 
-    <div id="city-map"></div>
 
-</section>
+
 
 
 
 <div class="cards">
 
+
+
+
+
 <a href="index.html" class="card problem-card">
+
 
     <div class="card-icon">
         ⚠️
     </div>
 
+
     <h2>
         Проблемы города
     </h2>
+
 
     <p>
         Сообщить о ямах, мусоре,
@@ -88,7 +205,12 @@
         Загрузка...
     </div>
 
+
 </a>
+
+
+
+
 
 
 
@@ -121,6 +243,10 @@
 
 
 
+
+
+
+
 <div class="card disabled">
 
 
@@ -141,6 +267,9 @@
 
 
 </div>
+
+
+
 
 
 
@@ -166,20 +295,35 @@
 
 </a>
 
+
+
+
+
 </div>
+
+
+
 
 </main>
 
 
+
+
+
+
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="js/mainMap.js"></script>
+
 
 <script src="js/markers.js"></script>
 
 <script src="js/mainMap.js"></script>
 
+
 <script src="js/header.js"></script>
+
 <script src="js/main.js"></script>
+
+
 
 
 </body>
