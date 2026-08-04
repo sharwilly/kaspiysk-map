@@ -188,3 +188,73 @@ body {
     margin-top:30px;
 
 }
+
+.card-icon {
+
+    width:60px;
+
+    height:60px;
+
+    border-radius:18px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:30px;
+
+    background:#f1f5ff;
+
+    margin-bottom:20px;
+
+}
+
+
+
+.problem-card .card-icon {
+
+    background:#ffecec;
+
+}
+
+
+
+.outage-card .card-icon {
+
+    background:#fff4d6;
+
+}
+
+
+
+.card {
+
+    position:relative;
+
+    overflow:hidden;
+
+}
+
+
+
+.card::after {
+
+    content:"";
+
+    position:absolute;
+
+    right:-40px;
+
+    bottom:-40px;
+
+    width:120px;
+
+    height:120px;
+
+    border-radius:50%;
+
+    background:rgba(13,110,253,.05);
+
+}
