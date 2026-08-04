@@ -1,157 +1,158 @@
-<!DOCTYPE html>
-<html lang="ru">
-
-<head>
-
-<meta charset="UTF-8">
-
-<title>
-Открытый Каспийск
-</title>
-
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-
-
-<link rel="stylesheet" href="css/common.css">
-<link rel="stylesheet" href="css/main.css">
-
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-
-</head>
-
-
-
-<body data-page="main">
-
-
-<div id="header-container"></div>
-
-
-
 <main>
 
 
-<section class="city-screen">
+<section class="hero">
 
 
-<div class="city-background"></div>
-
-
-
-<div class="city-top">
-
-
-    <div class="city-title">
-
-
-        <h1>
-            🌊 Открытый Каспийск
-        </h1>
-
-
-        <p>
-            Цифровая карта города
-        </p>
-
-
-    </div>
+<div class="hero-bg"></div>
 
 
 
-
-    <div class="city-tools">
-
-
-        <div class="tool">
-
-            🔔
-            Уведомления
-
-        </div>
+<header class="glass-header">
 
 
-
-        <div class="tool">
-
-            🌡
-            +28°C
-
-        </div>
+<div class="brand">
 
 
+<img src="images/kaspiysk-logo.png">
 
 
-        <div class="tool">
-
-            👤
-            Войти
-
-        </div>
-
-
-    </div>
-
-
-</div>
-
-
-
-
-
-<div class="city-layout">
-
-
-
-<div class="search-panel">
-
+<div>
 
 <h2>
-    Найти объект
+Открытый Каспийск
 </h2>
 
+<span>
+Геоинформационная система
+</span>
 
-<input 
-type="text"
-placeholder="Введите адрес..."
->
+</div>
 
 
-
-<button>
-🔍 Найти
-</button>
+</div>
 
 
 
 
-<div class="main-buttons">
+
+<nav>
+
+<a class="active">
+Главная
+</a>
+
+<a>
+Карта
+</a>
+
+<a>
+Проблемы
+</a>
+
+<a>
+Отключения
+</a>
+
+<a>
+Объекты
+</a>
 
 
-<a href="index.html">
+</nav>
+
+
+
+
+
+
+<div class="header-actions">
+
+
+<span>
+🔔
+</span>
+
+
+<span>
+🌤 28°
+</span>
+
+
+<span>
+👤
+</span>
+
+
+</div>
+
+
+</header>
+
+
+
+
+
+
+
+<div class="hero-content">
+
+
+
+<div class="hero-left">
+
+
+<h1>
+
+Открытый
+<br>
+
+Каспийск
+
+</h1>
+
+
+
+<p>
+
+Все городские сервисы
+<br>
+в одном месте
+
+</p>
+
+
+
+
+
+<div class="search-box">
+
+
+<input placeholder="Поиск улицы...">
+
+
+</div>
+
+
+
+
+
+<div class="hero-buttons">
+
+
+<a class="primary">
 
 ⚠️
-
-Сообщить о проблеме
-
+Сообщить проблему
 
 </a>
 
 
 
-<a href="index.html">
-
+<a class="secondary">
 
 🗺
-
 Открыть карту
-
 
 </a>
 
@@ -160,110 +161,129 @@ placeholder="Введите адрес..."
 
 
 
+
+
+<div class="mini-stat">
+
+
+<div>
+
+<b>
+123 000
+</b>
+
+<span>
+жителей
+</span>
+
+</div>
+
+
+
+<div>
+
+<b>
+1845
+</b>
+
+<span>
+объектов
+</span>
+
+</div>
+
+
+
+
+<div>
+
+<b>
+20
+</b>
+
+<span>
+проблем
+</span>
+
+</div>
+
+
+
+
+<div>
+
+<b>
+96%
+</b>
+
+<span>
+решено
+</span>
+
+</div>
+
+
+</div>
+
+
+
 </div>
 
 
 
 
 
-<div class="map-panel">
+
+
+<div class="hero-map">
 
 
 <div id="city-map"></div>
 
 
 
+<div class="layers">
+
+
+<b>
+Слои
+</b>
+
+
+<label>
+☑ Дороги
+</label>
+
+<label>
+☑ Камеры
+</label>
+
+
+<label>
+☑ Школы
+</label>
+
+
+<label>
+☑ Благоустройство
+</label>
+
+
 </div>
 
 
 
 </div>
 
+
+
+
+
+</div>
 
 
 
 </section>
-
-
-
-
-
-
-<section class="city-info">
-
-
-<div class="info-card">
-
-
-<div class="info-icon">
-⚠️
-</div>
-
-
-<h3>
-Проблемы города
-</h3>
-
-
-<p id="problemsSummary">
-Загрузка...
-</p>
-
-
-</div>
-
-
-
-
-
-<div class="info-card">
-
-
-<div class="info-icon">
-⚡
-</div>
-
-
-<h3>
-Отключения
-</h3>
-
-
-<p id="outageSummary">
-Загрузка...
-</p>
-
-
-</div>
-
-
-
-
-
-<div class="info-card">
-
-
-<div class="info-icon">
-🏙
-</div>
-
-
-<h3>
-Объекты города
-</h3>
-
-
-<p>
-Скоро доступно
-</p>
-
-
-</div>
-
-
-</section>
-
-
 
 
 
@@ -271,91 +291,60 @@ placeholder="Введите адрес..."
 
 <section class="services">
 
-
 <h2>
 Популярные сервисы
 </h2>
 
 
 
-
 <div class="service-grid">
 
 
-<a href="index.html" class="service">
+<div class="service red">
 
-
-<h3>
-⚠️ Проблемы
-</h3>
-
-
-<p>
-Сообщить о городской проблеме
-</p>
-
-
-</a>
-
-
-
-
-
-<a href="outages.html" class="service">
-
+⚠️
 
 <h3>
-⚡ Отключения
+Проблемы города
 </h3>
-
-
-<p>
-Аварийные работы и ограничения
-</p>
-
-
-</a>
-
-
-
-
-
-
-<div class="service">
-
-
-<h3>
-🏗 Объекты
-</h3>
-
-
-<p>
-Инфраструктура города
-</p>
-
 
 </div>
 
 
 
+<div class="service orange">
 
-
-
-<a href="about.html" class="service">
-
+⚡
 
 <h3>
-ℹ️ О проекте
+Отключения
 </h3>
 
-
-<p>
-Как работает система
-</p>
+</div>
 
 
-</a>
 
+<div class="service blue">
+
+🗺
+
+<h3>
+Карта города
+</h3>
+
+</div>
+
+
+
+<div class="service green">
+
+🏫
+
+<h3>
+Учреждения
+</h3>
+
+</div>
 
 
 
@@ -367,23 +356,3 @@ placeholder="Введите адрес..."
 
 
 </main>
-
-
-
-
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-
-<script src="js/header.js"></script>
-
-<script src="js/markers.js"></script>
-
-<script src="js/mainMap.js"></script>
-
-<script src="js/main.js"></script>
-
-
-</body>
-
-</html>

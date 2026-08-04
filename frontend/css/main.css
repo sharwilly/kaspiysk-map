@@ -1,48 +1,33 @@
-* {
+*{
 
 box-sizing:border-box;
 
 }
 
 
+body{
 
-body {
 
 margin:0;
 
-font-family:"Inter",sans-serif;
+font-family:Inter,sans-serif;
 
-background:#f5f7fa;
+background:#F5F8FC;
 
-color:#111;
+color:#111827;
+
 
 }
 
 
 
 
-
-/* =========================
-
-   ПАНОРАМА
-
-========================= */
+.hero{
 
 
-.city-screen {
-
-
-margin-left:220px;
-
-
-height:540px;
-
-
-padding:25px 35px;
-
+height:850px;
 
 position:relative;
-
 
 overflow:hidden;
 
@@ -51,24 +36,25 @@ overflow:hidden;
 
 
 
-.city-background {
+
+.hero-bg{
 
 
 position:absolute;
-
 
 inset:0;
 
 
 background:
 
+
 linear-gradient(
 
 90deg,
 
-rgba(0,0,0,.55),
+rgba(234,245,255,.95),
 
-rgba(0,0,0,.15)
+rgba(247,251,255,.55)
 
 ),
 
@@ -76,9 +62,7 @@ rgba(0,0,0,.15)
 url("../images/kaspiysk.jpg");
 
 
-
 background-size:cover;
-
 
 background-position:center;
 
@@ -88,53 +72,46 @@ background-position:center;
 
 
 
-
-/* =========================
-
-   ВЕРХ
-
-========================= */
+.glass-header{
 
 
+height:88px;
 
-.city-top {
+
+margin:20px 32px;
 
 
-position:relative;
+border-radius:24px;
 
-z-index:2;
+
+background:
+
+rgba(255,255,255,.75);
+
+
+
+backdrop-filter:
+
+blur(20px);
+
 
 
 display:flex;
+
+
+align-items:center;
 
 
 justify-content:space-between;
 
 
-color:white;
+padding:0 28px;
 
 
-}
+position:relative;
 
+z-index:5;
 
-
-.city-title h1 {
-
-
-font-size:42px;
-
-
-margin:0;
-
-
-}
-
-
-
-.city-title p {
-
-
-font-size:18px;
 
 
 }
@@ -143,11 +120,100 @@ font-size:18px;
 
 
 
-.city-tools {
+.brand{
 
 
 display:flex;
 
+gap:14px;
+
+align-items:center;
+
+
+}
+
+
+
+.brand img{
+
+
+width:50px;
+
+
+}
+
+
+
+.brand h2{
+
+
+margin:0;
+
+font-size:20px;
+
+
+}
+
+
+
+.brand span{
+
+
+color:#6B7280;
+
+font-size:14px;
+
+
+}
+
+
+
+
+
+nav{
+
+
+display:flex;
+
+gap:25px;
+
+
+}
+
+
+
+nav a{
+
+
+color:#374151;
+
+text-decoration:none;
+
+font-size:15px;
+
+
+}
+
+
+
+nav .active{
+
+
+color:#2563EB;
+
+font-weight:600;
+
+
+}
+
+
+
+
+
+.header-actions{
+
+
+display:flex;
 
 gap:12px;
 
@@ -156,19 +222,16 @@ gap:12px;
 
 
 
-.tool {
+.header-actions span{
+
+
+padding:8px 12px;
+
+
+border-radius:12px;
 
 
 background:white;
-
-
-color:#222;
-
-
-padding:12px 16px;
-
-
-border-radius:14px;
 
 
 font-size:14px;
@@ -180,15 +243,9 @@ font-size:14px;
 
 
 
-/* =========================
-
-   ПОИСК + КАРТА
-
-========================= */
 
 
-
-.city-layout {
+.hero-content{
 
 
 position:relative;
@@ -201,17 +258,12 @@ display:grid;
 
 grid-template-columns:
 
-300px 430px;
+45% 55%;
 
 
+padding:
 
-gap:40px;
-
-
-margin-top:45px;
-
-
-justify-content:space-between;
+90px 70px;
 
 
 }
@@ -220,21 +272,16 @@ justify-content:space-between;
 
 
 
-.search-panel {
+.hero-left h1{
 
 
-background:
-
-rgba(255,255,255,.9);
+font-size:64px;
 
 
-backdrop-filter:blur(15px);
+line-height:1;
 
 
-border-radius:25px;
-
-
-padding:25px;
+margin:0;
 
 
 }
@@ -243,27 +290,16 @@ padding:25px;
 
 
 
-.search-panel h2 {
-
-margin-top:0;
-
-}
+.hero-left p{
 
 
-
-.search-panel input {
-
-
-width:100%;
+font-size:22px;
 
 
-padding:14px;
+color:#6B7280;
 
 
-border-radius:12px;
-
-
-border:1px solid #ddd;
+margin:25px 0;
 
 
 }
@@ -272,28 +308,76 @@ border:1px solid #ddd;
 
 
 
-.search-panel button {
 
 
-margin-top:12px;
+.search-box input{
 
 
-width:100%;
+width:450px;
 
 
-padding:13px;
+height:56px;
+
+
+border-radius:18px;
 
 
 border:0;
 
 
-border-radius:12px;
+padding:0 20px;
 
 
-background:#0d6efd;
+font-size:17px;
 
 
-color:white;
+box-shadow:
+
+0 10px 30px rgba(0,0,0,.05);
+
+
+}
+
+
+
+
+
+.hero-buttons{
+
+
+display:flex;
+
+gap:16px;
+
+margin-top:25px;
+
+
+}
+
+
+
+.hero-buttons a{
+
+
+height:56px;
+
+
+padding:0 28px;
+
+
+border-radius:18px;
+
+
+display:flex;
+
+
+align-items:center;
+
+
+gap:10px;
+
+
+text-decoration:none;
 
 
 font-weight:600;
@@ -303,12 +387,51 @@ font-weight:600;
 
 
 
+.primary{
 
 
-.main-buttons {
+background:#2563EB;
+
+color:white;
 
 
-margin-top:25px;
+}
+
+
+
+.secondary{
+
+
+background:white;
+
+color:#111827;
+
+
+}
+
+
+
+
+
+
+
+.mini-stat{
+
+
+display:flex;
+
+
+gap:30px;
+
+
+margin-top:45px;
+
+
+}
+
+
+
+.mini-stat div{
 
 
 display:flex;
@@ -317,48 +440,24 @@ display:flex;
 flex-direction:column;
 
 
-gap:12px;
+}
+
+
+
+.mini-stat b{
+
+
+font-size:24px;
 
 
 }
 
 
 
-.main-buttons a {
+.mini-stat span{
 
 
-padding:14px;
-
-
-border-radius:14px;
-
-
-background:#0d6efd;
-
-
-color:white;
-
-
-text-decoration:none;
-
-
-text-align:center;
-
-
-font-weight:600;
-
-
-}
-
-
-
-.main-buttons a:last-child {
-
-
-background:white;
-
-
-color:#222;
+color:#6B7280;
 
 
 }
@@ -368,17 +467,15 @@ color:#222;
 
 
 
-/* =========================
-
-   КАРТА
-
-========================= */
 
 
-.map-panel {
+.hero-map{
 
 
-height:420px;
+height:620px;
+
+
+border-radius:32px;
 
 
 background:white;
@@ -387,28 +484,24 @@ background:white;
 padding:10px;
 
 
-border-radius:25px;
-
-
 box-shadow:
 
-0 15px 40px rgba(0,0,0,.25);
+0 30px 80px rgba(0,0,0,.12);
+
+
+position:relative;
 
 
 }
 
 
 
-#city-map {
+#city-map{
 
 
 height:100%;
 
-
-width:100%;
-
-
-border-radius:18px;
+border-radius:26px;
 
 
 }
@@ -417,62 +510,70 @@ border-radius:18px;
 
 
 
+.layers{
 
 
-/* =========================
-
-   СТАТИСТИКА
-
-========================= */
+position:absolute;
 
 
-.city-info {
+right:25px;
+
+top:25px;
 
 
-margin-left:220px;
+background:
+
+rgba(255,255,255,.85);
 
 
-padding:30px;
+backdrop-filter:
+
+blur(15px);
+
+
+
+padding:20px;
+
+
+border-radius:20px;
+
+
+display:flex;
+
+
+flex-direction:column;
+
+
+gap:10px;
+
+
+}
+
+
+
+
+.services{
+
+
+padding:60px 70px;
+
+
+}
+
+
+
+.service-grid{
 
 
 display:grid;
 
 
-grid-template-columns:repeat(3,1fr);
+grid-template-columns:
+
+repeat(4,1fr);
 
 
-gap:20px;
-
-
-}
-
-
-
-.info-card {
-
-
-background:white;
-
-
-border-radius:22px;
-
-
-padding:25px;
-
-
-box-shadow:
-
-0 10px 30px rgba(0,0,0,.08);
-
-
-}
-
-
-
-.info-icon {
-
-
-font-size:32px;
+gap:24px;
 
 
 }
@@ -480,59 +581,19 @@ font-size:32px;
 
 
 
-
-/* =========================
-
-   СЕРВИСЫ
-
-========================= */
+.service{
 
 
-.services {
+height:200px;
 
 
-margin-left:220px;
+border-radius:28px;
 
 
 padding:30px;
 
 
-}
-
-
-
-.service-grid {
-
-
-display:grid;
-
-
-grid-template-columns:repeat(4,1fr);
-
-
-gap:20px;
-
-
-}
-
-
-
-.service {
-
-
-background:white;
-
-
-padding:25px;
-
-
-border-radius:22px;
-
-
-text-decoration:none;
-
-
-color:#111;
+font-size:40px;
 
 
 transition:.2s;
@@ -542,10 +603,60 @@ transition:.2s;
 
 
 
-.service:hover {
+.service:hover{
 
 
-transform:translateY(-5px);
+transform:translateY(-8px);
+
+
+}
+
+
+
+.service h3{
+
+
+font-size:22px;
+
+
+}
+
+
+
+.red{
+
+
+background:#FEE2E2;
+
+
+}
+
+
+
+.orange{
+
+
+background:#FEF3C7;
+
+
+}
+
+
+
+.blue{
+
+
+background:#DBEAFE;
+
+
+}
+
+
+
+.green{
+
+
+background:#DCFCE7;
 
 
 }
