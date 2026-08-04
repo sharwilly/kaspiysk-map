@@ -273,32 +273,23 @@ nav a.active {
 
 .hero-content {
 
-
     position:relative;
 
     z-index:2;
 
-
     display:grid;
 
+    grid-template-columns: 420px 1fr;
 
-    grid-template-columns:
+    gap:50px;
 
-    minmax(320px, 40%) minmax(500px, 60%);
-
-
-    gap:40px;
-
-
-    padding:
-
-    55px 60px 0;
-
+    padding:55px 60px 0;
 
     max-width:1600px;
 
-    margin:auto;
+    margin:0 auto;
 
+    align-items:center;
 
 }
 
@@ -496,67 +487,6 @@ nav a.active {
 
 
 
-
-/* статистика */
-
-
-.mini-stat {
-
-
-    display:flex;
-
-
-    gap:30px;
-
-
-    margin-top:35px;
-
-
-}
-
-
-
-
-.mini-stat div {
-
-
-    display:flex;
-
-
-    flex-direction:column;
-
-
-}
-
-
-
-.mini-stat b {
-
-
-    font-size:22px;
-
-
-}
-
-
-
-.mini-stat span {
-
-
-    color:#6B7280;
-
-    font-size:14px;
-
-
-}
-
-
-
-
-
-
-
-
 /* =====================
  MAP
 ===================== */
@@ -566,6 +496,9 @@ nav a.active {
 
 
     height:520px;
+
+
+    width:100%;
 
 
     border-radius:32px;
