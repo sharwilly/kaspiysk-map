@@ -1,22 +1,59 @@
-body {
+* {
+    box-sizing: border-box;
+}
 
-    font-family: Arial, sans-serif;
+
+body {
 
     margin:0;
 
+    font-family:"Inter", sans-serif;
+
     background:#f5f7fa;
+
+    color:#1a1a1a;
 
 }
 
 
-header {
+
+/* Главный экран */
+
+.hero {
+
+    max-width:900px;
+
+    margin:70px auto 40px;
 
     text-align:center;
 
-    padding:40px;
+}
+
+
+.hero h1 {
+
+    font-size:48px;
+
+    font-weight:700;
+
+    margin:0 0 20px;
 
 }
 
+
+.hero p {
+
+    font-size:20px;
+
+    color:#666;
+
+    line-height:1.5;
+
+}
+
+
+
+/* Карточки */
 
 .cards {
 
@@ -37,6 +74,8 @@ header {
 
 
 
+/* Карточка раздела */
+
 .card {
 
     background:white;
@@ -45,11 +84,11 @@ header {
 
     padding:30px;
 
+    min-height:220px;
+
     text-decoration:none;
 
     color:#111;
-
-    min-height:220px;
 
 
     box-shadow:
@@ -72,6 +111,8 @@ header {
 
 .card h2 {
 
+    margin-top:0;
+
     font-size:24px;
 
 }
@@ -88,21 +129,35 @@ header {
 
 
 
+/* Счетчики */
+
 .summary {
 
     margin-top:25px;
 
-    font-size:18px;
+    padding-top:15px;
+
+    border-top:1px solid #eee;
+
+    font-size:15px;
 
     font-weight:600;
 
 }
+
+
+
+/* Неактивные разделы */
 
 .disabled {
 
     opacity:0.6;
 
 }
+
+
+
+/* Страница о проекте */
 
 .about {
 
@@ -131,77 +186,5 @@ header {
 .about h3 {
 
     margin-top:30px;
-
-}
-
-.summary {
-
-    margin-top:15px;
-
-    padding-top:10px;
-
-    border-top:1px solid #eee;
-
-    font-size:14px;
-
-    font-weight:600;
-
-}
-
-* {
-    box-sizing: border-box;
-}
-
-
-body {
-
-    margin:0;
-
-    font-family:"Inter", sans-serif;
-
-    background:#f5f7fa;
-
-    color:#1a1a1a;
-
-}
-
-body {
-
-    font-family: "Inter", sans-serif;
-
-}
-
-
-/* главный экран */
-
-.hero {
-
-    max-width:900px;
-
-    margin:60px auto 40px;
-
-    text-align:center;
-
-}
-
-
-.hero h1 {
-
-    font-size:48px;
-
-    font-weight:700;
-
-    margin-bottom:20px;
-
-}
-
-
-.hero p {
-
-    font-size:20px;
-
-    color:#666;
-
-    line-height:1.5;
 
 }
