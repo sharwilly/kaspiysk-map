@@ -236,7 +236,11 @@ a {
 
     0 10px 30px rgba(0,0,0,.06);
 
+    position:relative;
 
+    z-index:10000;
+
+    overflow:visible;
 
 }
 
@@ -809,6 +813,8 @@ p {
 
     border-radius:28px;
 
+    z-index:1
+
 
 }
 
@@ -890,7 +896,7 @@ h1 {
 
 .weather-wrapper{
     position:relative;
-    z-index:5000;
+    z-index:10001;
 }
 
 
@@ -911,7 +917,7 @@ h1 {
 
     box-shadow:0 20px 50px rgba(0,0,0,.15);
 
-    z-index:99999;
+    z-index:10002;
 
 }
 
