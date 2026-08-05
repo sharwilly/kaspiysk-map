@@ -183,29 +183,6 @@ transform:translateY(-10px);
 
 }
 
-
-
-
-
-
-
-.weather-temp{
-
-
-    font-size:110px;
-
-    line-height:1;
-
-    font-weight:700;
-
-
-    letter-spacing:-6px;
-
-
-}
-
-
-
 .weather-description{
 
 
@@ -737,28 +714,6 @@ padding:20px;
 
 }
 
-
-
-.weather-temp{
-
-
-    font-size:80px;
-
-
-}
-
-
-
-.weather-icon{
-
-
-    font-size:90px;
-
-
-}
-
-
-
 .weather-details-grid{
 
 
@@ -838,5 +793,48 @@ font-size:22px;
         opacity:.2;
 
     }
+
+}
+
+/* =========================
+   HEADER WEATHER FIX
+========================= */
+
+
+.header-weather{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:6px;
+
+    padding:0 14px;
+
+}
+
+
+
+.header-weather .weather-icon{
+
+    font-size:22px;
+
+    margin:0;
+
+    animation:none;
+
+}
+
+
+
+.header-weather #weatherTemp{
+
+    font-size:16px;
+
+    font-weight:600;
+
+    line-height:1;
 
 }
