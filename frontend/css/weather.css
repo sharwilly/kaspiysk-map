@@ -812,3 +812,22 @@ font-size:22px;
 
 
 }
+
+.weather-temp.loading{
+
+    opacity:.5;
+
+    animation:pulse 1.5s infinite;
+
+}
+
+
+@keyframes pulse{
+
+    50%{
+
+        opacity:.2;
+
+    }
+
+}

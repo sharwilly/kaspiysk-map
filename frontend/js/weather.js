@@ -1,6 +1,7 @@
 const LAT = 42.8913;
 const LON = 47.6397;
 
+const CACHE_TIME = 10 * 60 * 1000;
 
 
 const weatherCodes = {
@@ -96,25 +97,52 @@ async function loadWeatherPage(){
 
         `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,pressure_msl,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset&timezone=Europe/Moscow`;
 
+        const cached =
+        localStorage.getItem("kaspiyskWeather");
 
+
+        if(cached){
+
+            const saved = JSON.parse(cached);
+
+
+            if(
+                saved.data &&
+                Date.now()-saved.time < CACHE_TIME
+            ){
+
+                renderCurrent(saved.data);
+                renderHourly(saved.data);
+                renderDaily(saved.data);
+                renderSun(saved.data);
+
+            }
+
+        }
 
         const response = await fetch(url);
 
-
         const data = await response.json();
 
+        localStorage.setItem(
+            "kaspiyskWeather",
+            JSON.stringify({
+                time: Date.now(),
+                data: data
+            })
+        );
 
 
         renderCurrent(data);
 
 
-        renderHourly(data);
+        requestAnimationFrame(()=>{
 
+            renderHourly(data);
+            renderDaily(data);
+            renderSun(data);
 
-        renderDaily(data);
-
-
-        renderSun(data);
+        });
 
 
 
@@ -166,6 +194,10 @@ function renderCurrent(data){
 
     document.getElementById("weatherTemp").textContent =
     Math.round(current.temperature_2m)+"°";
+
+    document
+    .getElementById("weatherTemp")
+    .classList.remove("loading");
 
 
 
