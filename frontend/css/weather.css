@@ -1,0 +1,126 @@
+.weather-page{
+
+    padding:40px 32px;
+
+}
+
+
+
+.weather-hero{
+
+    display:flex;
+
+    justify-content:center;
+
+}
+
+
+
+.weather-current-card{
+
+    width:420px;
+
+    padding:40px;
+
+    text-align:center;
+
+    background:white;
+
+    border-radius:32px;
+
+    box-shadow:
+    0 20px 60px rgba(0,0,0,.08);
+
+}
+
+
+
+.weather-location{
+
+    font-size:18px;
+
+    color:#6B7280;
+
+}
+
+
+
+.weather-big-icon{
+
+    font-size:80px;
+
+    margin:20px 0;
+
+}
+
+
+
+.weather-big-temp{
+
+    font-size:72px;
+
+    font-weight:700;
+
+}
+
+
+
+.weather-description{
+
+    font-size:24px;
+
+    font-weight:600;
+
+}
+
+
+
+.weather-feels{
+
+    color:#6B7280;
+
+    margin-top:10px;
+
+}
+
+
+
+.hourly-section,
+.daily-section{
+
+    margin-top:50px;
+
+}
+
+
+
+.hourly-list,
+.daily-list{
+
+    display:flex;
+
+    gap:20px;
+
+    overflow-x:auto;
+
+}
+
+
+
+.hour-card,
+.day-card{
+
+    min-width:130px;
+
+    padding:20px;
+
+    background:white;
+
+    border-radius:24px;
+
+    text-align:center;
+
+    box-shadow:
+    0 10px 30px rgba(0,0,0,.05);
+
+}
