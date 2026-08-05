@@ -6,27 +6,19 @@
 
 
 
-.weather-hero{
+.weather-main-card{
 
-    display:flex;
+    max-width:500px;
 
-    justify-content:center;
-
-}
-
-
-
-.weather-current-card{
-
-    width:420px;
-
-    padding:40px;
-
-    text-align:center;
+    margin:auto;
 
     background:white;
 
     border-radius:32px;
+
+    padding:40px;
+
+    text-align:center;
 
     box-shadow:
     0 20px 60px rgba(0,0,0,.08);
@@ -37,25 +29,25 @@
 
 .weather-location{
 
-    font-size:18px;
-
     color:#6B7280;
 
-}
-
-
-
-.weather-big-icon{
-
-    font-size:80px;
-
-    margin:20px 0;
+    font-size:18px;
 
 }
 
 
 
-.weather-big-temp{
+.weather-icon-large{
+
+    font-size:90px;
+
+    margin:25px 0;
+
+}
+
+
+
+.weather-temperature{
 
     font-size:72px;
 
@@ -67,9 +59,11 @@
 
 .weather-description{
 
-    font-size:24px;
+    font-size:26px;
 
     font-weight:600;
+
+    margin-top:10px;
 
 }
 
@@ -85,12 +79,71 @@
 
 
 
-.hourly-section,
-.daily-section{
+.weather-details{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:15px;
+
+    margin-top:35px;
+
+}
+
+
+
+.weather-details div{
+
+    background:#F5F8FC;
+
+    padding:15px;
+
+    border-radius:20px;
+
+}
+
+
+
+.weather-details span{
+
+    display:block;
+
+    font-size:13px;
+
+    color:#6B7280;
+
+}
+
+
+
+.weather-details strong{
+
+    display:block;
+
+    margin-top:5px;
+
+}
+
+
+
+
+
+.weather-section{
 
     margin-top:50px;
 
 }
+
+
+
+.weather-section h2{
+
+    margin-bottom:20px;
+
+}
+
+
 
 
 
@@ -99,7 +152,7 @@
 
     display:flex;
 
-    gap:20px;
+    gap:16px;
 
     overflow-x:auto;
 
@@ -110,17 +163,113 @@
 .hour-card,
 .day-card{
 
+
     min-width:130px;
 
-    padding:20px;
 
     background:white;
 
+
+    padding:20px;
+
+
     border-radius:24px;
+
 
     text-align:center;
 
+
     box-shadow:
     0 10px 30px rgba(0,0,0,.05);
+
+
+}
+
+
+
+.hour-card .icon,
+.day-card .icon{
+
+    font-size:35px;
+
+    margin:10px;
+
+}
+
+
+
+
+.sun-card{
+
+    display:flex;
+
+    gap:20px;
+
+}
+
+
+
+.sun-card div{
+
+
+    background:white;
+
+
+    padding:25px;
+
+
+    border-radius:24px;
+
+
+    min-width:200px;
+
+
+}
+
+
+
+.sun-card span{
+
+    display:block;
+
+    color:#6B7280;
+
+}
+
+
+
+.sun-card strong{
+
+    font-size:24px;
+
+}
+
+
+
+@media(max-width:700px){
+
+
+.weather-page{
+
+    padding:20px;
+
+}
+
+
+
+.weather-details{
+
+    grid-template-columns:1fr;
+
+}
+
+
+
+.weather-temperature{
+
+    font-size:56px;
+
+}
+
 
 }

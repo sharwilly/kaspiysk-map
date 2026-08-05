@@ -7,11 +7,21 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+
 <title>Погода | Открытый Каспийск</title>
 
 
 <link rel="stylesheet" href="css/common.css">
 <link rel="stylesheet" href="css/weather.css">
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link 
+href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+rel="stylesheet">
+
 
 </head>
 
@@ -26,142 +36,113 @@
 <main class="weather-page">
 
 
-<section class="weather-hero">
+
+<section class="weather-main-card">
 
 
-    <div class="weather-current-card">
+<div class="weather-location">
 
-
-        <div class="weather-location">
-
-            📍 Каспийск
-
-        </div>
-
-
-        <div class="weather-big-icon">
-
-            ☀️
-
-        </div>
-
-
-        <div class="weather-big-temp">
-
-            28°C
-
-        </div>
-
-
-        <div class="weather-description">
-
-            Ясно
-
-        </div>
-
-
-        <div class="weather-feels">
-
-            Ощущается как 30°C
-
-        </div>
-
-
-    </div>
-
-
-</section>
-
-
-
-
-<section class="hourly-section">
-
-
-<h2>
-    Почасовой прогноз
-</h2>
-
-
-<div class="hourly-list">
-
-
-<div class="hour-card">
-
-09:00
-
-<br>
-
-☀️
-
-<br>
-
-27°
+📍 Каспийск
 
 </div>
 
 
-<div class="hour-card">
 
-12:00
-
-<br>
+<div id="weatherIcon" class="weather-icon-large">
 
 🌤
 
-<br>
+</div>
 
-30°
+
+
+<div id="weatherTemp" class="weather-temperature">
+
+--
 
 </div>
 
 
-<div class="hour-card">
 
-15:00
+<div id="weatherDescription" class="weather-description">
 
-<br>
-
-☀️
-
-<br>
-
-31°
+Загрузка...
 
 </div>
 
 
-<div class="hour-card">
 
-18:00
-
-<br>
-
-⛅
-
-<br>
-
-29°
+<div id="weatherFeels" class="weather-feels">
 
 </div>
 
 
-<div class="hour-card">
 
-21:00
+<div class="weather-details">
 
-<br>
 
-🌙
+<div>
 
-<br>
+💧
 
-26°
+<span>
+
+Влажность
+
+</span>
+
+<strong id="humidity">
+
+--
+
+</strong>
 
 </div>
 
 
+
+<div>
+
+🌬
+
+<span>
+
+Ветер
+
+</span>
+
+<strong id="wind">
+
+--
+
+</strong>
+
 </div>
+
+
+
+<div>
+
+📈
+
+<span>
+
+Давление
+
+</span>
+
+<strong id="pressure">
+
+--
+
+</strong>
+
+</div>
+
+
+
+</div>
+
 
 
 </section>
@@ -170,58 +151,89 @@
 
 
 
-<section class="daily-section">
+
+<section class="weather-section">
 
 
 <h2>
-    Прогноз на 7 дней
+Почасовой прогноз
 </h2>
 
 
-<div class="daily-list">
-
-
-<div class="day-card">
-
-Сегодня
-
-<br>
-
-☀️
-
-<br>
-
-31° / 24°
+<div id="hourlyForecast" class="hourly-list">
 
 </div>
 
 
-<div class="day-card">
+</section>
 
-Пт
 
-<br>
 
-🌤
 
-<br>
 
-30° / 23°
+
+<section class="weather-section">
+
+
+<h2>
+Прогноз на 7 дней
+</h2>
+
+
+<div id="dailyForecast" class="daily-list">
 
 </div>
 
 
-<div class="day-card">
+</section>
 
-Сб
 
-<br>
 
-🌧
 
-<br>
 
-27° / 22°
+
+<section class="weather-section">
+
+
+<h2>
+Солнце
+</h2>
+
+
+<div class="sun-card">
+
+
+<div>
+
+🌅
+
+<span>
+Восход
+</span>
+
+<strong id="sunrise">
+
+--
+
+</strong>
+
+</div>
+
+
+
+<div>
+
+🌇
+
+<span>
+Закат
+</span>
+
+<strong id="sunset">
+
+--
+
+</strong>
 
 </div>
 
@@ -230,6 +242,7 @@
 
 
 </section>
+
 
 
 
@@ -238,8 +251,12 @@
 
 
 
-<script src="js/weather-widget.js"></script>
+
+<script src="js/weather.js"></script>
+
 <script src="js/header.js"></script>
+
+
 
 </body>
 
