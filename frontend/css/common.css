@@ -987,3 +987,18 @@ h1 {
     padding-top:16px;
 
 }
+
+.header-weather .weather-icon{
+
+    font-size:22px;
+
+}
+
+
+.header-weather span:last-child{
+
+    font-size:16px;
+
+    font-weight:600;
+
+}
