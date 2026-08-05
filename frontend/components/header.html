@@ -68,66 +68,66 @@
 
         </button>
 
-        <div id="weatherPopover" class="weather-popover hidden">
+        <div class="weather-wrapper">
 
-            <div class="weather-title">
-                🌤 Погода
+            <button id="weatherBtn" class="header-weather" title="Погода">
+                <span class="weather-icon">🌤</span>
+                <span id="weatherTemp">--°</span>
+            </button>
+
+            <div id="weatherPopover" class="weather-popover hidden">
+
+                <div class="weather-title">
+                    🌤 Погода
+                </div>
+
+                <div class="weather-main">
+
+                    <div id="weatherStatus">
+                        ☀️ Ясно
+                    </div>
+
+                    <div id="weatherCurrentTemp" class="weather-current">
+                        28°C
+                    </div>
+
+                    <div id="weatherFeels">
+                        Ощущается: 30°C
+                    </div>
+
+                </div>
+
+                <div class="weather-info">
+
+                    <div>
+                        <span>💧 Влажность</span>
+                        <span id="weatherHumidity">58%</span>
+                    </div>
+
+                    <div>
+                        <span>🌬 Ветер</span>
+                        <span id="weatherWind">4.5 м/с</span>
+                    </div>
+
+                    <div>
+                        <span>🧭 Направление</span>
+                        <span id="weatherDirection">СВ</span>
+                    </div>
+
+                    <div>
+                        <span>📈 Давление</span>
+                        <span id="weatherPressure">1015 гПа</span>
+                    </div>
+
+                </div>
+
+                <a href="weather.html" class="weather-link">
+                    Посмотреть прогноз →
+                </a>
+
             </div>
-
-            <div class="weather-main">
-
-                <div id="weatherStatus">
-                    ☀️ Ясно
-                </div>
-
-                <div id="weatherCurrentTemp" class="weather-current">
-                    28°C
-                </div>
-
-                <div id="weatherFeels">
-                    Ощущается: 30°C
-                </div>
-
-            </div>
-
-            <div class="weather-info">
-
-                <div>
-                    <span>💧 Влажность</span>
-                    <span id="weatherHumidity">58%</span>
-                </div>
-
-                <div>
-                    <span>🌬 Ветер</span>
-                    <span id="weatherWind">4.5 м/с</span>
-                </div>
-
-                <div>
-                    <span>🧭 Направление</span>
-                    <span id="weatherDirection">СВ</span>
-                </div>
-
-                <div>
-                    <span>📈 Давление</span>
-                    <span id="weatherPressure">1015 гПа</span>
-                </div>
-
-            </div>
-
-            <a href="weather.html" class="weather-link">
-                Посмотреть прогноз →
-            </a>
 
         </div>
-
-
-
-        <button id="weatherBtn" class="header-weather" title="Погода">
-            <span class="weather-icon">🌤</span>
-            <span id="weatherTemp">--°</span>
-        </button>
-
-
 
         <button title="Войти">
 
