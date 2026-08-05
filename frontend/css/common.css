@@ -888,11 +888,17 @@ h1 {
     position:relative;
 }
 
+.weather-wrapper{
+    position:relative;
+    z-index:5000;
+}
+
+
 .weather-popover{
 
     position:absolute;
 
-    top:70px;
+    top:calc(100% + 10px);
     right:0;
 
     width:320px;
@@ -905,9 +911,7 @@ h1 {
 
     box-shadow:0 20px 50px rgba(0,0,0,.15);
 
-    border:1px solid rgba(0,0,0,.05);
-
-    z-index:1000;
+    z-index:99999;
 
 }
 
