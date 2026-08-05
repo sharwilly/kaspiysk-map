@@ -139,17 +139,14 @@
 
 
 
-.weather-icon{
-
+.weather-page .weather-icon{
 
     font-size:120px;
 
     margin-top:40px;
 
     animation:
-
     float 4s ease-in-out infinite;
-
 
 }
 
