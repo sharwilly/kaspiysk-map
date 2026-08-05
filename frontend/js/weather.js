@@ -69,6 +69,8 @@ async function loadWeather(){
 
         const data = await response.json();
 
+        updateWeather(data);
+
         console.log(data);
 
     }
@@ -80,5 +82,80 @@ async function loadWeather(){
         );
 
     }
+
+}
+
+function updateWeather(data){
+
+    const current = data.current;
+
+
+    // температура в кнопке шапки
+
+    document.getElementById("weatherTemp").textContent =
+        `${Math.round(current.temperature_2m)}°`;
+
+
+
+    // большая температура
+
+    document.getElementById("weatherCurrentTemp").textContent =
+        `${Math.round(current.temperature_2m)}°C`;
+
+
+
+    // ощущается
+
+    document.getElementById("weatherFeels").textContent =
+        `Ощущается: ${Math.round(current.apparent_temperature)}°C`;
+
+
+
+    // влажность
+
+    document.getElementById("weatherHumidity").textContent =
+        `${current.relative_humidity_2m}%`;
+
+
+
+    // ветер
+
+    document.getElementById("weatherWind").textContent =
+        `${current.wind_speed_10m} м/с`;
+
+
+
+    // направление ветра
+
+    document.getElementById("weatherDirection").textContent =
+        getWindDirection(current.wind_direction_10m);
+
+
+
+    // давление
+
+    document.getElementById("weatherPressure").textContent =
+        `${Math.round(current.pressure_msl)} гПа`;
+
+}
+
+function getWindDirection(deg){
+
+    const directions = [
+        "С",
+        "СВ",
+        "В",
+        "ЮВ",
+        "Ю",
+        "ЮЗ",
+        "З",
+        "СЗ"
+    ];
+
+
+    const index = Math.round(deg / 45) % 8;
+
+
+    return directions[index];
 
 }
