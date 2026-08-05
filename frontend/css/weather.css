@@ -150,6 +150,18 @@
 
 }
 
+.weather-page .weather-temp{
+
+    font-size:110px;
+
+    line-height:1;
+
+    font-weight:700;
+
+    letter-spacing:-6px;
+
+}
+
 
 
 @keyframes float{
