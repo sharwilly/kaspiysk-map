@@ -48,5 +48,50 @@ function initWeather(){
 
     });
 
+    loadWeather();
+
+
+}
+
+async function loadWeather(){
+
+    const lat = 42.8913;
+    const lon = 47.6397;
+
+
+    const url =
+    `https://api.open-meteo.com/v1/forecast?
+    latitude=${lat}
+    &longitude=${lon}
+    &current=
+    temperature_2m,
+    apparent_temperature,
+    relative_humidity_2m,
+    wind_speed_10m,
+    wind_direction_10m,
+    pressure_msl,
+    weather_code
+    &timezone=Europe/Moscow`;
+
+
+    try{
+
+        const response = await fetch(url);
+
+        const data = await response.json();
+
+
+        console.log(data);
+
+
+    }
+    catch(error){
+
+        console.error(
+            "Ошибка загрузки погоды:",
+            error
+        );
+
+    }
 
 }
