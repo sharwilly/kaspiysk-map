@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Каспийск | Городская карта</title>
+
+    <!-- Leaflet карта -->
+    <link 
+        rel="stylesheet" 
+        href="https://unpkg.com/leaflet/dist/leaflet.css"
+    />
+
+      <link rel="stylesheet" href="css/index.css">
+      <link rel="stylesheet" href="css/common.css">
+      
+      
+</head>
+
+<body data-page="problems">
+
+<div id="header-container"></div>
+    
+<div id="container">
+
+    <div id="map"></div>
+
+    <div id="panel">
+
+        <h2>Новое обращение</h2>
+
+        <label>Тип проблемы</label>
+
+        <div class="problem-types">
+
+            <button 
+                type="button"
+                class="type-button"
+                data-type="подтопление">
+                💧 Подтопление
+            </button>
+
+
+            <button 
+                type="button"
+                class="type-button"
+                data-type="яма">
+                🕳 Яма
+            </button>
+
+
+            <button 
+                type="button"
+                class="type-button"
+                data-type="мусор">
+                🗑 Мусор
+            </button>
+
+
+            <button 
+                type="button"
+                class="type-button"
+                data-type="освещение">
+                💡 Освещение
+            </button>
+
+
+            <button 
+                type="button"
+                class="type-button"
+                data-type="другое">
+                ❗ Другое
+            </button>
+
+        </div>
+
+
+        <input 
+            type="hidden"
+            id="problemType"
+            value="">
+
+        <label>
+            Адрес (необязательно):
+        </label>
+
+        <input 
+            type="text"
+            id="problemAddress"
+            placeholder="Например: ул. Ленина, 24"
+        >
+
+
+        <button id="findAddress">
+            Найти адрес
+        </button>
+
+        <button id="myLocation" type="button">
+            📍 Моё местоположение
+        </button>
+
+        <div id="addressResults"></div>
+
+        <br>
+        <label>Описание</label>
+
+        <textarea 
+            id="problemDescription"
+            rows="5"
+            placeholder="Опишите проблему"></textarea>
+
+        <label>
+            Фотографии (до 3):
+        </label>
+
+        <label class="photo-button">
+
+            📷 Добавить фото
+
+            <input
+                type="file"
+                id="photos"
+                multiple
+                accept="image/*"
+            >
+
+        </label>
+
+        <div id="photoPreview"></div>
+
+        <button id="saveProblem">
+
+            🚀 Отправить обращение
+
+        </button>
+
+    </div>
+
+    <div id="serverNotice" class="server-notice hidden">
+        ⏳ Сервер запускается...<br>
+        Первая отправка может занять до минуты.<br>
+        Пожалуйста, не закрывайте страницу.
+    </div>
+
+</div>
+
+<footer>
+    Независимый проект. Не является официальным сайтом администрации города.
+</footer>
+
+<div id="photoViewer">
+
+    <button id="closeViewer">
+        ✕
+    </button>
+
+    <button id="prevPhoto">
+        ‹
+    </button>
+
+    <img id="viewerImage">
+
+    <button id="nextPhoto">
+        ›
+    </button>
+
+</div>
+
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+
+<script src="js/header.js"></script>
+<script src="js/config.js"></script>
+<script src="js/markers.js"></script>
+<script src="js/index.js"></script>
+
+</body>
+</html>

@@ -1,179 +1,422 @@
 <!DOCTYPE html>
 <html lang="ru">
+
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Каспийск | Городская карта</title>
 
-    <!-- Leaflet карта -->
-    <link 
-        rel="stylesheet" 
-        href="https://unpkg.com/leaflet/dist/leaflet.css"
-    />
 
-      <link rel="stylesheet" href="css/index.css">
-      <link rel="stylesheet" href="css/common.css">
-      
-      
+<meta charset="UTF-8">
+
+
+<title>
+Открытый Каспийск
+</title>
+
+
+
+<link 
+rel="stylesheet" 
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+
+
+<link rel="stylesheet" href="css/common.css">
+
+<link rel="stylesheet" href="css/main.css">
+
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+
+
+<link 
+href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" 
+rel="stylesheet"
+>
+
+
+
 </head>
 
-<body data-page="problems">
+
+
+
+<body data-page="main">
 
 <div id="header-container"></div>
-    
-<div id="container">
 
-    <div id="map"></div>
-
-    <div id="panel">
-
-        <h2>Новое обращение</h2>
-
-        <label>Тип проблемы</label>
-
-        <div class="problem-types">
-
-            <button 
-                type="button"
-                class="type-button"
-                data-type="подтопление">
-                💧 Подтопление
-            </button>
+<main>
 
 
-            <button 
-                type="button"
-                class="type-button"
-                data-type="яма">
-                🕳 Яма
-            </button>
+
+<section class="hero">
 
 
-            <button 
-                type="button"
-                class="type-button"
-                data-type="мусор">
-                🗑 Мусор
-            </button>
 
 
-            <button 
-                type="button"
-                class="type-button"
-                data-type="освещение">
-                💡 Освещение
-            </button>
+
+<div class="hero-bg"></div>
 
 
-            <button 
-                type="button"
-                class="type-button"
-                data-type="другое">
-                ❗ Другое
-            </button>
-
-        </div>
+<div class="hero-content">
 
 
-        <input 
-            type="hidden"
-            id="problemType"
-            value="">
-
-        <label>
-            Адрес (необязательно):
-        </label>
-
-        <input 
-            type="text"
-            id="problemAddress"
-            placeholder="Например: ул. Ленина, 24"
-        >
 
 
-        <button id="findAddress">
-            Найти адрес
-        </button>
 
-        <button id="myLocation" type="button">
-            📍 Моё местоположение
-        </button>
+<div class="hero-left">
 
-        <div id="addressResults"></div>
 
-        <br>
-        <label>Описание</label>
 
-        <textarea 
-            id="problemDescription"
-            rows="5"
-            placeholder="Опишите проблему"></textarea>
 
-        <label>
-            Фотографии (до 3):
-        </label>
 
-        <label class="photo-button">
+<h1>
 
-            📷 Добавить фото
+Открытый
 
-            <input
-                type="file"
-                id="photos"
-                multiple
-                accept="image/*"
-            >
+<br>
 
-        </label>
+Каспийск
 
-        <div id="photoPreview"></div>
+</h1>
 
-        <button id="saveProblem">
 
-            🚀 Отправить обращение
 
-        </button>
 
-    </div>
 
-    <div id="serverNotice" class="server-notice hidden">
-        ⏳ Сервер запускается...<br>
-        Первая отправка может занять до минуты.<br>
-        Пожалуйста, не закрывайте страницу.
-    </div>
+<p>
 
-</div>
+Все городские сервисы
 
-<footer>
-    Независимый проект. Не является официальным сайтом администрации города.
-</footer>
+<br>
 
-<div id="photoViewer">
+в одном месте
 
-    <button id="closeViewer">
-        ✕
-    </button>
+</p>
 
-    <button id="prevPhoto">
-        ‹
-    </button>
 
-    <img id="viewerImage">
 
-    <button id="nextPhoto">
-        ›
-    </button>
+
+
+
+
+
+
+<div class="search-box">
+
+
+
+<input 
+
+type="text"
+
+placeholder="Поиск улицы..."
+
+>
+
+
 
 </div>
 
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+
+
+
+
+
+
+<div class="hero-buttons">
+
+<a 
+href="problems.html"
+class="primary"
+>
+
+Сообщить проблему
+
+</a>
+
+
+<a 
+href="problems.html"
+class="secondary"
+>
+
+
+Открыть карту
+
+</a>
+
+</div>
+
+
+</div> <!-- закрываем hero-left -->
+
+
+
+<div class="hero-map">
+
+
+<div id="city-map"></div>
+
+
+
+<div class="layers">
+
+
+<b>
+Слои
+</b>
+
+
+<label>
+☑ Дороги
+</label>
+
+
+<label>
+☑ Отключения
+</label>
+
+
+<label>
+☑ Камеры
+</label>
+
+
+<label>
+☑ Школы
+</label>
+
+
+<label>
+☑ Благоустройство
+</label>
+
+
+</div>
+
+
+</div>
+
+
+
+</div>
+
+
+</div>
+
+
+</section>
+
+
+
+<section class="statistics">
+
+<div>
+
+<b id="problemsCount">
+-
+</b>
+
+<span>
+Активных проблем
+</span>
+
+</div>
+
+
+<div>
+
+<b id="outagesCount">
+-
+</b>
+
+<span>
+Отключений
+</span>
+
+</div>
+
+
+</section>
+
+
+<section class="services">
+
+
+
+
+
+<h2>
+Популярные сервисы
+</h2>
+
+
+
+
+
+
+
+
+<div class="service-grid">
+
+
+
+
+
+<a 
+href="problems.html"
+class="service red"
+>
+
+
+<h3>
+Проблемы города
+</h3>
+
+
+
+<p>
+Сообщить о проблемах
+</p>
+
+
+
+</a>
+
+
+
+
+
+
+
+
+
+<a 
+href="outages.html"
+class="service orange"
+>
+
+
+<h3>
+Отключения
+</h3>
+
+
+
+<p>
+Аварийные работы
+</p>
+
+
+
+</a>
+
+
+
+
+
+
+
+
+
+<a 
+href="problems.html"
+class="service blue"
+>
+
+
+<h3>
+Карта города
+</h3>
+
+
+
+<p>
+Интерактивная ГИС
+</p>
+
+
+
+</a>
+
+
+
+
+
+
+
+
+
+<div class="service green">
+
+
+<h3>
+Учреждения
+</h3>
+
+
+
+<p>
+Школы, сады, объекты
+</p>
+
+
+
+</div>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+</section>
+
+
+
+
+
+
+</main>
+
+
+
+
+
+
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+
+<script src="js/markers.js"></script>
+
+
+<script src="js/mainMap.js"></script>
+
 
 <script src="js/header.js"></script>
-<script src="js/config.js"></script>
-<script src="js/markers.js"></script>
-<script src="js/index.js"></script>
+<script src="js/main.js"></script>
+
+
+
+
 
 </body>
+
+
 </html>
