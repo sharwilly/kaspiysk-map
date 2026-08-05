@@ -137,6 +137,18 @@ function updateWeather(data){
     document.getElementById("weatherPressure").textContent =
         `${Math.round(current.pressure_msl)} гПа`;
 
+    const weather = weatherCodes[current.weather_code] || {
+        icon:"🌤",
+        text:"Неизвестно"
+    };
+
+
+    document.getElementById("weatherStatus").textContent =
+    `${weather.icon} ${weather.text}`;
+
+    document.querySelector(".weather-icon").textContent =
+    weather.icon;
+
 }
 
 function getWindDirection(deg){
@@ -159,3 +171,82 @@ function getWindDirection(deg){
     return directions[index];
 
 }
+
+const weatherCodes = {
+
+    0: {
+        icon: "☀️",
+        text: "Ясно"
+    },
+
+    1: {
+        icon: "🌤",
+        text: "Преимущественно ясно"
+    },
+
+    2: {
+        icon: "⛅",
+        text: "Переменная облачность"
+    },
+
+    3: {
+        icon: "☁️",
+        text: "Пасмурно"
+    },
+
+    45: {
+        icon: "🌫",
+        text: "Туман"
+    },
+
+    48: {
+        icon: "🌫",
+        text: "Изморозь"
+    },
+
+    51: {
+        icon: "🌦",
+        text: "Морось"
+    },
+
+    61: {
+        icon: "🌧",
+        text: "Дождь"
+    },
+
+    63: {
+        icon: "🌧",
+        text: "Умеренный дождь"
+    },
+
+    65: {
+        icon: "🌧",
+        text: "Сильный дождь"
+    },
+
+    71: {
+        icon: "🌨",
+        text: "Снег"
+    },
+
+    80: {
+        icon: "🌦",
+        text: "Ливень"
+    },
+
+    95: {
+        icon: "⛈",
+        text: "Гроза"
+    },
+
+    96: {
+        icon: "⛈",
+        text: "Гроза с градом"
+    },
+
+    99: {
+        icon: "⛈",
+        text: "Сильная гроза"
+    }
+
+};
