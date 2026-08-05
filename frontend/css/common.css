@@ -883,3 +883,97 @@ h1 {
 
 
 }
+
+.header-weather{
+    position:relative;
+}
+
+.weather-popover{
+
+    position:absolute;
+
+    top:70px;
+    right:0;
+
+    width:320px;
+
+    background:#fff;
+
+    border-radius:18px;
+
+    padding:20px;
+
+    box-shadow:0 20px 50px rgba(0,0,0,.15);
+
+    border:1px solid rgba(0,0,0,.05);
+
+    z-index:1000;
+
+}
+
+.hidden{
+    display:none;
+}
+
+.weather-title{
+
+    font-weight:700;
+    font-size:18px;
+
+    margin-bottom:18px;
+
+}
+
+.weather-main{
+
+    text-align:center;
+
+    margin-bottom:18px;
+
+}
+
+.weather-current{
+
+    font-size:42px;
+
+    font-weight:700;
+
+    margin:10px 0;
+
+}
+
+.weather-info{
+
+    display:grid;
+
+    gap:12px;
+
+}
+
+.weather-info div{
+
+    display:flex;
+
+    justify-content:space-between;
+
+}
+
+.weather-link{
+
+    display:block;
+
+    margin-top:20px;
+
+    text-align:center;
+
+    text-decoration:none;
+
+    font-weight:600;
+
+    color:#2563EB;
+
+    border-top:1px solid #eee;
+
+    padding-top:16px;
+
+}
