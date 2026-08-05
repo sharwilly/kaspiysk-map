@@ -1,58 +1,84 @@
-const lat = 42.8913;
-const lon = 47.6397;
+const LAT = 42.8913;
+const LON = 47.6397;
 
 
 
 const weatherCodes = {
 
+    0:{
+        icon:"☀️",
+        text:"Ясно"
+    },
 
-0:{
-icon:"☀️",
-text:"Ясно"
-},
+    1:{
+        icon:"🌤",
+        text:"Преимущественно ясно"
+    },
 
+    2:{
+        icon:"⛅",
+        text:"Переменная облачность"
+    },
 
-1:{
-icon:"🌤",
-text:"Преимущественно ясно"
-},
+    3:{
+        icon:"☁️",
+        text:"Пасмурно"
+    },
 
+    45:{
+        icon:"🌫",
+        text:"Туман"
+    },
 
-2:{
-icon:"⛅",
-text:"Переменная облачность"
-},
+    48:{
+        icon:"🌫",
+        text:"Изморозь"
+    },
 
+    51:{
+        icon:"🌦",
+        text:"Морось"
+    },
 
-3:{
-icon:"☁️",
-text:"Пасмурно"
-},
+    61:{
+        icon:"🌧",
+        text:"Дождь"
+    },
 
+    63:{
+        icon:"🌧",
+        text:"Умеренный дождь"
+    },
 
-45:{
-icon:"🌫",
-text:"Туман"
-},
+    65:{
+        icon:"🌧",
+        text:"Сильный дождь"
+    },
 
+    71:{
+        icon:"🌨",
+        text:"Снег"
+    },
 
-61:{
-icon:"🌧",
-text:"Дождь"
-},
+    80:{
+        icon:"🌦",
+        text:"Ливень"
+    },
 
+    95:{
+        icon:"⛈",
+        text:"Гроза"
+    },
 
-80:{
-icon:"🌦",
-text:"Ливень"
-},
+    96:{
+        icon:"⛈",
+        text:"Гроза с градом"
+    },
 
-
-95:{
-icon:"⛈",
-text:"Гроза"
-}
-
+    99:{
+        icon:"⛈",
+        text:"Сильная гроза"
+    }
 
 };
 
@@ -63,29 +89,54 @@ text:"Гроза"
 async function loadWeatherPage(){
 
 
-const url =
-
-`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,pressure_msl,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset&timezone=Europe/Moscow`;
+    try{
 
 
+        const url =
 
-const response = await fetch(url);
-
-
-const data = await response.json();
+        `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,pressure_msl,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset&timezone=Europe/Moscow`;
 
 
 
-renderCurrent(data);
+        const response = await fetch(url);
 
-renderHourly(data);
 
-renderDaily(data);
+        const data = await response.json();
 
-renderSun(data);
+
+
+        renderCurrent(data);
+
+
+        renderHourly(data);
+
+
+        renderDaily(data);
+
+
+        renderSun(data);
+
+
+
+    }
+
+
+    catch(error){
+
+
+        console.error(
+            "Ошибка загрузки погоды:",
+            error
+        );
+
+
+    }
 
 
 }
+
+
+
 
 
 
@@ -95,54 +146,71 @@ renderSun(data);
 function renderCurrent(data){
 
 
-const current=data.current;
+    const current = data.current;
 
 
-const weather =
-weatherCodes[current.weather_code] ||
-{
-icon:"🌤",
-text:""
-};
-
-
-
-document.getElementById("weatherIcon").textContent =
-weather.icon;
+    const weather =
+    weatherCodes[current.weather_code]
+    ||
+    {
+        icon:"🌤",
+        text:"Неизвестно"
+    };
 
 
 
-document.getElementById("weatherTemp").textContent =
-Math.round(current.temperature_2m)+"°C";
+    document.getElementById("weatherIcon").textContent =
+    weather.icon;
 
 
 
-document.getElementById("weatherDescription").textContent =
-weather.text;
+    document.getElementById("weatherTemp").textContent =
+    Math.round(current.temperature_2m)+"°";
 
 
 
-document.getElementById("weatherFeels").textContent =
-"Ощущается как "+
-Math.round(current.apparent_temperature)+"°C";
+    document.getElementById("weatherDescription").textContent =
+    weather.text;
 
 
 
-document.getElementById("humidity").textContent =
-current.relative_humidity_2m+"%";
+    document.getElementById("weatherFeels").textContent =
+    "Ощущается как "+
+    Math.round(current.apparent_temperature)+"°";
 
 
 
-document.getElementById("wind").textContent =
-current.wind_speed_10m+" м/с";
+    document.getElementById("humidity").textContent =
+    current.relative_humidity_2m+"%";
 
 
 
-document.getElementById("pressure").textContent =
-Math.round(current.pressure_msl)+" гПа";
+    document.getElementById("wind").textContent =
+    current.wind_speed_10m+" м/с";
+
+
+
+    document.getElementById("direction").textContent =
+    getWindDirection(
+        current.wind_direction_10m
+    );
+
+
+
+    document.getElementById("pressure").textContent =
+    Math.round(current.pressure_msl)+" гПа";
+
+
+
+    setWeatherTheme(
+        current.weather_code
+    );
 
 
 }
+
+
+
 
 
 
@@ -152,55 +220,102 @@ Math.round(current.pressure_msl)+" гПа";
 function renderHourly(data){
 
 
-const box =
-document.getElementById("hourlyForecast");
-
-
-box.innerHTML="";
-
-
-
-for(let i=0;i<12;i++){
-
-
-const weather =
-weatherCodes[data.hourly.weather_code[i]]
-||
-{
-icon:"🌤"
-};
+    const container =
+    document.getElementById(
+        "hourlyForecast"
+    );
 
 
 
-box.innerHTML += `
-
-<div class="hour-card">
-
-<div>
-${data.hourly.time[i].slice(11,16)}
-</div>
+    container.innerHTML="";
 
 
-<div class="icon">
-${weather.icon}
-</div>
+
+    const now =
+    new Date();
 
 
-<strong>
-${Math.round(data.hourly.temperature_2m[i])}°
-</strong>
+
+    let start = 0;
 
 
-</div>
 
-`;
+    for(let i=0;i<data.hourly.time.length;i++){
+
+
+        if(
+            new Date(data.hourly.time[i])
+            >= now
+        ){
+
+            start=i;
+
+            break;
+
+        }
+
+
+    }
+
+
+
+
+    for(
+        let i=start;
+        i<start+12;
+        i++
+    ){
+
+
+        const weather =
+        weatherCodes[
+            data.hourly.weather_code[i]
+        ]
+        ||
+        {
+            icon:"🌤"
+        };
+
+
+
+        container.innerHTML += `
+
+        <div class="hour-card">
+
+            <div class="hour-time">
+
+            ${data.hourly.time[i]
+            .slice(11,16)}
+
+            </div>
+
+
+            <div class="hour-icon">
+
+            ${weather.icon}
+
+            </div>
+
+
+            <div class="hour-temp">
+
+            ${Math.round(
+                data.hourly.temperature_2m[i]
+            )}°
+
+            </div>
+
+
+        </div>
+
+        `;
+
+
+    }
 
 
 }
 
-
-
-}
 
 
 
@@ -212,75 +327,100 @@ ${Math.round(data.hourly.temperature_2m[i])}°
 function renderDaily(data){
 
 
-const box =
-document.getElementById("dailyForecast");
-
-
-box.innerHTML="";
-
-
-
-for(let i=0;i<7;i++){
-
-
-const weather =
-weatherCodes[data.daily.weather_code[i]]
-||
-{
-icon:"🌤"
-};
+    const container =
+    document.getElementById(
+        "dailyForecast"
+    );
 
 
 
-const date =
-new Date(data.daily.time[i])
-.toLocaleDateString(
-"ru-RU",
-{
-weekday:"short"
+    container.innerHTML="";
+
+
+
+    const days =
+    [
+        "Вс",
+        "Пн",
+        "Вт",
+        "Ср",
+        "Чт",
+        "Пт",
+        "Сб"
+    ];
+
+
+
+    for(let i=0;i<7;i++){
+
+
+        const date =
+        new Date(
+            data.daily.time[i]
+        );
+
+
+
+        const weather =
+        weatherCodes[
+            data.daily.weather_code[i]
+        ]
+        ||
+        {
+            icon:"🌤"
+        };
+
+
+
+        container.innerHTML += `
+
+
+        <div class="day-card">
+
+
+            <div class="day-name">
+
+            ${days[date.getDay()]}
+
+            </div>
+
+
+
+            <div class="day-icon">
+
+            ${weather.icon}
+
+            </div>
+
+
+
+            <div class="day-temp">
+
+            ${Math.round(
+                data.daily.temperature_2m_max[i]
+            )}°
+
+            /
+            ${Math.round(
+                data.daily.temperature_2m_min[i]
+            )}°
+
+            </div>
+
+
+        </div>
+
+
+        `;
+
+
+    }
+
+
 }
-);
 
 
 
-box.innerHTML += `
-
-
-<div class="day-card">
-
-
-<strong>
-${date}
-</strong>
-
-
-<div class="icon">
-
-${weather.icon}
-
-</div>
-
-
-<div>
-
-${Math.round(data.daily.temperature_2m_max[i])}°
-/
-${Math.round(data.daily.temperature_2m_min[i])}°
-
-</div>
-
-
-</div>
-
-
-`;
-
-
-
-}
-
-
-}
 
 
 
@@ -290,15 +430,118 @@ ${Math.round(data.daily.temperature_2m_min[i])}°
 function renderSun(data){
 
 
-document.getElementById("sunrise").textContent =
-data.daily.sunrise[0].slice(11,16);
+    document.getElementById("sunrise").textContent =
+    data.daily.sunrise[0]
+    .slice(11,16);
 
 
-document.getElementById("sunset").textContent =
-data.daily.sunset[0].slice(11,16);
+
+    document.getElementById("sunset").textContent =
+    data.daily.sunset[0]
+    .slice(11,16);
+
 
 
 }
+
+
+
+
+
+
+
+
+
+function getWindDirection(deg){
+
+
+    const directions =
+    [
+        "С",
+        "СВ",
+        "В",
+        "ЮВ",
+        "Ю",
+        "ЮЗ",
+        "З",
+        "СЗ"
+    ];
+
+
+
+    return directions[
+        Math.round(deg/45)%8
+    ];
+
+}
+
+
+
+
+
+
+
+
+
+function setWeatherTheme(code){
+
+
+    const hero =
+    document.getElementById(
+        "weatherHero"
+    );
+
+
+
+    if(!hero)
+    return;
+
+
+
+    if(code===0){
+
+
+        hero.style.background =
+        "linear-gradient(135deg,#56CCF2,#2F80ED)";
+
+
+    }
+
+
+    else if(code===2 || code===3){
+
+
+        hero.style.background =
+        "linear-gradient(135deg,#757F9A,#D7DDE8)";
+
+
+    }
+
+
+    else if(code>=61 && code<=80){
+
+
+        hero.style.background =
+        "linear-gradient(135deg,#4B79A1,#283E51)";
+
+
+    }
+
+
+    else if(code>=95){
+
+
+        hero.style.background =
+        "linear-gradient(135deg,#232526,#414345)";
+
+
+    }
+
+
+}
+
+
+
 
 
 
@@ -308,7 +551,8 @@ document.addEventListener(
 "DOMContentLoaded",
 ()=>{
 
-loadWeatherPage();
 
-}
-);
+    loadWeatherPage();
+
+
+});
