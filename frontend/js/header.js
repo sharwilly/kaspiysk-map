@@ -34,13 +34,20 @@ fetch("components/header.html")
 const weatherBtn = document.getElementById("weatherBtn");
 const weatherPopover = document.getElementById("weatherPopover");
 
-weatherBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    weatherPopover.classList.toggle("hidden");
-});
+if (weatherBtn && weatherPopover) {
 
-document.addEventListener("click", (e) => {
-    if (!weatherPopover.contains(e.target) && !weatherBtn.contains(e.target)) {
-        weatherPopover.classList.add("hidden");
-    }
-});
+    weatherBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        weatherPopover.classList.toggle("hidden");
+    });
+
+    document.addEventListener("click", (e) => {
+        if (
+            !weatherPopover.contains(e.target) &&
+            !weatherBtn.contains(e.target)
+        ) {
+            weatherPopover.classList.add("hidden");
+        }
+    });
+
+}
