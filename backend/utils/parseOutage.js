@@ -3,7 +3,7 @@ const feederMap = require("./feederMap");
 function parseOutage(text) {
 
     // =========================================================
-    // НОРМАЛИЗАЦИЯ ТЕКСТА
+    // 1. НОРМАЛИЗАЦИЯ ТЕКСТА
     // =========================================================
 
     text = String(text || "")
@@ -13,34 +13,26 @@ function parseOutage(text) {
 
 
     // =========================================================
-    // ПОЛНОЕ ВОССТАНОВЛЕНИЕ
+    // 2. ПОЛНОЕ ВОССТАНОВЛЕНИЕ
     // =========================================================
 
     const allFeedersWorking =
-
         /все\s+фидер[а-яё]*\s+(?:в\s+работ[еа]|работают|в\s+рабочем\s+состоянии)/iu.test(text) ||
-
         /все\s+фидер[а-яё]*\s+включен[а-яё]*/iu.test(text) ||
-
         /все\s+фидер[а-яё]*\s+восстановлен[а-яё]*/iu.test(text) ||
-
         /электроснабжение\s+восстановлено\s+полностью/iu.test(text) ||
-
         /электроснабжение\s+восстановлено\s+в\s+полном\s+объ[её]ме/iu.test(text);
 
 
     if (allFeedersWorking) {
 
         return {
-
             type: "электричество",
 
             feeder: null,
-
             feeders: [],
 
             transformer_point: null,
-
             transformer_points: [],
 
             substation: "",
@@ -48,13 +40,11 @@ function parseOutage(text) {
             description: "Все фидеры в работе",
 
             addresses: [],
-
             address_source: "telegram",
 
             restore_time: null,
 
             status: "completed",
-
             outage_type: null,
 
             all_feeders_working: true
@@ -63,7 +53,7 @@ function parseOutage(text) {
 
 
     // =========================================================
-    // РЕЗУЛЬТАТ
+    // 3. РЕЗУЛЬТАТ
     // =========================================================
 
     const result = {
@@ -71,11 +61,9 @@ function parseOutage(text) {
         type: "электричество",
 
         feeder: null,
-
         feeders: [],
 
         transformer_point: null,
-
         transformer_points: [],
 
         substation: "",
@@ -83,13 +71,11 @@ function parseOutage(text) {
         description: "",
 
         addresses: [],
-
         address_source: null,
 
         restore_time: null,
 
         status: "active",
-
         outage_type: null,
 
         all_feeders_working: false
@@ -97,23 +83,13 @@ function parseOutage(text) {
 
 
     // =========================================================
-    // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+    // 4. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
     // =========================================================
 
     function unique(array) {
-
-        return [
-            ...new Set(
-                array.filter(Boolean)
-            )
-        ];
-
+        return [...new Set(array)];
     }
 
-
-    // =========================================================
-    // НОРМАЛИЗАЦИЯ ФИДЕРА
-    // =========================================================
 
     function normalizeFeeder(value) {
 
@@ -132,9 +108,7 @@ function parseOutage(text) {
 
 
         if (ztmMatch) {
-
             return `ЗТМ-${ztmMatch[1]}`;
-
         }
 
 
@@ -154,35 +128,10 @@ function parseOutage(text) {
 
 
         if (!result.feeders.includes(feeder)) {
-
             result.feeders.push(feeder);
-
         }
-
     }
 
-
-    // =========================================================
-    // ТРАНСФОРМАТОРНЫЕ ПОДСТАНЦИИ
-    // =========================================================
-    //
-    // Поддерживаем:
-    //
-    // ТП-43
-    // ТП 43
-    // ТП-Каспийская гавань
-    // ТП Каспийская гавань
-    //
-    // ТП-43 и ТП-Каспийская гавань
-    //
-    // Результат:
-    //
-    // [
-    //     "ТП-43",
-    //     "ТП-Каспийская гавань"
-    // ]
-    //
-    // =========================================================
 
     function addTransformerPoint(value) {
 
@@ -190,13 +139,12 @@ function parseOutage(text) {
             return;
         }
 
-
         let tp = String(value)
             .trim()
-            .replace(/\s+/g, " ")
-            .replace(/^[-–—\s]+/u, "")
-            .replace(/[-–—\s]+$/u, "")
-            .trim();
+            .replace(/\s+/g, " ");
+
+
+        tp = tp.replace(/[.,;:]+$/u, "").trim();
 
 
         if (!tp) {
@@ -204,179 +152,60 @@ function parseOutage(text) {
         }
 
 
-        // Уже есть "ТП"
+        // Если уже начинается с ТП — ничего не добавляем.
         if (!/^ТП\b/iu.test(tp)) {
-
-            tp =
-                `ТП-${tp}`;
-
+            tp = `ТП-${tp}`;
         }
 
 
-        // ТП 43 → ТП-43
-        tp =
-            tp.replace(
-                /^ТП\s+(\d+)$/iu,
-                "ТП-$1"
-            );
+        // Нормализуем "ТП 43" -> "ТП-43"
+        tp = tp.replace(
+            /^ТП\s+/iu,
+            "ТП-"
+        );
 
 
-        // ТП- 43 → ТП-43
-        tp =
-            tp.replace(
-                /^ТП\s*[-–—]\s*(\d+)$/iu,
-                "ТП-$1"
-            );
-
-
-        if (
-            !result.transformer_points.includes(tp)
-        ) {
-
+        if (!result.transformer_points.includes(tp)) {
             result.transformer_points.push(tp);
-
         }
-
     }
-
-
-    /*
-        Ищем ТП именно в контексте отключения.
-
-        Пример:
-
-        "аварийное отключение ТП-43 и
-        ТП-Каспийская гавань. Под отключение
-        попали следующие адреса..."
-
-        Получаем:
-
-        ТП-43
-        ТП-Каспийская гавань
-    */
-
-    const transformerBlockMatch =
-        text.match(
-            /отключени[ея]\s+(.+?)(?=\.\s*Под\s+отключение|\.\s*Под\s+ограничение|\.\s*$|$)/iu
-        );
-
-
-    if (transformerBlockMatch) {
-
-        const transformerText =
-            transformerBlockMatch[1]
-                .trim();
-
-
-        const transformerMatches = [
-
-            ...transformerText.matchAll(
-                /ТП\s*[-–—]?\s*([^,.;]+?)(?=\s+и\s+ТП\b|\s*,\s*ТП\b|[.;]|$)/giu
-            )
-
-        ];
-
-
-        for (
-            const match of transformerMatches
-        ) {
-
-            addTransformerPoint(
-                match[1]
-            );
-
-        }
-
-    }
-
-
-    // Дополнительный fallback.
-    //
-    // Нужен для сообщений, где предложение построено
-    // немного иначе, например:
-    //
-    // "Отключение электроэнергии ТП-43, ТП-44."
-
-    if (
-        result.transformer_points.length === 0
-    ) {
-
-        const fallbackTransformerMatches = [
-
-            ...text.matchAll(
-                /\bТП\s*[-–—]?\s*([А-ЯЁA-Z0-9][А-ЯЁA-Z0-9\s-]*?)(?=\s*,\s*ТП|\s+и\s+ТП|[.,:;]|$)/giu
-            )
-
-        ];
-
-
-        for (
-            const match of fallbackTransformerMatches
-        ) {
-
-            addTransformerPoint(
-                match[1]
-            );
-
-        }
-
-    }
-
-
-    result.transformer_points =
-        unique(
-            result.transformer_points
-        );
-
-
-    result.transformer_point =
-        result.transformer_points[0] || null;
 
 
     // =========================================================
-    // ФИДЕРЫ
+    // 5. ФИДЕРЫ
     // =========================================================
 
     // ---------------------------------------------------------
-    // 1. Фидер-6 ЗТМ
+    // Фидер-6 ЗТМ
     // ---------------------------------------------------------
 
     const feederNumberZtmAfterMatches = [
-
         ...text.matchAll(
             /Фидер[а-яё]*\s*-?\s*(\d+)\s*ЗТМ\b/giu
         )
-
     ];
 
 
-    for (
-        const match of feederNumberZtmAfterMatches
-    ) {
+    for (const match of feederNumberZtmAfterMatches) {
 
         addFeeder(
             `ЗТМ-${match[1]}`
         );
-
     }
 
 
     // ---------------------------------------------------------
-    // 2. Фидеры ЗТМ 3,5,7
+    // Фидеры 3,5,7 ЗТМ
     // ---------------------------------------------------------
 
     const feederNumbersZtmAfterMatches = [
-
         ...text.matchAll(
             /Фидер[а-яё]*\s*-?\s*((?:\d+\s*[,;]\s*)+\d+)\s*ЗТМ\b/giu
         )
-
     ];
 
 
-    for (
-        const match of feederNumbersZtmAfterMatches
-    ) {
+    for (const match of feederNumbersZtmAfterMatches) {
 
         const numbers =
             match[1]
@@ -385,35 +214,27 @@ function parseOutage(text) {
                 .filter(Boolean);
 
 
-        for (
-            const number of numbers
-        ) {
+        for (const number of numbers) {
 
             addFeeder(
                 `ЗТМ-${number}`
             );
-
         }
-
     }
 
 
     // ---------------------------------------------------------
-    // 3. Фидеры ЗТМ 3,5,7
+    // Фидеры ЗТМ 3,5,7
     // ---------------------------------------------------------
 
     const feederZtmMatches = [
-
         ...text.matchAll(
             /Фидер[а-яё]*\s+ЗТМ\s*-?\s*((?:\d+\s*[,;]\s*)+\d+)/giu
         )
-
     ];
 
 
-    for (
-        const match of feederZtmMatches
-    ) {
+    for (const match of feederZtmMatches) {
 
         const numbers =
             match[1]
@@ -422,59 +243,47 @@ function parseOutage(text) {
                 .filter(Boolean);
 
 
-        for (
-            const number of numbers
-        ) {
+        for (const number of numbers) {
 
             addFeeder(
                 `ЗТМ-${number}`
             );
-
         }
-
     }
 
 
     // ---------------------------------------------------------
-    // 4. Фидер ЗТМ-3 / Фидер ЗТМ 3
+    // Фидер ЗТМ-3
+    // Фидер ЗТМ 3
     // ---------------------------------------------------------
 
     const singleZtmMatches = [
-
         ...text.matchAll(
             /Фидер[а-яё]*\s*-?\s*ЗТМ\s*-?\s*(\d+)/giu
         )
-
     ];
 
 
-    for (
-        const match of singleZtmMatches
-    ) {
+    for (const match of singleZtmMatches) {
 
         addFeeder(
             `ЗТМ-${match[1]}`
         );
-
     }
 
 
     // ---------------------------------------------------------
-    // 5. Обычные фидеры
+    // Обычные фидеры
     // ---------------------------------------------------------
 
     const normalFeederMatches = [
-
         ...text.matchAll(
             /Фидер[а-яё]*\s*-?\s*(\d+(?:\s*[,;]\s*\d+)*)/giu
         )
-
     ];
 
 
-    for (
-        const match of normalFeederMatches
-    ) {
+    for (const match of normalFeederMatches) {
 
         const fullMatch =
             match[0];
@@ -487,13 +296,10 @@ function parseOutage(text) {
             );
 
 
-        // Если дальше ЗТМ — уже обработано
-        if (
-            /^\s*ЗТМ\b/iu.test(afterNumber)
-        ) {
-
+        // Если после номера стоит ЗТМ,
+        // он уже обработан специальным парсером.
+        if (/^\s*ЗТМ\b/iu.test(afterNumber)) {
             continue;
-
         }
 
 
@@ -504,29 +310,119 @@ function parseOutage(text) {
                 .filter(Boolean);
 
 
-        for (
-            const number of numbers
-        ) {
+        for (const number of numbers) {
 
             addFeeder(number);
-
         }
-
     }
 
 
-    result.feeders =
-        unique(
-            result.feeders
-        );
+    // =========================================================
+    // 6. ТРАНСФОРМАТОРНЫЕ ПОДСТАНЦИИ
+    // =========================================================
+    //
+    // Поддерживаем:
+    //
+    // ТП-43
+    // ТП 43
+    // ТП-Каспийская гавань
+    // ТП Каспийская гавань
+    // ТП-43 и ТП-Каспийская гавань
+    //
+    // Важно:
+    // ТП-Каспийская гавань не должна превращаться
+    // в одну огромную строку вместе с адресами.
+    // =========================================================
+
+    const transformerSectionMatch = text.match(
+        /(?:отключени[ея]|отключен[а-яё]*)\s+(.*?)(?=\.\s*(?:Под\s+отключение|Под\s+ограничение)|$)/iu
+    );
 
 
-    result.feeder =
-        result.feeders[0] || null;
+    if (transformerSectionMatch) {
+
+        const transformerText =
+            transformerSectionMatch[1];
+
+
+        const tpMatches = [
+            ...transformerText.matchAll(
+                /ТП\s*[-–—]?\s*([^,.;]+?)(?=\s+и\s+ТП|\s*,\s*ТП|\s*,|\s+Под\s+отключение|$)/giu
+            )
+        ];
+
+
+        for (const match of tpMatches) {
+
+            let value =
+                match[1]
+                    .trim()
+                    .replace(/\s+/g, " ");
+
+
+            if (!value) {
+                continue;
+            }
+
+
+            // Если после названия ТП случайно остался
+            // лишний союз/служебный текст.
+            value = value
+                .replace(
+                    /\s+(?:и|а также)\s*$/iu,
+                    ""
+                )
+                .trim();
+
+
+            addTransformerPoint(value);
+        }
+    }
+
+
+    // ---------------------------------------------------------
+    // Дополнительный надёжный поиск ТП
+    // ---------------------------------------------------------
+
+    const standaloneTpMatches = [
+        ...text.matchAll(
+            /ТП\s*[-–—]?\s*([А-ЯЁA-Z0-9][А-ЯЁA-Z0-9\s-]*?)(?=\s+и\s+ТП|\s*,\s*ТП|[.,;:]|\s+Под\s+отключение|$)/giu
+        )
+    ];
+
+
+    for (const match of standaloneTpMatches) {
+
+        let value =
+            match[1]
+                .trim()
+                .replace(/\s+/g, " ");
+
+
+        value = value
+            .replace(
+                /\s+(?:и|а также)\s*$/iu,
+                ""
+            )
+            .trim();
+
+
+        if (value) {
+            addTransformerPoint(value);
+        }
+    }
+
+
+    result.transformer_points =
+        unique(result.transformer_points);
+
+
+    result.transformer_point =
+        result.transformer_points[0] || null;
 
 
     // =========================================================
-    // ТИП ОТКЛЮЧЕНИЯ
+    // 7. ТИП ОТКЛЮЧЕНИЯ
     // =========================================================
 
     const isPlanned =
@@ -562,9 +458,7 @@ function parseOutage(text) {
         result.description =
             "Плановое отключение электроэнергии";
 
-    }
-
-    else if (isEmergency) {
+    } else if (isEmergency) {
 
         result.outage_type =
             "emergency";
@@ -577,18 +471,13 @@ function parseOutage(text) {
             result.description =
                 "Аварийное отключение. Повреждение линии электропередачи";
 
-        }
-
-        else {
+        } else {
 
             result.description =
                 "Аварийное отключение";
-
         }
 
-    }
-
-    else {
+    } else {
 
         result.outage_type =
             "emergency";
@@ -596,12 +485,11 @@ function parseOutage(text) {
 
         result.description =
             "Отключение электроэнергии";
-
     }
 
 
     // =========================================================
-    // ОКОНЧАНИЕ РАБОТ
+    // 8. ОКОНЧАНИЕ РАБОТ
     // =========================================================
 
     const isCompleted =
@@ -631,12 +519,11 @@ function parseOutage(text) {
 
         result.description =
             "Электроснабжение восстановлено";
-
     }
 
 
     // =========================================================
-    // ПОДСТАНЦИЯ
+    // 9. ПОДСТАНЦИЯ
     // =========================================================
 
     const substationMatch =
@@ -662,7 +549,6 @@ function parseOutage(text) {
             `ПС${voltage ? " " + voltage : ""} ${name}`
                 .replace(/\s+/g, " ")
                 .trim();
-
     }
 
 
@@ -680,14 +566,12 @@ function parseOutage(text) {
                 `ПС ${simpleSubstation[1]}`
                     .replace(/\s+/g, " ")
                     .trim();
-
         }
-
     }
 
 
     // =========================================================
-    // ВРЕМЯ ВОССТАНОВЛЕНИЯ
+    // 10. ВРЕМЯ ВОССТАНОВЛЕНИЯ
     // =========================================================
 
     const timePatterns = [
@@ -705,13 +589,10 @@ function parseOutage(text) {
         /до[^\d]*(\d{1,2}:\d{2})/iu,
 
         /в\s+(\d{1,2}:\d{2})/iu
-
     ];
 
 
-    for (
-        const pattern of timePatterns
-    ) {
+    for (const pattern of timePatterns) {
 
         const match =
             text.match(pattern);
@@ -723,14 +604,12 @@ function parseOutage(text) {
                 match[1];
 
             break;
-
         }
-
     }
 
 
     // =========================================================
-    // ПОИСК АДРЕСОВ
+    // 11. ПОИСК АДРЕСОВ
     // =========================================================
 
     const addressPatterns = [
@@ -744,16 +623,13 @@ function parseOutage(text) {
         /ограничение электроснабжения по следующим адресам\s*:\s*([\s\S]*?)(?=(?:Ориентировочное|Аварийная|Дальнейшая|На место|Работы|$))/iu,
 
         /следующие адреса\s*:\s*([\s\S]*?)(?=(?:Ориентировочное|Аварийная|Дальнейшая|На место|Работы|$))/iu
-
     ];
 
 
     let addressMatch = null;
 
 
-    for (
-        const pattern of addressPatterns
-    ) {
+    for (const pattern of addressPatterns) {
 
         const match =
             text.match(pattern);
@@ -765,9 +641,7 @@ function parseOutage(text) {
                 match;
 
             break;
-
         }
-
     }
 
 
@@ -777,9 +651,9 @@ function parseOutage(text) {
             addressMatch[1];
 
 
-        // =====================================================
-        // ОЧИСТКА
-        // =====================================================
+        // -----------------------------------------------------
+        // Очистка
+        // -----------------------------------------------------
 
         addressesText =
             addressesText
@@ -811,9 +685,9 @@ function parseOutage(text) {
                 .trim();
 
 
-        // =====================================================
-        // НОРМАЛИЗАЦИЯ ДЕФИСОВ
-        // =====================================================
+        // -----------------------------------------------------
+        // Нормализация дефисов
+        // -----------------------------------------------------
 
         addressesText =
             addressesText
@@ -822,44 +696,41 @@ function parseOutage(text) {
                 .trim();
 
 
-        // =====================================================
-        // РАЗБИВКА АДРЕСОВ
-        // =====================================================
+        // -----------------------------------------------------
+        // Разбивка по запятым
+        // -----------------------------------------------------
 
         let addresses =
             addressesText
                 .split(/\s*,\s*/)
-                .map(address =>
-                    address.trim()
-                )
+                .map(address => address.trim())
                 .filter(Boolean);
 
 
-        // =====================================================
-        // ОБЪЕДИНЕНИЕ НОМЕРОВ ДОМОВ
-        // =====================================================
+        // -----------------------------------------------------
+        // Объединение номеров домов
+        // -----------------------------------------------------
+        //
+        // Например:
+        //
+        // ул. Ленина дома - 33
+        // 33А
+        // 33Б
+        //
+        // превращается в:
+        //
+        // ул. Ленина дома - 33, 33А, 33Б
+        // -----------------------------------------------------
 
         const mergedAddresses = [];
 
         let currentStreet = null;
 
 
-        for (
-            const address of addresses
-        ) {
+        for (const address of addresses) {
 
             const looksLikeHouseNumber =
-
-                /^\d+\s*[А-ЯЁA-Z]?(?:\s*[-–—]\s*\d+\s*[А-ЯЁA-Z]?)?\.?$/iu.test(
-                    address
-                );
-
-
-            const looksLikeStreet =
-
-                /^(?:ул\.?|улица|просп\.?|проспект|пер\.?|переулок|ш\.?|шоссе|мкр\.?|микрорайон|снт)\b/iu.test(
-                    address
-                );
+                /^\d+\s*[А-ЯЁA-Z]?(?:\s*[-–—]\s*\d+\s*[А-ЯЁA-Z]?)?\.?$/iu.test(address);
 
 
             if (
@@ -868,27 +739,22 @@ function parseOutage(text) {
             ) {
 
                 currentStreet =
-                    `${currentStreet}, ${address}`;
-
+                    `${currentStreet}, ${address.replace(/\.$/, "")}`;
 
                 mergedAddresses[
                     mergedAddresses.length - 1
                 ] = currentStreet;
 
-
                 continue;
-
             }
 
 
             currentStreet =
                 address;
 
-
             mergedAddresses.push(
                 address
             );
-
         }
 
 
@@ -896,71 +762,45 @@ function parseOutage(text) {
             mergedAddresses;
 
 
-        // =====================================================
-        // ОБРАБОТКА "И"
-        // =====================================================
+        // -----------------------------------------------------
+        // Обработка "и"
+        // -----------------------------------------------------
 
         addresses =
             addresses.flatMap(address => {
 
-                /*
-                    Разделяем:
-
-                    "ул. Ленина и ул. Молодежная"
-
-                    но НЕ разделяем:
-
-                    "ТП-Каспийская гавань"
-
-                    Здесь разделение происходит только
-                    если после "и" начинается адрес.
-                */
-
                 if (
-                    /\s+и\s+(?=(?:ул\.?|улица|просп\.?|проспект|пер\.?|переулок|ш\.?|шоссе|мкр\.?|микрорайон|снт)\b)/iu.test(address)
+                    /\s+и\s+/iu.test(address)
                 ) {
 
                     return address
-                        .split(
-                            /\s+и\s+(?=(?:ул\.?|улица|просп\.?|проспект|пер\.?|переулок|ш\.?|шоссе|мкр\.?|микрорайон|снт)\b)/iu
-                        )
-                        .map(x =>
-                            x.trim()
-                        )
+                        .split(/\s+и\s+/iu)
+                        .map(x => x.trim())
                         .filter(Boolean);
-
                 }
 
-
                 return [address];
-
             });
 
 
-        // =====================================================
-        // УДАЛЕНИЕ МУСОРА
-        // =====================================================
+        // -----------------------------------------------------
+        // Удаление мусора
+        // -----------------------------------------------------
 
         addresses =
             addresses.filter(address => {
 
-                if (
-                    /^ул\.?$/iu.test(address)
-                ) {
+                if (/^ул\.?$/iu.test(address)) {
                     return false;
                 }
 
 
-                if (
-                    /^адреса$/iu.test(address)
-                ) {
+                if (/^адреса$/iu.test(address)) {
                     return false;
                 }
 
 
-                if (
-                    /^улицы$/iu.test(address)
-                ) {
+                if (/^улицы$/iu.test(address)) {
                     return false;
                 }
 
@@ -986,38 +826,29 @@ function parseOutage(text) {
                 }
 
 
-                if (
-                    address.length < 3
-                ) {
+                if (address.length < 3) {
                     return false;
                 }
 
 
                 return true;
-
             });
 
 
         result.addresses =
-            unique(
-                addresses
-            );
+            unique(addresses);
 
 
-        if (
-            result.addresses.length
-        ) {
+        if (result.addresses.length) {
 
             result.address_source =
                 "telegram";
-
         }
-
     }
 
 
     // =========================================================
-    // ПРОВЕРКА АДРЕСОВ
+    // 12. ПРОВЕРКА АДРЕСОВ
     // =========================================================
 
     const badAddresses =
@@ -1033,106 +864,77 @@ function parseOutage(text) {
             /^адреса$/iu.test(address) ||
 
             /аварийн|бригада|информация/iu.test(address)
-
         );
 
 
     // =========================================================
-    // FALLBACK: feederMap
+    // 13. FALLBACK: feederMap
     // =========================================================
-
-    /*
-        feederMap используем только когда Telegram
-        не дал нормальные адреса.
-
-        Для ТП feederMap НЕ используем.
-    */
+    //
+    // Для ТП НЕ используем feederMap.
+    // =========================================================
 
     if (
         badAddresses &&
-        result.feeders.length > 0
+        result.feeders.length
     ) {
 
         const mappedAddresses = [];
 
 
-        for (
-            const feeder of result.feeders
-        ) {
+        for (const feeder of result.feeders) {
 
-            if (
-                feederMap[feeder]
-            ) {
+            if (feederMap[feeder]) {
 
                 mappedAddresses.push(
                     ...feederMap[feeder]
                 );
 
                 continue;
-
             }
 
 
             const numberMatch =
-                feeder.match(
-                    /(\d+)$/
-                );
+                feeder.match(/(\d+)$/);
 
 
-            if (
-                numberMatch
-            ) {
+            if (numberMatch) {
 
                 const number =
                     numberMatch[1];
 
 
-                if (
-                    feederMap[number]
-                ) {
+                if (feederMap[number]) {
 
                     mappedAddresses.push(
                         ...feederMap[number]
                     );
-
                 }
-
             }
-
         }
 
 
-        if (
-            mappedAddresses.length > 0
-        ) {
+        if (mappedAddresses.length) {
 
             result.addresses =
-                unique(
-                    mappedAddresses
-                );
+                unique(mappedAddresses);
 
             result.address_source =
                 "feederMap";
-
         }
-
     }
 
 
     // =========================================================
-    // ФИНАЛЬНАЯ НОРМАЛИЗАЦИЯ
+    // 14. ФИНАЛЬНАЯ НОРМАЛИЗАЦИЯ
     // =========================================================
 
     result.feeders =
-        unique(
-            result.feeders
-        );
+        unique(result.feeders);
 
 
     result.transformer_points =
-        unique(
-            result.transformer_points
-        );
+        unique(result.transformer_points);
 
 
     result.feeder =
@@ -1144,23 +946,24 @@ function parseOutage(text) {
 
 
     // =========================================================
-    // ФИНАЛЬНЫЙ ЛОГ
+    // 15. ФИНАЛЬНЫЙ ВЫВОД В ЛОГ
     // =========================================================
 
-    if (
-        result.transformer_points.length > 0
-    ) {
-
-        console.log(
-            "📍 Найдены ТП:",
-            result.transformer_points
-        );
-
-    }
+    console.log(
+        "РАСПАРСЕНО ОТКЛЮЧЕНИЕ:",
+        {
+            feeders: result.feeders,
+            transformer_points: result.transformer_points,
+            outage_type: result.outage_type,
+            status: result.status,
+            substation: result.substation,
+            restore_time: result.restore_time,
+            addresses: result.addresses
+        }
+    );
 
 
     return result;
-
 }
 
 
