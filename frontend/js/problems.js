@@ -146,6 +146,64 @@ L.tileLayer(
 // =========================================================
 
 let problemMarkers = [];
+let outageMarkers = [];
+let currentMapFilter = "all";
+
+function applyMapFilter() {
+
+    // -----------------------------------------
+    // ПРОБЛЕМЫ
+    // -----------------------------------------
+
+    problemMarkers.forEach(item => {
+
+        const marker = item.marker;
+        const type = item.type;
+
+        const visible =
+            currentMapFilter === "all" ||
+            currentMapFilter === type;
+
+        if (visible) {
+            if (!map.hasLayer(marker)) {
+                marker.addTo(map);
+            }
+        } else {
+            if (map.hasLayer(marker)) {
+                map.removeLayer(marker);
+            }
+        }
+
+    });
+
+
+    // -----------------------------------------
+    // ОТКЛЮЧЕНИЯ
+    // -----------------------------------------
+
+    outageMarkers.forEach(marker => {
+
+        const visible =
+            currentMapFilter === "all" ||
+            currentMapFilter === "outage";
+
+        if (visible) {
+
+            if (!map.hasLayer(marker)) {
+                marker.addTo(map);
+            }
+
+        } else {
+
+            if (map.hasLayer(marker)) {
+                map.removeLayer(marker);
+            }
+
+        }
+
+    });
+
+}
 
 async function loadProblemsOnMap() {
 
@@ -177,7 +235,7 @@ async function loadProblemsOnMap() {
         // Удаляем старые маркеры
 
         problemMarkers.forEach(
-            marker => map.removeLayer(marker)
+            item => map.removeLayer(item.marker)
         );
 
         problemMarkers = [];
@@ -295,9 +353,14 @@ async function loadProblemsOnMap() {
             marker
                 .addTo(map);
 
-            problemMarkers.push(marker);
+            problemMarkers.push({
+                marker: marker,
+                type: problem.type
+            });
 
         });
+
+        applyMapFilter();
 
     }
 
@@ -312,14 +375,45 @@ async function loadProblemsOnMap() {
 
 }
 
-loadProblemsOnMap();
+// =========================================================
+// ФИЛЬТРЫ КАРТЫ
+// =========================================================
+
+document
+    .querySelectorAll(".map-filter")
+    .forEach(button => {
+
+        button.addEventListener("click", function() {
+
+            // Снимаем active
+            document
+                .querySelectorAll(".map-filter")
+                .forEach(btn => {
+                    btn.classList.remove("active");
+                });
+
+            // Активируем выбранный
+            this.classList.add("active");
+
+            // Запоминаем фильтр
+            currentMapFilter =
+                this.dataset.filter;
+
+            console.log(
+                "🔎 Фильтр:",
+                currentMapFilter
+            );
+
+            // Применяем
+            applyMapFilter();
+
+        });
+
+    });
 
 // =========================================================
 // ОТКЛЮЧЕНИЯ ЭЛЕКТРОЭНЕРГИИ НА КАРТЕ
 // =========================================================
-
-let outageMarkers = [];
-
 
 function createOutageIcon() {
 
@@ -406,7 +500,6 @@ async function loadOutagesOnMap() {
             if (!outage.locations) {
                 return;
             }
-
 
             outage.locations.forEach(location => {
 
@@ -496,6 +589,8 @@ async function loadOutagesOnMap() {
 
         });
 
+        applyMapFilter();
+
 
     } catch (error) {
 
@@ -510,6 +605,15 @@ async function loadOutagesOnMap() {
 
 
 loadOutagesOnMap();
+
+setInterval(() => {
+
+    console.log("🔄 Обновляем карту...");
+
+    loadProblemsOnMap();
+    loadOutagesOnMap();
+
+}, 60000);
 
 let cityBoundary = null; // Граница города
 
@@ -1104,6 +1208,13 @@ document
         }
 
     `);
+
+    problemMarkers.push({
+        marker: marker,
+        type: problem.type
+    });
+
+    applyMapFilter();
 
 
 });

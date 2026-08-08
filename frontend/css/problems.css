@@ -637,3 +637,78 @@ footer {
     font-size: 12px;
 
 }
+
+/* =========================================================
+   ФИЛЬТРЫ КАРТЫ
+   ========================================================= */
+
+#mapFilters {
+
+    position: absolute;
+
+    top: 20px;
+    left: 20px;
+
+    z-index: 1000;
+
+    display: flex;
+
+    gap: 8px;
+
+    flex-wrap: wrap;
+
+    max-width: calc(100% - 40px);
+
+}
+
+
+.map-filter {
+
+    border: none;
+
+    background: rgba(255, 255, 255, 0.92);
+
+    backdrop-filter: blur(10px);
+
+    -webkit-backdrop-filter: blur(10px);
+
+    border-radius: 12px;
+
+    padding: 9px 13px;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    color: #374151;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.12);
+
+    transition:
+        0.2s ease;
+
+}
+
+
+.map-filter:hover {
+
+    transform: translateY(-1px);
+
+    background: #ffffff;
+
+}
+
+
+.map-filter.active {
+
+    background: #2563eb;
+
+    color: white;
+
+    box-shadow:
+        0 4px 12px rgba(37, 99, 235, 0.3);
+
+}
