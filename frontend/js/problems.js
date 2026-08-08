@@ -141,55 +141,375 @@ L.tileLayer(
 ).addTo(map);
 
 // получаем проблемы из нашего API
-fetch(`${API_URL}/problems/active`)
-.then(response => response.json())
-.then(data => {
+// =========================================================
+// ПРОБЛЕМЫ ГОРОДА НА КАРТЕ
+// =========================================================
 
-    data.forEach(problem => {
+let problemMarkers = [];
 
-        if (problem.status === "done") {
-            return;
+async function loadProblemsOnMap() {
+
+    try {
+
+        console.log("📍 Загружаем проблемы...");
+
+        const response =
+            await fetch(
+                `${API_URL}/problems/active`
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                `HTTP ${response.status}`
+            );
+
         }
 
-        const marker = createProblemMarker(problem)
-            .addTo(map);
+        const problems =
+            await response.json();
 
-        marker.bindPopup(`
+        console.log(
+            "📍 Проблем получено:",
+            problems.length
+        );
 
-            <b>${problem.type}</b><br>
-            ${problem.description}<br><br>
+        // Удаляем старые маркеры
 
-            📅 <b>Дата:</b>
-            ${new Date(problem.created_at).toLocaleDateString("ru-RU")}<br>
+        problemMarkers.forEach(
+            marker => map.removeLayer(marker)
+        );
 
-            📍 <b>Адрес:</b>
-            ${problem.address || "не определён"}
+        problemMarkers = [];
 
-            ${
-                problem.photos && problem.photos.length
-                ? `
-                <br><br>
+        problems.forEach(problem => {
 
-                <div class="popup-gallery">
+            // Выполненные проблемы не показываем
 
-                    ${problem.photos.map((photo, index) => `
-                        <img
-                            src="${photo}"
-                            class="popup-thumb"
-                            onclick='openPhotoViewer(${JSON.stringify(problem.photos)}, ${index})'
-                        >
-                    `).join("")}
-
-                </div>
-                `
-                : ""
+            if (problem.status === "done") {
+                return;
             }
 
-        `);
+            // Создаём маркер
+
+            const marker =
+                createProblemMarker(problem);
+
+            // Popup
+
+            const popup = `
+
+                <div class="problem-popup">
+
+                    <div class="problem-title">
+
+                        ${getProblemIcon(problem.type)}
+                        ${problem.type}
+
+                    </div>
+
+                    <div class="problem-description">
+
+                        ${problem.description || "Описание отсутствует"}
+
+                    </div>
+
+                    <br>
+
+                    <div>
+
+                        📅 <b>Дата:</b>
+
+                        ${
+                            new Date(
+                                problem.created_at
+                            ).toLocaleDateString(
+                                "ru-RU"
+                            )
+                        }
+
+                    </div>
+
+                    <div>
+
+                        📍 <b>Адрес:</b>
+
+                        ${
+                            problem.address ||
+                            "не определён"
+                        }
+
+                    </div>
+
+                    <div>
+
+                        📌 <b>Статус:</b>
+
+                        ${getStatusName(problem.status)}
+
+                    </div>
+
+                    ${
+                        problem.photos &&
+                        problem.photos.length
+                        ?
+                        `
+
+                        <br>
+
+                        <div class="popup-gallery">
+
+                            ${
+                                problem.photos
+                                .map(
+                                    (photo, index) => `
+
+                                        <img
+                                            src="${photo}"
+                                            class="popup-thumb"
+                                            onclick='openPhotoViewer(
+                                                ${JSON.stringify(problem.photos)},
+                                                ${index}
+                                            )'
+                                        >
+
+                                    `
+                                )
+                                .join("")
+                            }
+
+                        </div>
+
+                        `
+                        :
+                        ""
+                    }
+
+                </div>
+
+            `;
+
+            marker
+                .bindPopup(popup);
+
+            marker
+                .addTo(map);
+
+            problemMarkers.push(marker);
+
+        });
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "❌ Ошибка загрузки проблем:",
+            error
+        );
+
+    }
+
+}
+
+loadProblemsOnMap();
+
+// =========================================================
+// ОТКЛЮЧЕНИЯ ЭЛЕКТРОЭНЕРГИИ НА КАРТЕ
+// =========================================================
+
+let outageMarkers = [];
+
+
+function createOutageIcon() {
+
+    return L.divIcon({
+
+        className: "outage-marker",
+
+        html: `
+            <div class="outage-marker-inner">
+                ⚡
+            </div>
+        `,
+
+        iconSize: [38, 38],
+
+        iconAnchor: [19, 19],
+
+        popupAnchor: [0, -20]
 
     });
 
-});
+}
+
+
+function formatRestoreTime(time) {
+
+    if (!time) {
+
+        return "Время восстановления неизвестно";
+
+    }
+
+    return `Ожидаемое восстановление: <b>${time}</b>`;
+
+}
+
+
+async function loadOutagesOnMap() {
+
+    try {
+
+        console.log(
+            "⚡ Загружаем отключения..."
+        );
+
+
+        const response =
+            await fetch(
+                `${API_URL}/outages/map`
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                `HTTP ${response.status}`
+            );
+
+        }
+
+
+        const outages =
+            await response.json();
+
+
+        console.log(
+            "⚡ Отключений получено:",
+            outages.length
+        );
+
+
+        // Удаляем старые маркеры
+
+        outageMarkers.forEach(
+            marker => map.removeLayer(marker)
+        );
+
+
+        outageMarkers = [];
+
+
+        outages.forEach(outage => {
+
+            if (!outage.locations) {
+                return;
+            }
+
+
+            outage.locations.forEach(location => {
+
+                const marker =
+                    L.marker(
+
+                        [
+                            location.latitude,
+                            location.longitude
+                        ],
+
+                        {
+                            icon:
+                                createOutageIcon()
+                        }
+
+                    );
+
+
+                const popup = `
+
+                    <div class="outage-popup">
+
+                        <div class="outage-title">
+                            ⚡ Отключение электроэнергии
+                        </div>
+
+
+                        <div class="outage-address">
+
+                            📍 <b>
+                                ${location.address}
+                            </b>
+
+                        </div>
+
+
+                        <div class="outage-description">
+
+                            ${
+                                outage.description ||
+                                "Аварийное отключение"
+                            }
+
+                        </div>
+
+
+                        <div class="outage-time">
+
+                            ${formatRestoreTime(
+                                outage.restore_time
+                            )}
+
+                        </div>
+
+
+                        <div class="outage-date">
+
+                            📅 Сообщение:
+                            ${
+                                new Date(
+                                    outage.created_at
+                                ).toLocaleString(
+                                    "ru-RU"
+                                )
+                            }
+
+                        </div>
+
+                    </div>
+
+                `;
+
+
+                marker
+                    .bindPopup(popup);
+
+
+                marker.addTo(map);
+
+
+                outageMarkers.push(
+                    marker
+                );
+
+            });
+
+        });
+
+
+    } catch (error) {
+
+        console.error(
+            "❌ Ошибка загрузки отключений:",
+            error
+        );
+
+    }
+
+}
+
+
+loadOutagesOnMap();
 
 let cityBoundary = null; // Граница города
 

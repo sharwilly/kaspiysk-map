@@ -539,3 +539,101 @@ footer {
     transition: 0.2s;
 
 }
+
+/* =========================================================
+   ОТКЛЮЧЕНИЯ ЭЛЕКТРОЭНЕРГИИ
+   ========================================================= */
+
+.outage-marker {
+
+    background: transparent;
+
+    border: none;
+
+}
+
+
+.outage-marker-inner {
+
+    width: 38px;
+
+    height: 38px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: #f59e0b;
+
+    border: 3px solid #ffffff;
+
+    box-shadow:
+        0 3px 10px rgba(0,0,0,0.25);
+
+    font-size: 20px;
+
+}
+
+
+.outage-popup {
+
+    min-width: 230px;
+
+}
+
+
+.outage-title {
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+    margin-bottom: 10px;
+
+}
+
+
+.outage-address {
+
+    margin-bottom: 8px;
+
+}
+
+
+.outage-description {
+
+    color: #6b7280;
+
+    margin-bottom: 8px;
+
+}
+
+
+.outage-time {
+
+    margin-top: 8px;
+
+    padding: 7px 9px;
+
+    border-radius: 8px;
+
+    background: #fff7ed;
+
+    color: #c2410c;
+
+}
+
+
+.outage-date {
+
+    margin-top: 8px;
+
+    color: #6b7280;
+
+    font-size: 12px;
+
+}
