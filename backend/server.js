@@ -364,7 +364,8 @@ app.get("/outages/map", async (req, res) => {
                 created_at,
                 transformer_points,
                 feeder,
-                status
+                status,
+                address_points
             FROM power_outages
             WHERE status = 'active'
             ORDER BY created_at DESC
@@ -376,23 +377,75 @@ app.get("/outages/map", async (req, res) => {
 
         for (const outage of result.rows) {
 
-            const locations = [];
+            let locations = [];
 
+            // =====================================================
+            // 1. ИСПОЛЬЗУЕМ УЖЕ СОХРАНЁННЫЕ КООРДИНАТЫ
+            // =====================================================
 
             if (
-                !Array.isArray(outage.addresses) ||
-                outage.addresses.length === 0
+                Array.isArray(outage.address_points) &&
+                outage.address_points.length > 0
             ) {
-                continue;
+
+                locations = outage.address_points
+                    .filter(point =>
+                        point &&
+                        point.address &&
+                        Number.isFinite(Number(point.latitude)) &&
+                        Number.isFinite(Number(point.longitude))
+                    )
+                    .map(point => ({
+
+                        address: point.address,
+
+                        latitude:
+                            Number(point.latitude),
+
+                        longitude:
+                            Number(point.longitude)
+
+                    }));
+
             }
 
 
-            for (const address of outage.addresses) {
+            // =====================================================
+            // 2. ЕСЛИ КООРДИНАТ НЕТ — ПЫТАЕМСЯ ГЕОКОДИРОВАТЬ
+            // =====================================================
+
+            const addresses =
+                Array.isArray(outage.addresses)
+                    ? outage.addresses
+                    : [];
+
+
+            for (const address of addresses) {
 
                 if (!address) {
                     continue;
                 }
 
+
+                // -------------------------------------------------
+                // Уже есть координаты для этого адреса
+                // -------------------------------------------------
+
+                const alreadyExists =
+                    locations.some(
+                        location =>
+                            location.address === address
+                    );
+
+
+                if (alreadyExists) {
+                    continue;
+                }
+
+
+                // -------------------------------------------------
+                // Геокодирование через Nominatim
+                // -------------------------------------------------
 
                 try {
 
@@ -400,14 +453,22 @@ app.get("/outages/map", async (req, res) => {
                         `${address}, Каспийск, Республика Дагестан, Россия`;
 
 
-                    const response = await fetch(
-                        `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(query)}`,
-                        {
-                            headers: {
-                                "User-Agent": "Kaspiysk Map/1.0"
-                            }
-                        }
+                    console.log(
+                        "📍 Геокодируем новый адрес:",
+                        address
                     );
+
+
+                    const response =
+                        await fetch(
+                            `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(query)}`,
+                            {
+                                headers: {
+                                    "User-Agent":
+                                        "Kaspiysk Map/1.0"
+                                }
+                            }
+                        );
 
 
                     if (!response.ok) {
@@ -440,17 +501,65 @@ app.get("/outages/map", async (req, res) => {
                     }
 
 
-                    locations.push({
+                    const latitude =
+                        Number(data[0].lat);
+
+
+                    const longitude =
+                        Number(data[0].lon);
+
+
+                    if (
+                        !Number.isFinite(latitude) ||
+                        !Number.isFinite(longitude)
+                    ) {
+
+                        console.log(
+                            "⚠️ Некорректные координаты:",
+                            address
+                        );
+
+                        continue;
+                    }
+
+
+                    const location = {
 
                         address,
 
-                        latitude:
-                            Number(data[0].lat),
+                        latitude,
 
-                        longitude:
-                            Number(data[0].lon)
+                        longitude
 
-                    });
+                    };
+
+
+                    locations.push(location);
+
+
+                    // =================================================
+                    // 3. СОХРАНЯЕМ КООРДИНАТЫ В БД
+                    // =================================================
+
+                    await pool.query(
+                        `
+                        UPDATE power_outages
+                        SET address_points = $1::jsonb
+                        WHERE id = $2
+                        `,
+                        [
+                            JSON.stringify(locations),
+                            outage.id
+                        ]
+                    );
+
+
+                    console.log(
+                        "✅ Координаты сохранены:",
+                        address,
+                        latitude,
+                        longitude
+                    );
 
 
                 } catch (error) {
@@ -466,13 +575,19 @@ app.get("/outages/map", async (req, res) => {
             }
 
 
+            // =====================================================
+            // 4. ДОБАВЛЯЕМ ОТКЛЮЧЕНИЕ В РЕЗУЛЬТАТ
+            // =====================================================
+
             if (locations.length > 0) {
 
                 outages.push({
 
-                    id: outage.id,
+                    id:
+                        outage.id,
 
-                    type: outage.type,
+                    type:
+                        outage.type,
 
                     description:
                         outage.description,
@@ -485,6 +600,9 @@ app.get("/outages/map", async (req, res) => {
 
                     created_at:
                         outage.created_at,
+
+                    feeder:
+                        outage.feeder,
 
                     locations
 
@@ -507,7 +625,8 @@ app.get("/outages/map", async (req, res) => {
 
 
         res.status(500).json({
-            error: "Ошибка загрузки отключений"
+            error:
+                "Ошибка загрузки отключений"
         });
 
     }

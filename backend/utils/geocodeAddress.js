@@ -1,5 +1,7 @@
 const pool = require("../db");
 
+const STREET_ALIASES = require("./data/streetAliases");
+
 
 // =========================================================
 // НАСТРОЙКИ
