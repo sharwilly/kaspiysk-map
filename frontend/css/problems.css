@@ -5,67 +5,86 @@ body {
 
 
 /* =========================================================
-   ОСНОВНОЙ КОНТЕЙНЕР
-   ========================================================= */
+   КАРТА
+========================================================= */
 
-#container {
-    display: flex;
-    width: 100%;
-    height: calc(100vh - 80px);
-    overflow: hidden;
+#map {
+    position: fixed;
+
+    top: 80px;
+    left: 0;
+
+    right: 340px;
+    bottom: 0;
+
+    width: auto;
+    height: auto;
+
+    min-height: 300px;
+
+    z-index: 1;
 }
 
 
 /* =========================================================
-   КАРТА
-   ========================================================= */
+   ПАНЕЛЬ
+========================================================= */
 
-#mapContainer {
-    position: relative;
+#panel {
 
-    flex: 1;
-    min-width: 0;
-    min-height: 300px;
-}
+    position: fixed;
 
+    top: 80px;
+    right: 0;
+    bottom: 0;
 
-#map {
-    width: 100%;
-    height: 100%;
+    width: 300px;
+
+    padding: 20px;
+
+    background: white;
+
+    border-left: 1px solid #ccc;
+
+    box-sizing: border-box;
+
+    overflow-y: auto;
+
+    z-index: 1001;
 }
 
 
 /* =========================================================
    ФИЛЬТРЫ КАРТЫ
-   ========================================================= */
+========================================================= */
 
 #mapFilters {
-    position: absolute;
 
-    top: 20px;
+    position: fixed;
+
+    top: 100px;
     left: 20px;
 
     z-index: 1000;
 
     display: flex;
-    flex-wrap: wrap;
 
     gap: 8px;
 
-    max-width: calc(100% - 40px);
+    flex-wrap: wrap;
 
-    pointer-events: none;
+    max-width: calc(100% - 380px);
 }
 
 
 .map-filter {
-    pointer-events: auto;
 
     border: none;
 
     background: rgba(255, 255, 255, 0.92);
 
     backdrop-filter: blur(10px);
+
     -webkit-backdrop-filter: blur(10px);
 
     border-radius: 12px;
@@ -73,6 +92,7 @@ body {
     padding: 9px 13px;
 
     font-size: 13px;
+
     font-weight: 600;
 
     color: #374151;
@@ -83,14 +103,12 @@ body {
         0 2px 8px rgba(0, 0, 0, 0.12);
 
     transition:
-        transform 0.2s ease,
-        background 0.2s ease,
-        color 0.2s ease,
-        box-shadow 0.2s ease;
+        0.2s ease;
 }
 
 
 .map-filter:hover {
+
     transform: translateY(-1px);
 
     background: #ffffff;
@@ -98,6 +116,7 @@ body {
 
 
 .map-filter.active {
+
     background: #2563eb;
 
     color: white;
@@ -108,23 +127,62 @@ body {
 
 
 /* =========================================================
-   ПАНЕЛЬ
-   ========================================================= */
+   МОБИЛЬНАЯ ВЕРСИЯ
+========================================================= */
 
-#panel {
-    width: 300px;
+@media (max-width: 768px) {
 
-    flex-shrink: 0;
+    #map {
 
-    padding: 20px;
+        position: relative;
 
-    box-sizing: border-box;
+        top: auto;
+        left: auto;
+        right: auto;
+        bottom: auto;
 
-    background: white;
+        width: 100%;
 
-    border-left: 1px solid #e5e7eb;
+        height: 50vh;
 
-    overflow-y: auto;
+        min-height: 300px;
+
+        z-index: 1;
+    }
+
+
+    #panel {
+
+        position: relative;
+
+        top: auto;
+        right: auto;
+        bottom: auto;
+
+        width: 100%;
+
+        min-height: auto;
+
+        box-sizing: border-box;
+
+        overflow: visible;
+
+        z-index: 2;
+    }
+
+
+    #mapFilters {
+
+        position: absolute;
+
+        top: 20px;
+        left: 15px;
+
+        max-width: calc(100% - 30px);
+
+        z-index: 1000;
+    }
+
 }
 
 
