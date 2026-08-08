@@ -283,17 +283,49 @@ async function parseTelegram() {
             );
 
 
-            // =================================================
-            // Если найдено несколько фидеров
-            // =================================================
+            // =====================================================
+            // НЕСКОЛЬКО ТРАНСФОРМАТОРНЫХ ПОДСТАНЦИЙ
+            // =====================================================
 
-            if (outage.feeders.length > 1) {
+            if (outage.transformer_points.length > 1) {
+
+                for (const transformerPoint of outage.transformer_points) {
+
+                    const item = {
+
+                        ...outage,
+
+                        transformer_point: transformerPoint,
+
+                        transformer_points:
+                            outage.transformer_points,
+
+                        telegram_id:
+                            `${msg.telegram_id}_${transformerPoint}`
+                    };
+
+
+                    console.log(
+                        "Сохраняем ТП:",
+                        transformerPoint
+                    );
+
+
+                    await saveOutage(item);
+                }
+
+            }
+
+
+            // =====================================================
+            // НЕСКОЛЬКО ФИДЕРОВ
+            // =====================================================
+
+            else if (outage.feeders.length > 1) {
 
                 for (const feeder of outage.feeders) {
 
                     /*
-                        ВАЖНО:
-
                         Если Telegram уже дал адреса,
                         используем их.
 
@@ -301,11 +333,13 @@ async function parseTelegram() {
                         как fallback.
                     */
 
-                    let addresses = outage.addresses;
+                    let addresses =
+                        outage.addresses;
 
 
                     if (
-                        (!addresses || addresses.length === 0)
+                        !addresses ||
+                        addresses.length === 0
                     ) {
 
                         const feederMap =
@@ -323,7 +357,8 @@ async function parseTelegram() {
 
                         feeder,
 
-                        feeders: outage.feeders,
+                        feeders:
+                            outage.feeders,
 
                         addresses,
 
@@ -339,15 +374,14 @@ async function parseTelegram() {
 
 
                     await saveOutage(item);
-
                 }
 
             }
 
 
-            // =================================================
-            // Один фидер
-            // =================================================
+            // =====================================================
+            // ОДНА ТП / ОДИН ФИДЕР / ОБЫЧНОЕ ОТКЛЮЧЕНИЕ
+            // =====================================================
 
             else {
 
@@ -356,7 +390,6 @@ async function parseTelegram() {
 
 
                 await saveOutage(outage);
-
             }
 
         }
