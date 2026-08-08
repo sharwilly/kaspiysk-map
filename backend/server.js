@@ -1001,6 +1001,401 @@ app.put("/admin/outages/:id/done", async(req,res)=>{
 
 });
 
+// =========================================================
+// ОТКЛЮЧЕНИЯ ЭЛЕКТРОЭНЕРГИИ ДЛЯ КАРТЫ
+// =========================================================
+
+const outageGeocodeCache = new Map();
+
+function normalizeOutageAddress(address) {
+
+    if (!address) {
+        return null;
+    }
+
+    return address
+        .replace(/\.$/, "")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+
+function expandOutageAddresses(addresses) {
+
+    const result = [];
+
+    let currentStreet = null;
+
+
+    for (const rawAddress of addresses) {
+
+        if (!rawAddress) {
+            continue;
+        }
+
+
+        let address =
+            rawAddress
+                .replace(/\.$/, "")
+                .replace(/\s+/g, " ")
+                .trim();
+
+
+        // -------------------------------------------------
+        // Ищем название улицы
+        // -------------------------------------------------
+
+        const streetMatch = address.match(
+            /^(ул\.|улица|проспект|пр-т|переулок|пер\.|бульвар|бул\.|шоссе|ш\.|проезд|пр-д)\s*[^0-9]+/i
+        );
+
+
+        if (streetMatch) {
+
+            currentStreet =
+                streetMatch[0]
+                    .trim()
+                    .replace(/\s+дома\s*[-–—]?\s*$/i, "")
+                    .replace(/\s+дом\s*[-–—]?\s*$/i, "")
+                    .trim();
+
+        }
+
+
+        // -------------------------------------------------
+        // "ул. Ленина дома - 33, 33А"
+        // -------------------------------------------------
+
+        const housesMatch =
+            address.match(
+                /дома?\s*[-–—:]?\s*(.+)$/i
+            );
+
+
+        if (
+            housesMatch &&
+            currentStreet
+        ) {
+
+            const houses =
+                housesMatch[1]
+                    .split(/,\s*/)
+                    .map(h => h.trim())
+                    .filter(Boolean);
+
+
+            for (const house of houses) {
+
+                result.push(
+                    `${currentStreet}, ${house}`
+                );
+
+            }
+
+
+            continue;
+        }
+
+
+        // -------------------------------------------------
+        // Просто улица
+        // -------------------------------------------------
+
+        if (
+            currentStreet &&
+            /^[0-9А-Яа-яЁё]+[А-Яа-яЁё]?$/u.test(address)
+        ) {
+
+            result.push(
+                `${currentStreet}, ${address}`
+            );
+
+            continue;
+        }
+
+
+        // -------------------------------------------------
+        // Обычный адрес
+        // -------------------------------------------------
+
+        result.push(address);
+
+    }
+
+
+    // Убираем дубли
+
+    return [
+        ...new Set(result)
+    ];
+
+}
+
+
+async function geocodeOutageAddress(address) {
+
+    const normalized =
+        normalizeOutageAddress(address);
+
+
+    if (!normalized) {
+        return null;
+    }
+
+
+    if (
+        outageGeocodeCache.has(normalized)
+    ) {
+
+        return outageGeocodeCache.get(
+            normalized
+        );
+
+    }
+
+
+    try {
+
+        const query =
+            `${normalized}, Каспийск, Республика Дагестан, Россия`;
+
+
+        const response =
+            await fetch(
+
+                `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=1&q=${encodeURIComponent(query)}`,
+
+                {
+                    headers: {
+                        "User-Agent":
+                            "Kaspiysk Map/1.0"
+                    }
+                }
+
+            );
+
+
+        if (!response.ok) {
+
+            console.error(
+                "Nominatim:",
+                response.status,
+                normalized
+            );
+
+            outageGeocodeCache.set(
+                normalized,
+                null
+            );
+
+            return null;
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (!data.length) {
+
+            console.log(
+                "📍 Не найден:",
+                normalized
+            );
+
+            outageGeocodeCache.set(
+                normalized,
+                null
+            );
+
+            return null;
+        }
+
+
+        const location = {
+
+            latitude:
+                Number(data[0].lat),
+
+            longitude:
+                Number(data[0].lon),
+
+            display_name:
+                data[0].display_name ||
+                normalized
+
+        };
+
+
+        outageGeocodeCache.set(
+            normalized,
+            location
+        );
+
+
+        console.log(
+            "📍 Геокодирован:",
+            normalized,
+            "→",
+            location.latitude,
+            location.longitude
+        );
+
+
+        return location;
+
+
+    } catch (error) {
+
+        console.error(
+            "Ошибка геокодирования:",
+            error.message
+        );
+
+
+        outageGeocodeCache.set(
+            normalized,
+            null
+        );
+
+
+        return null;
+
+    }
+
+}
+
+
+// =========================================================
+// API ОТКЛЮЧЕНИЙ ДЛЯ КАРТЫ
+// =========================================================
+
+app.get("/outages/map", async (req, res) => {
+
+    try {
+
+        const result = await pool.query(`
+            SELECT
+                id,
+                type,
+                feeder,
+                transformer_points,
+                description,
+                addresses,
+                restore_time,
+                status,
+                created_at,
+                telegram_id
+            FROM power_outages
+            WHERE status = 'active'
+            ORDER BY created_at DESC
+        `);
+
+
+        const outages = [];
+
+
+        for (const outage of result.rows) {
+
+            const rawAddresses =
+                Array.isArray(outage.addresses)
+                    ? outage.addresses
+                    : [];
+
+const addresses =
+    expandOutageAddresses(rawAddresses);
+
+
+            const locations = [];
+
+
+            for (const address of addresses) {
+
+                const location =
+                    await geocodeOutageAddress(address);
+
+
+                if (!location) {
+                    continue;
+                }
+
+
+                locations.push({
+
+                    address,
+
+                    latitude:
+                        location.latitude,
+
+                    longitude:
+                        location.longitude,
+
+                    display_name:
+                        location.display_name
+
+                });
+
+            }
+
+
+            // Показываем отключение только если
+            // хотя бы один адрес удалось определить
+
+            if (locations.length === 0) {
+                continue;
+            }
+
+
+            outages.push({
+
+                id: outage.id,
+
+                type: outage.type,
+
+                description:
+                    outage.description,
+
+                restore_time:
+                    outage.restore_time,
+
+                status:
+                    outage.status,
+
+                created_at:
+                    outage.created_at,
+
+                telegram_id:
+                    outage.telegram_id,
+
+                locations
+
+            });
+
+        }
+
+
+        res.json(outages);
+
+
+    } catch (error) {
+
+        console.error(
+            "Ошибка формирования карты отключений:",
+            error
+        );
+
+
+        res.status(500).json({
+
+            error:
+                "Ошибка загрузки отключений"
+
+        });
+
+    }
+
+});
+
 app.listen(PORT, () => {
     console.log(`Сервер запущен на порту ${PORT}`);
 });
