@@ -43,6 +43,12 @@ async function saveOutage(outage) {
                 ? [outage.feeder]
                 : [];
 
+
+        const transformerPoints =
+            Array.isArray(outage.transformer_points)
+                ? outage.transformer_points.filter(Boolean)
+                : [];
+
         // =========================================================
         // 3. ВСЕ ФИДЕРЫ В РАБОТЕ
         // =========================================================
@@ -96,10 +102,13 @@ async function saveOutage(outage) {
             // отключение.
             // -----------------------------------------------------
 
-            if (feeders.length === 0) {
+            if (
+                feeders.length === 0 &&
+                transformerPoints.length === 0
+            ) {
 
                 console.log(
-                    "ℹ️ Сообщение о восстановлении без конкретного фидера. Новое отключение не создаём."
+                    "⚠️ Отключение без фидера и ТП. Новая запись не создаётся."
                 );
 
                 return;
@@ -202,6 +211,7 @@ async function saveOutage(outage) {
                 type,
                 feeder,
                 substation,
+                transformer_points,
                 description,
                 addresses,
                 restore_time,
@@ -210,7 +220,7 @@ async function saveOutage(outage) {
                 source
             )
             VALUES
-            ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+            ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
             `,
             [
                 outage.type || "электричество",
@@ -218,6 +228,8 @@ async function saveOutage(outage) {
                 feeder,
 
                 outage.substation || "",
+
+                transformerPoints,
 
                 outage.description ||
                 "Отключение электроэнергии",

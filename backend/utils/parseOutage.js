@@ -90,6 +90,8 @@ function parseOutage(text) {
         // Все найденные фидеры
         feeders: [],
 
+        transformer_points: [],
+
         substation: "",
 
         description: "",
@@ -323,6 +325,61 @@ function parseOutage(text) {
 
     result.feeder =
         result.feeders[0] || null;
+
+
+    // =========================================================
+    // ТРАНСФОРМАТОРНЫЕ ПОДСТАНЦИИ (ТП)
+    // =========================================================
+
+    /*
+        Поддерживаем:
+
+        ТП-43
+        ТП 43
+        ТП-Каспийская гавань
+        ТП Каспийская гавань
+        ТП-43 и ТП-Каспийская гавань
+    */
+
+    const transformerMatches = [
+
+        ...text.matchAll(
+            /ТП\s*[-–—]?\s*([А-ЯЁA-Z0-9][А-ЯЁA-Z0-9\s-]*?)(?=\s+и\s+ТП|\s*,\s*ТП|[.,:;]|$)/giu
+        )
+
+    ];
+
+
+    for (const match of transformerMatches) {
+
+        const value = match[1]
+            .trim()
+            .replace(/\s+/g, " ");
+
+
+        if (!value) {
+            continue;
+        }
+
+
+        const transformer =
+            `ТП-${value}`
+                .replace(/^ТП--/i, "ТП-");
+
+
+        if (
+            !result.transformer_points.includes(
+                transformer
+            )
+        ) {
+
+            result.transformer_points.push(
+                transformer
+            );
+
+        }
+
+    }
 
 
     // =========================================================
