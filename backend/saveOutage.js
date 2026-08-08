@@ -2,99 +2,192 @@ const pool = require("./db");
 
 async function saveOutage(outage) {
 
-try {
+    try {
 
-    // =========================================================
-    // 1. ПРОВЕРКА TELEGRAM ID
-    // =========================================================
+        // =========================================================
+        // 1. ПОЛУЧАЕМ ФИДЕРЫ И ТП
+        // =========================================================
 
-    if (outage.telegram_id) {
+        const feeders = Array.isArray(outage.feeders)
+            ? outage.feeders.filter(Boolean)
+            : outage.feeder
+                ? [outage.feeder]
+                : [];
 
-        const exists = await pool.query(
-            `
-            SELECT id
-            FROM power_outages
-            WHERE telegram_id = $1
-            `,
-            [
-                outage.telegram_id
-            ]
-        );
 
-        if (exists.rows.length > 0) {
+        const transformerPoints =
+            Array.isArray(outage.transformer_points)
+                ? outage.transformer_points.filter(Boolean)
+                : outage.transformer_point
+                    ? [outage.transformer_point]
+                    : [];
 
-            console.log(
-                "⏭ Сообщение уже обработано:",
-                outage.telegram_id
+
+        // =========================================================
+        // 2. ВСЕ ФИДЕРЫ В РАБОТЕ
+        // =========================================================
+
+        if (outage.all_feeders_working === true) {
+
+            const result = await pool.query(
+                `
+                UPDATE power_outages
+                SET
+                    status = 'completed',
+                    description = 'Электроснабжение восстановлено'
+                WHERE status = 'active'
+                RETURNING id, feeder, transformer_points
+                `
             );
+
+
+            if (result.rows.length > 0) {
+
+                console.log(
+                    "✅ Все активные отключения закрыты:",
+                    result.rows.map(row => row.id)
+                );
+
+            } else {
+
+                console.log(
+                    "ℹ️ Активных отключений для закрытия нет"
+                );
+
+            }
 
             return;
         }
-    }
 
 
-    // =========================================================
-    // 2. ПОЛУЧАЕМ ФИДЕРЫ И ТП
-    // =========================================================
+        // =========================================================
+        // 3. СООБЩЕНИЕ О ЗАВЕРШЕНИИ
+        // =========================================================
 
-    const feeders = Array.isArray(outage.feeders)
-        ? outage.feeders.filter(Boolean)
-        : outage.feeder
-            ? [outage.feeder]
-            : [];
+        if (outage.status === "completed") {
+
+            // -----------------------------------------------------
+            // 3.1. Если нет ни фидеров, ни ТП
+            // -----------------------------------------------------
+
+            if (
+                feeders.length === 0 &&
+                transformerPoints.length === 0
+            ) {
+
+                console.log(
+                    "⚠️ Сообщение о восстановлении без фидера и ТП. Новая запись не создаётся."
+                );
+
+                return;
+            }
 
 
-    const transformerPoints =
-        Array.isArray(outage.transformer_points)
-            ? outage.transformer_points.filter(Boolean)
-            : [];
+            // -----------------------------------------------------
+            // 3.2. Закрываем фидеры
+            // -----------------------------------------------------
+
+            for (const feeder of feeders) {
+
+                const result = await pool.query(
+                    `
+                    UPDATE power_outages
+                    SET
+                        status = 'completed',
+                        description = $1,
+                        restore_time = COALESCE(
+                            $2,
+                            restore_time
+                        )
+                    WHERE
+                        feeder = $3
+                        AND status = 'active'
+                    RETURNING id
+                    `,
+                    [
+                        outage.description ||
+                        "Электроснабжение восстановлено",
+
+                        outage.restore_time || null,
+
+                        feeder
+                    ]
+                );
 
 
-    // =========================================================
-    // 3. ВСЕ ФИДЕРЫ В РАБОТЕ
-    // =========================================================
+                if (result.rows.length > 0) {
 
-    if (outage.all_feeders_working === true) {
+                    console.log(
+                        `✅ Отключение фидера ${feeder} закрыто:`,
+                        result.rows.map(row => row.id)
+                    );
 
-        const result = await pool.query(
-            `
-            UPDATE power_outages
-            SET
-                status = 'completed',
-                description = 'Электроснабжение восстановлено'
-            WHERE status = 'active'
-            RETURNING id, feeder, transformer_points
-            `
-        );
+                } else {
 
-        if (result.rows.length > 0) {
+                    console.log(
+                        `ℹ️ Активного отключения по фидеру ${feeder} не найдено`
+                    );
 
-            console.log(
-                "✅ Все активные отключения закрыты:",
-                result.rows.map(row => row.id)
-            );
+                }
+            }
 
-        } else {
 
-            console.log(
-                "ℹ️ Активных отключений для закрытия нет"
-            );
+            // -----------------------------------------------------
+            // 3.3. Закрываем ТП
+            // -----------------------------------------------------
 
+            for (const transformerPoint of transformerPoints) {
+
+                const result = await pool.query(
+                    `
+                    UPDATE power_outages
+                    SET
+                        status = 'completed',
+                        description = $1,
+                        restore_time = COALESCE(
+                            $2,
+                            restore_time
+                        )
+                    WHERE
+                        $3 = ANY(transformer_points)
+                        AND status = 'active'
+                    RETURNING id
+                    `,
+                    [
+                        outage.description ||
+                        "Электроснабжение восстановлено",
+
+                        outage.restore_time || null,
+
+                        transformerPoint
+                    ]
+                );
+
+
+                if (result.rows.length > 0) {
+
+                    console.log(
+                        `✅ Отключение ${transformerPoint} закрыто:`,
+                        result.rows.map(row => row.id)
+                    );
+
+                } else {
+
+                    console.log(
+                        `ℹ️ Активного отключения ${transformerPoint} не найдено`
+                    );
+
+                }
+            }
+
+
+            return;
         }
 
-        return;
-    }
 
-
-    // =========================================================
-    // 4. СООБЩЕНИЕ О ЗАВЕРШЕНИИ РАБОТ
-    // =========================================================
-
-    if (outage.status === "completed") {
-
-        // -----------------------------------------------------
-        // Если нет ни фидеров, ни ТП
-        // -----------------------------------------------------
+        // =========================================================
+        // 4. ЗАЩИТА ОТ ПУСТОГО ОТКЛЮЧЕНИЯ
+        // =========================================================
 
         if (
             feeders.length === 0 &&
@@ -102,229 +195,423 @@ try {
         ) {
 
             console.log(
-                "⚠️ Сообщение о восстановлении без фидера и ТП. Новая запись не создаётся."
+                "⚠️ Отключение без фидера и ТП. Новая запись не создаётся."
             );
 
             return;
         }
 
 
-        // -----------------------------------------------------
-        // 4.1. Закрываем фидеры
-        // -----------------------------------------------------
+        // =========================================================
+        // 5. ПОДГОТОВКА АДРЕСОВ
+        // =========================================================
 
-        for (const feeder of feeders) {
+        const addresses =
+            Array.isArray(outage.addresses)
+                ? outage.addresses.filter(Boolean)
+                : [];
 
-            const result = await pool.query(
-                `
-                UPDATE power_outages
-                SET
-                    status = 'completed',
-                    description = $1,
-                    restore_time = COALESCE(
-                        $2,
+
+        const restoreTime =
+            outage.restore_time || null;
+
+
+        const description =
+            outage.description ||
+            "Отключение электроэнергии";
+
+
+        const outageType =
+            outage.type ||
+            "электричество";
+
+
+        // =========================================================
+        // 6. СОХРАНЕНИЕ ФИДЕРОВ
+        // =========================================================
+        //
+        // Обычно parser уже разделяет несколько фидеров
+        // и передаёт telegram_id вида:
+        //
+        // go_i_chs/16965_ЗТМ-3
+        //
+        // Поэтому здесь сохраняем один объект.
+        //
+        // =========================================================
+
+        if (feeders.length > 0) {
+
+            const feeder =
+                outage.feeder ||
+                feeders[0];
+
+
+            const telegramId =
+                outage.telegram_id || null;
+
+
+            // -----------------------------------------------------
+            // Проверяем существующую запись
+            // -----------------------------------------------------
+
+            if (telegramId) {
+
+                const exists = await pool.query(
+                    `
+                    SELECT
+                        id,
+                        addresses,
+                        status,
                         restore_time
-                    )
-                WHERE
-                    feeder = $3
-                    AND status = 'active'
-                RETURNING id
+                    FROM power_outages
+                    WHERE telegram_id = $1
+                    LIMIT 1
+                    `,
+                    [telegramId]
+                );
+
+
+                // -------------------------------------------------
+                // ЗАПИСЬ УЖЕ СУЩЕСТВУЕТ
+                // -------------------------------------------------
+
+                if (exists.rows.length > 0) {
+
+                    const existing =
+                        exists.rows[0];
+
+
+                    const oldAddresses =
+                        Array.isArray(existing.addresses)
+                            ? existing.addresses
+                            : [];
+
+
+                    const shouldUpdateAddresses =
+                        addresses.length > 0 &&
+                        (
+                            oldAddresses.length === 0 ||
+                            JSON.stringify(oldAddresses) !==
+                            JSON.stringify(addresses)
+                        );
+
+
+                    if (shouldUpdateAddresses) {
+
+                        await pool.query(
+                            `
+                            UPDATE power_outages
+                            SET
+                                addresses = $1,
+                                restore_time = COALESCE(
+                                    $2,
+                                    restore_time
+                                ),
+                                status = $3
+                            WHERE telegram_id = $4
+                            `,
+                            [
+                                addresses,
+
+                                restoreTime,
+
+                                "active",
+
+                                telegramId
+                            ]
+                        );
+
+
+                        console.log(
+                            "🔄 Обновлена существующая запись фидера:",
+                            telegramId
+                        );
+
+                    } else {
+
+                        console.log(
+                            "⏭ Сообщение уже обработано:",
+                            telegramId
+                        );
+
+                    }
+
+
+                    return;
+                }
+            }
+
+
+            // -----------------------------------------------------
+            // НОВАЯ ЗАПИСЬ
+            // -----------------------------------------------------
+
+            await pool.query(
+                `
+                INSERT INTO power_outages
+                (
+                    type,
+                    feeder,
+                    substation,
+                    transformer_points,
+                    description,
+                    addresses,
+                    restore_time,
+                    status,
+                    telegram_id,
+                    source
+                )
+                VALUES
+                ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
                 `,
                 [
-                    outage.description ||
-                    "Электроснабжение восстановлено",
+                    outageType,
 
-                    outage.restore_time || null,
+                    feeder,
 
-                    feeder
+                    outage.substation || "",
+
+                    [],
+
+                    description,
+
+                    addresses,
+
+                    restoreTime,
+
+                    "active",
+
+                    telegramId,
+
+                    "telegram"
                 ]
             );
 
 
-            if (result.rows.length > 0) {
+            console.log(
+                "✅ Новое отключение сохранено:",
+                `фидер: ${feeder}`
+            );
 
-                console.log(
-                    `✅ Отключение фидера ${feeder} закрыто:`,
-                    result.rows.map(row => row.id)
-                );
 
-            } else {
-
-                console.log(
-                    `ℹ️ Активного отключения по фидеру ${feeder} не найдено`
-                );
-
-            }
-
+            return;
         }
 
 
-        // -----------------------------------------------------
-        // 4.2. Закрываем ТП
-        // -----------------------------------------------------
+        // =========================================================
+        // 7. СОХРАНЕНИЕ ТП
+        // =========================================================
+        //
+        // КРИТИЧЕСКИ ВАЖНО:
+        //
+        // Если сообщение:
+        //
+        // ТП-43 и ТП-Каспийская гавань
+        //
+        // создаём ДВЕ записи:
+        //
+        // ТП-43
+        // ТП-Каспийская гавань
+        //
+        // И каждая запись содержит только СВОЮ ТП.
+        //
+        // Адреса при этом относятся к сообщению целиком,
+        // поэтому передаются обеим ТП.
+        //
+        // =========================================================
 
         for (const transformerPoint of transformerPoints) {
 
-            const result = await pool.query(
+            const telegramId =
+                `${outage.telegram_id}_${transformerPoint}`;
+
+
+            console.log(
+                "Обрабатываем ТП:",
+                transformerPoint
+            );
+
+
+            // -----------------------------------------------------
+            // Проверяем существующую запись
+            // -----------------------------------------------------
+
+            const exists = await pool.query(
                 `
-                UPDATE power_outages
-                SET
-                    status = 'completed',
-                    description = $1,
-                    restore_time = COALESCE(
-                        $2,
-                        restore_time
+                SELECT
+                    id,
+                    addresses,
+                    status,
+                    restore_time,
+                    transformer_points
+                FROM power_outages
+                WHERE telegram_id = $1
+                LIMIT 1
+                `,
+                [telegramId]
+            );
+
+
+            // -----------------------------------------------------
+            // ЗАПИСЬ УЖЕ СУЩЕСТВУЕТ
+            // -----------------------------------------------------
+
+            if (exists.rows.length > 0) {
+
+                const existing =
+                    exists.rows[0];
+
+
+                const oldAddresses =
+                    Array.isArray(existing.addresses)
+                        ? existing.addresses
+                        : [];
+
+
+                const oldTransformerPoints =
+                    Array.isArray(existing.transformer_points)
+                        ? existing.transformer_points
+                        : [];
+
+
+                const shouldUpdateAddresses =
+                    addresses.length > 0 &&
+                    (
+                        oldAddresses.length === 0 ||
+                        JSON.stringify(oldAddresses) !==
+                        JSON.stringify(addresses)
+                    );
+
+
+                const shouldFixTransformerPoint =
+                    (
+                        oldTransformerPoints.length !== 1 ||
+                        oldTransformerPoints[0] !== transformerPoint
+                    );
+
+
+                if (
+                    shouldUpdateAddresses ||
+                    shouldFixTransformerPoint ||
+                    (
+                        restoreTime &&
+                        existing.restore_time !== restoreTime
                     )
-                WHERE
-                    $3 = ANY(transformer_points)
-                    AND status = 'active'
-                RETURNING id
+                ) {
+
+                    await pool.query(
+                        `
+                        UPDATE power_outages
+                        SET
+                            transformer_points = $1,
+                            addresses = CASE
+                                WHEN $2::text[] IS NOT NULL
+                                    AND cardinality($2::text[]) > 0
+                                THEN $2
+                                ELSE addresses
+                            END,
+                            restore_time = COALESCE(
+                                $3,
+                                restore_time
+                            ),
+                            status = 'active'
+                        WHERE telegram_id = $4
+                        `,
+                        [
+                            [transformerPoint],
+
+                            addresses.length > 0
+                                ? addresses
+                                : null,
+
+                            restoreTime,
+
+                            telegramId
+                        ]
+                    );
+
+
+                    console.log(
+                        "🔄 Обновлена существующая запись ТП:",
+                        transformerPoint
+                    );
+
+                } else {
+
+                    console.log(
+                        "⏭ Сообщение уже обработано:",
+                        telegramId
+                    );
+
+                }
+
+
+                continue;
+            }
+
+
+            // -----------------------------------------------------
+            // НОВАЯ ЗАПИСЬ ТП
+            // -----------------------------------------------------
+
+            await pool.query(
+                `
+                INSERT INTO power_outages
+                (
+                    type,
+                    feeder,
+                    substation,
+                    transformer_points,
+                    description,
+                    addresses,
+                    restore_time,
+                    status,
+                    telegram_id,
+                    source
+                )
+                VALUES
+                ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
                 `,
                 [
-                    outage.description ||
-                    "Электроснабжение восстановлено",
+                    outageType,
 
-                    outage.restore_time || null,
+                    null,
 
-                    transformerPoint
+                    outage.substation || "",
+
+                    [transformerPoint],
+
+                    description,
+
+                    addresses,
+
+                    restoreTime,
+
+                    "active",
+
+                    telegramId,
+
+                    "telegram"
                 ]
             );
 
 
-            if (result.rows.length > 0) {
-
-                console.log(
-                    `✅ Отключение ${transformerPoint} закрыто:`,
-                    result.rows.map(row => row.id)
-                );
-
-            } else {
-
-                console.log(
-                    `ℹ️ Активного отключения ${transformerPoint} не найдено`
-                );
-
-            }
-
+            console.log(
+                "✅ Новое отключение сохранено:",
+                `ТП: ${transformerPoint}`
+            );
         }
 
 
-        // -----------------------------------------------------
-        // Само сообщение о восстановлении не сохраняем
-        // -----------------------------------------------------
+    } catch (error) {
 
-        return;
-    }
-
-
-    // =========================================================
-    // 5. ЗАЩИТА ОТ ОТКЛЮЧЕНИЯ БЕЗ ФИДЕРА И ТП
-    // =========================================================
-
-    if (
-        feeders.length === 0 &&
-        transformerPoints.length === 0
-    ) {
-
-        console.log(
-            "⚠️ Отключение без фидера и ТП. Новая запись не создаётся."
-        );
-
-        return;
-    }
-
-
-    // =========================================================
-    // 6. ОСНОВНОЙ ФИДЕР
-    // =========================================================
-
-    const feeder =
-        outage.feeder ||
-        feeders[0] ||
-        null;
-
-
-    // =========================================================
-    // 7. СОХРАНЕНИЕ НОВОГО ОТКЛЮЧЕНИЯ
-    // =========================================================
-
-    await pool.query(
-        `
-        INSERT INTO power_outages
-        (
-            type,
-            feeder,
-            substation,
-            transformer_points,
-            description,
-            addresses,
-            restore_time,
-            status,
-            telegram_id,
-            source
-        )
-        VALUES
-        ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-        `,
-        [
-            outage.type || "электричество",
-
-            feeder,
-
-            outage.substation || "",
-
-            transformerPoints,
-
-            outage.description ||
-            "Отключение электроэнергии",
-
-            Array.isArray(outage.addresses)
-                ? outage.addresses
-                : [],
-
-            outage.restore_time || null,
-
-            "active",
-
-            outage.telegram_id || null,
-
-            "telegram"
-        ]
-    );
-
-
-    // =========================================================
-    // 8. ЛОГ
-    // =========================================================
-
-    if (feeders.length > 0) {
-
-        console.log(
-            "✅ Новое отключение сохранено:",
-            `фидеры: ${feeders.join(", ")}`
+        console.error(
+            "❌ Ошибка сохранения отключения:",
+            error.message
         );
 
     }
-
-    if (transformerPoints.length > 0) {
-
-        console.log(
-            "✅ Новое отключение сохранено:",
-            `ТП: ${transformerPoints.join(", ")}`
-        );
-
-    }
-
-
-} catch (error) {
-
-    console.error(
-        "❌ Ошибка сохранения отключения:",
-        error.message
-    );
-
 }
 
-}
 
 module.exports = saveOutage;
