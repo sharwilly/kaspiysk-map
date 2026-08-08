@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="ru">
 
 <head>
@@ -14,56 +15,158 @@
 
 </head>
 
-
 <body data-page="outages">
-
 
 <div id="header-container"></div>
 
-
 <main class="outages-page">
 
-
+```
 <h1>
-⚡ Коммунальные отключения
+    ⚡ Коммунальные отключения
 </h1>
 
+<!-- АНАЛИТИКА -->
+
+<section class="outage-analytics">
+
+    <div class="analytics-card">
+
+        <div class="analytics-icon">🔴</div>
+
+        <div>
+            <div class="analytics-value" id="activeCount">
+                —
+            </div>
+
+            <div class="analytics-label">
+                Активных сейчас
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="analytics-card">
+
+        <div class="analytics-icon">📊</div>
+
+        <div>
+            <div class="analytics-value" id="monthCount">
+                —
+            </div>
+
+            <div class="analytics-label">
+                За 30 дней
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="analytics-card">
+
+        <div class="analytics-icon">🔌</div>
+
+        <div>
+            <div class="analytics-value" id="feederCount">
+                —
+            </div>
+
+            <div class="analytics-label">
+                Фидеров затронуто
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="analytics-card">
+
+        <div class="analytics-icon">🏘️</div>
+
+        <div>
+            <div class="analytics-value" id="addressCount">
+                —
+            </div>
+
+            <div class="analytics-label">
+                Адресов затронуто
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ГРАФИК -->
+
+<section class="analytics-panel">
+
+    <div class="analytics-panel-header">
+
+        <div>
+
+            <h2>
+                Активность отключений
+            </h2>
+
+            <p>
+                Последние 30 дней
+            </p>
+
+        </div>
+
+    </div>
+
+    <div id="outageChart" class="outage-chart">
+
+        Загрузка...
+
+    </div>
+
+</section>
+
+
+<!-- ВКЛАДКИ -->
 
 <div class="outage-tabs">
 
-<button 
-class="tab-button active"
-data-tab="active">
-    Активные
-</button>
+    <button
+        class="tab-button active"
+        data-tab="active">
+
+        Активные
+
+    </button>
 
 
-<button 
-class="tab-button"
-data-tab="done">
-    Решенные
-</button>
+    <button
+        class="tab-button"
+        data-tab="done">
+
+        Решенные
+
+    </button>
 
 </div>
-
 
 
 <div id="outagesList">
 
-Загрузка...
+    Загрузка...
 
 </div>
-
+```
 
 </main>
 
-
-
 <script src="js/weather-widget.js"></script>
+
 <script src="js/header.js"></script>
 
 <script src="js/outages.js"></script>
-
 
 </body>
 
