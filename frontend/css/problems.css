@@ -3,560 +3,705 @@ body {
     font-family: Arial, sans-serif;
 }
 
+
+/* =========================================================
+   ОСНОВНОЙ КОНТЕЙНЕР
+   ========================================================= */
+
 #container {
     display: flex;
+    width: 100%;
     height: calc(100vh - 80px);
+    overflow: hidden;
 }
 
 
-#map {
+/* =========================================================
+   КАРТА
+   ========================================================= */
+
+#mapContainer {
+    position: relative;
+
     flex: 1;
+    min-width: 0;
     min-height: 300px;
 }
 
 
-#panel {
-
-    width: 300px;
-    padding: 20px;
-    background: white;
-    border-left: 1px solid #ccc;
-
-}
-
-
-#panel select,
-#panel textarea,
-#panel button {
-
+#map {
     width: 100%;
-    margin-bottom: 15px;
-
-}
-
-#panel input {
-
-    width: 100%;
-    margin-bottom: 15px;
-    box-sizing: border-box;
-    padding: 8px;
-
+    height: 100%;
 }
 
 
-#panel button {
+/* =========================================================
+   ФИЛЬТРЫ КАРТЫ
+   ========================================================= */
 
-    padding: 10px;
+#mapFilters {
+    position: absolute;
+
+    top: 20px;
+    left: 20px;
+
+    z-index: 1000;
+
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    max-width: calc(100% - 40px);
+
+    pointer-events: none;
+}
+
+
+.map-filter {
+    pointer-events: auto;
+
+    border: none;
+
+    background: rgba(255, 255, 255, 0.92);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    border-radius: 12px;
+
+    padding: 9px 13px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    color: #374151;
+
     cursor: pointer;
 
-}
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.12);
 
-@media (max-width: 768px){
-
-    #container{
-
-        display:flex;
-
-        flex-direction:column;
-
-        height:auto;
-
-    }
-
-
-    #map{
-
-        width:100%;
-
-        height:50vh;
-
-        min-height: 300px;
-
-    }
-
-
-    #panel{
-
-        width:100%;
-
-        box-sizing: border-box;
-
-    }
-
-}
-
-.problem-types{
-
-    display:grid;
-
-    grid-template-columns:1fr 1fr;
-
-    gap:10px;
-
-    margin-bottom:15px;
-
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 
-.type-button{
+.map-filter:hover {
+    transform: translateY(-1px);
 
-    background:#f3f4f6;
-
-    color:#333;
-
-    border:1px solid #ddd;
-
-    border-radius:10px;
-
-    min-height:80px;
-
-    padding:10px;
-
-    font-size:14px;
-
-    display:flex;
-
-    flex-direction:column;
-
-    align-items:center;
-
-    justify-content:center;
-
-    gap:6px;
-
-    transition:.2s;
-
+    background: #ffffff;
 }
 
 
-.type-button.active{
+.map-filter.active {
+    background: #2563eb;
 
-    background:#3498db;
+    color: white;
 
-    color:white;
-
-    border-color:#3498db;
-
-}
-
-#myLocation{
-
-    background:#27ae60;
-
-    color:white;
-
-}
-
-#problemDescription {
-    resize: vertical;
-    padding: 10px;
-}
-
-.photo-button{
-
-    display:block;
-
-    width:100%;
-
-    padding:14px;
-
-    box-sizing:border-box;
-
-    text-align:center;
-
-    background:#3498db;
-
-    color:white;
-
-    border-radius:10px;
-
-    font-size:16px;
-
-    font-weight:600;
-
-    cursor:pointer;
-
-    margin-bottom:15px;
-
+    box-shadow:
+        0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 
-.photo-button input{
+/* =========================================================
+   ПАНЕЛЬ
+   ========================================================= */
 
-    display:none;
+#panel {
+    width: 300px;
 
-}
+    flex-shrink: 0;
 
-.preview-photo{
+    padding: 20px;
 
-    width:80px;
+    box-sizing: border-box;
 
-    height:80px;
-
-    object-fit:cover;
-
-    border-radius:8px;
-
-    margin-right:8px;
-
-    margin-bottom:10px;
-
-}
-
-#saveProblem{
-
-    background:#27ae60;
-
-    color:white;
-
-    width:100%;
-
-    padding:15px;
-
-    font-size:18px;
-
-    border-radius:12px;
-
-    margin-top:10px;
-
-}
-
-
-#saveProblem:hover{
-
-    opacity:.9;
-
-}
-
-.success-message{
-
-    position:fixed;
-
-    inset:0;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    background:rgba(0,0,0,.4);
-
-    z-index:9999;
-
-}
-
-
-.success-message div{
-
-    background:white;
-
-    padding:25px;
-
-    border-radius:15px;
-
-    text-align:center;
-
-    font-size:18px;
-
-    box-shadow:0 5px 20px rgba(0,0,0,.2);
-
-}
-
-.leaflet-tooltip{
-
-    background:white;
-
-    border:1px solid #3498db;
-
-    color:#333;
-
-    font-size:14px;
-
-    font-weight:600;
-
-    border-radius:8px;
-
-    padding:6px 10px;
-
-}
-
-.header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 10px 20px;
     background: white;
 
-    justify-content: space-between;
+    border-left: 1px solid #e5e7eb;
 
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow-y: auto;
 }
 
-.city-logo {
-    width: 60px;
-    height: 60px;
-    object-fit: contain;
+
+#panel h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
 }
 
-.header h1 {
-    margin: 0;
-    font-size: 28px;
-}
 
-.header p {
-    margin: 3px 0 0;
-    color: #666;
+#panel label {
+    display: block;
+
+    margin-bottom: 7px;
+
     font-size: 14px;
+    font-weight: 600;
+
+    color: #374151;
 }
 
-.menu {
-    display: flex;
-    gap: 20px;
+
+#panel input,
+#panel textarea,
+#panel button {
+    box-sizing: border-box;
 }
 
-.menu a {
 
-    text-decoration: none;
+#panel input[type="text"],
+#panel textarea {
+    width: 100%;
+
+    padding: 10px;
+
+    margin-bottom: 12px;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 8px;
+
+    font-family: inherit;
+    font-size: 14px;
+
+    outline: none;
+}
+
+
+#panel input[type="text"]:focus,
+#panel textarea:focus {
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+
+#panel textarea {
+    resize: vertical;
+
+    min-height: 100px;
+}
+
+
+/* =========================================================
+   ТИПЫ ПРОБЛЕМ
+   ========================================================= */
+
+.problem-types {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 10px;
+
+    margin-bottom: 18px;
+}
+
+
+.type-button {
+    width: 100%;
+
+    min-height: 80px;
+
+    padding: 10px;
+
+    background: #f3f4f6;
 
     color: #333;
 
-    padding: 8px 14px;
+    border: 1px solid #ddd;
 
-    border-radius: 8px;
+    border-radius: 10px;
 
-    transition: 0.2s;
+    font-size: 14px;
 
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 6px;
+
+    cursor: pointer;
+
+    transition:
+        0.2s ease;
 }
 
-.menu a:hover {
-    color: #0d6efd;
 
-    background: #eef5ff;
+.type-button:hover {
+    background: #e5e7eb;
 }
 
-.menu a.active {
+
+.type-button.active {
+    background: #3498db;
 
     color: white;
 
-    background: #0d6efd;
+    border-color: #3498db;
+
+    box-shadow:
+        0 3px 10px rgba(52, 152, 219, 0.25);
+}
+
+
+/* =========================================================
+   КНОПКИ АДРЕСА
+   ========================================================= */
+
+#findAddress,
+#myLocation {
+    width: 100%;
+
+    padding: 10px;
+
+    margin-bottom: 10px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    font-size: 14px;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+
+#findAddress {
+    background: #2563eb;
+
+    color: white;
+}
+
+
+#findAddress:hover {
+    background: #1d4ed8;
+}
+
+
+#myLocation {
+    background: #27ae60;
+
+    color: white;
+}
+
+
+#myLocation:hover {
+    background: #219653;
+}
+
+
+/* =========================================================
+   РЕЗУЛЬТАТЫ АДРЕСА
+   ========================================================= */
+
+#addressResults {
+    margin-bottom: 15px;
+
+    font-size: 13px;
+}
+
+
+#addressResults button {
+    width: 100%;
+
+    padding: 8px 10px;
+
+    margin-top: 5px;
+
+    text-align: left;
+
+    background: #f8fafc;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+}
+
+
+#addressResults button:hover {
+    background: #eef5ff;
+
+    border-color: #2563eb;
+}
+
+
+/* =========================================================
+   ФОТО
+   ========================================================= */
+
+.photo-button {
+    display: block;
+
+    width: 100%;
+
+    padding: 14px;
+
+    box-sizing: border-box;
+
+    text-align: center;
+
+    background: #3498db;
+
+    color: white !important;
+
+    border-radius: 10px;
+
+    font-size: 16px !important;
 
     font-weight: 600;
 
-}
+    cursor: pointer;
 
-footer {
-    text-align: center;
-    padding: 10px;
-    font-size: 12px;
-    color: #777;
-    background: #f5f5f5;
-}
+    margin-bottom: 15px;
 
-.popup-gallery{
-    display:flex;
-    gap:8px;
-    margin-top:8px;
-    flex-wrap:wrap;
-}
-
-.popup-thumb{
-
-    width:80px;
-    height:80px;
-
-    object-fit:cover;
-
-    border-radius:8px;
-
-    cursor:pointer;
-
-    transition:0.2s;
-
-    border:2px solid transparent;
-
-}
-
-.popup-thumb:hover{
-
-    transform:scale(1.05);
-
-    border-color:#3498db;
-
-}
-
-#photoPreview{
-
-    display:flex;
-    gap:10px;
-    margin-top:10px;
-
+    transition: 0.2s ease;
 }
 
 
-.photo-item{
-
-    position:relative;
-
+.photo-button:hover {
+    background: #2980b9;
 }
 
 
-.photo-item img{
-
-    width:90px;
-    height:90px;
-
-    object-fit:cover;
-
-    border-radius:10px;
-
-}
-
-
-.photo-item button{
-
-    position:absolute;
-
-    top:-8px;
-    right:-8px;
-
-    border:none;
-
-    background:white;
-
-    border-radius:50%;
-
-    cursor:pointer;
-
-}
-
-#photoViewer{
-
-    display:none;
-
-    position:fixed;
-
-    z-index:9999;
-
-    top:0;
-    left:0;
-
-    width:100%;
-    height:100%;
-
-    background:rgba(0,0,0,0.85);
-
-    align-items:center;
-    justify-content:center;
-
-}
-
-
-#viewerImage{
-
-    max-width:90%;
-    max-height:85%;
-
-    border-radius:10px;
-
-}
-
-
-#photoViewer button{
-
-    position:absolute;
-
-    background:white;
-
-    border:none;
-
-    border-radius:50%;
-
-    width:40px;
-    height:40px;
-
-    font-size:22px;
-
-    cursor:pointer;
-
-}
-
-
-#closeViewer{
-
-    top:20px;
-    right:20px;
-
-}
-
-
-#prevPhoto{
-
-    left:20px;
-
-}
-
-
-#nextPhoto{
-
-    right:20px;
-
-}
-
-.server-notice {
-    background: #fff3cd;
-    color: #664d03;
-    padding: 12px;
-    border-radius: 8px;
-    margin-top: 10px;
-    font-size: 14px;
-}
-
-.hidden {
+.photo-button input {
     display: none;
 }
 
-.menu a.active {
+
+#photoPreview {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 10px;
+
+    margin-top: 10px;
+
+    margin-bottom: 15px;
+}
+
+
+.photo-item {
+    position: relative;
+}
+
+
+.photo-item img {
+    width: 90px;
+    height: 90px;
+
+    object-fit: cover;
+
+    border-radius: 10px;
+}
+
+
+.photo-item button {
+    position: absolute;
+
+    top: -8px;
+    right: -8px;
+
+    width: 24px !important;
+    height: 24px;
+
+    padding: 0 !important;
+
+    margin: 0 !important;
+
+    border: none;
+
+    background: white;
+
+    border-radius: 50%;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 2px 6px rgba(0, 0, 0, 0.2);
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   ОТПРАВКА
+   ========================================================= */
+
+#saveProblem {
+    width: 100%;
+
+    padding: 15px;
+
+    margin-top: 10px;
+
+    background: #27ae60;
 
     color: white;
 
-    background: #0d6efd;
+    border: none;
 
-    padding: 8px 14px;
+    border-radius: 12px;
 
-    border-radius: 8px;
+    font-size: 18px;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+
+#saveProblem:hover {
+    background: #219653;
+}
+
+
+#saveProblem:disabled {
+    opacity: 0.6;
+
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   SUCCESS
+   ========================================================= */
+
+.success-message {
+    position: fixed;
+
+    inset: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: rgba(0, 0, 0, 0.4);
+
+    z-index: 9999;
+}
+
+
+.success-message div {
+    background: white;
+
+    padding: 25px;
+
+    border-radius: 15px;
+
+    text-align: center;
+
+    font-size: 18px;
+
+    box-shadow:
+        0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+
+/* =========================================================
+   TOOLTIP
+   ========================================================= */
+
+.leaflet-tooltip {
+    background: white;
+
+    border: 1px solid #3498db;
+
+    color: #333;
+
+    font-size: 14px;
 
     font-weight: 600;
 
+    border-radius: 8px;
+
+    padding: 6px 10px;
 }
 
-.menu a {
 
-    padding: 8px 14px;
+/* =========================================================
+   POPUP ФОТО
+   ========================================================= */
+
+.popup-gallery {
+    display: flex;
+
+    gap: 8px;
+
+    margin-top: 8px;
+
+    flex-wrap: wrap;
+}
+
+
+.popup-thumb {
+    width: 80px;
+    height: 80px;
+
+    object-fit: cover;
 
     border-radius: 8px;
 
+    cursor: pointer;
+
     transition: 0.2s;
 
+    border: 2px solid transparent;
 }
+
+
+.popup-thumb:hover {
+    transform: scale(1.05);
+
+    border-color: #3498db;
+}
+
+
+/* =========================================================
+   ПРОСМОТР ФОТО
+   ========================================================= */
+
+#photoViewer {
+    display: none;
+
+    position: fixed;
+
+    z-index: 9999;
+
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.85);
+
+    align-items: center;
+
+    justify-content: center;
+}
+
+
+#viewerImage {
+    max-width: 90%;
+
+    max-height: 85%;
+
+    border-radius: 10px;
+
+    object-fit: contain;
+}
+
+
+#photoViewer button {
+    position: absolute;
+
+    width: 40px;
+    height: 40px;
+
+    padding: 0;
+
+    background: white;
+
+    border: none;
+
+    border-radius: 50%;
+
+    font-size: 22px;
+
+    cursor: pointer;
+
+    z-index: 2;
+}
+
+
+#closeViewer {
+    top: 20px;
+
+    right: 20px;
+}
+
+
+#prevPhoto {
+    left: 20px;
+
+    top: 50%;
+
+    transform: translateY(-50%);
+}
+
+
+#nextPhoto {
+    right: 20px;
+
+    top: 50%;
+
+    transform: translateY(-50%);
+}
+
+
+/* =========================================================
+   УВЕДОМЛЕНИЕ СЕРВЕРА
+   ========================================================= */
+
+.server-notice {
+    position: fixed;
+
+    left: 50%;
+
+    bottom: 20px;
+
+    transform: translateX(-50%);
+
+    z-index: 10000;
+
+    background: #fff3cd;
+
+    color: #664d03;
+
+    padding: 12px 16px;
+
+    border-radius: 8px;
+
+    font-size: 14px;
+
+    box-shadow:
+        0 4px 15px rgba(0, 0, 0, 0.15);
+
+    text-align: center;
+}
+
+
+.hidden {
+    display: none !important;
+}
+
 
 /* =========================================================
    ОТКЛЮЧЕНИЯ ЭЛЕКТРОЭНЕРГИИ
    ========================================================= */
 
 .outage-marker {
-
     background: transparent;
 
     border: none;
-
 }
 
 
 .outage-marker-inner {
-
     width: 38px;
-
     height: 38px;
 
     border-radius: 50%;
@@ -572,49 +717,39 @@ footer {
     border: 3px solid #ffffff;
 
     box-shadow:
-        0 3px 10px rgba(0,0,0,0.25);
+        0 3px 10px rgba(0, 0, 0, 0.25);
 
     font-size: 20px;
-
 }
 
 
 .outage-popup {
-
     min-width: 230px;
-
 }
 
 
 .outage-title {
-
     font-size: 15px;
 
     font-weight: 700;
 
     margin-bottom: 10px;
-
 }
 
 
 .outage-address {
-
     margin-bottom: 8px;
-
 }
 
 
 .outage-description {
-
     color: #6b7280;
 
     margin-bottom: 8px;
-
 }
 
 
 .outage-time {
-
     margin-top: 8px;
 
     padding: 7px 9px;
@@ -624,91 +759,113 @@ footer {
     background: #fff7ed;
 
     color: #c2410c;
-
 }
 
 
 .outage-date {
-
     margin-top: 8px;
 
     color: #6b7280;
 
     font-size: 12px;
-
 }
+
 
 /* =========================================================
-   ФИЛЬТРЫ КАРТЫ
+   МОБИЛЬНАЯ ВЕРСИЯ
    ========================================================= */
 
-#mapFilters {
+@media (max-width: 768px) {
 
-    position: absolute;
+    #container {
+        flex-direction: column;
 
-    top: 20px;
-    left: 20px;
+        height: auto;
 
-    z-index: 1000;
+        min-height: calc(100vh - 80px);
 
-    display: flex;
-
-    gap: 8px;
-
-    flex-wrap: wrap;
-
-    max-width: calc(100% - 40px);
-
-}
+        overflow: visible;
+    }
 
 
-.map-filter {
+    #mapContainer {
+        width: 100%;
 
-    border: none;
+        height: 50vh;
 
-    background: rgba(255, 255, 255, 0.92);
+        min-height: 300px;
 
-    backdrop-filter: blur(10px);
-
-    -webkit-backdrop-filter: blur(10px);
-
-    border-radius: 12px;
-
-    padding: 9px 13px;
-
-    font-size: 13px;
-
-    font-weight: 600;
-
-    color: #374151;
-
-    cursor: pointer;
-
-    box-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.12);
-
-    transition:
-        0.2s ease;
-
-}
+        flex: none;
+    }
 
 
-.map-filter:hover {
+    #panel {
+        width: 100%;
 
-    transform: translateY(-1px);
+        border-left: none;
 
-    background: #ffffff;
+        border-top: 1px solid #e5e7eb;
+
+        overflow: visible;
+
+        padding: 20px;
+    }
+
+
+    #mapFilters {
+        top: 10px;
+
+        left: 10px;
+
+        max-width: calc(100% - 20px);
+
+        gap: 6px;
+    }
+
+
+    .map-filter {
+        padding: 8px 10px;
+
+        font-size: 12px;
+    }
 
 }
 
 
-.map-filter.active {
+/* =========================================================
+   ОЧЕНЬ МАЛЕНЬКИЕ ЭКРАНЫ
+   ========================================================= */
 
-    background: #2563eb;
+@media (max-width: 480px) {
 
-    color: white;
+    #mapContainer {
+        height: 45vh;
+    }
 
-    box-shadow:
-        0 4px 12px rgba(37, 99, 235, 0.3);
+
+    #mapFilters {
+        max-height: 100px;
+
+        overflow-y: auto;
+    }
+
+
+    .map-filter {
+        padding: 7px 9px;
+
+        font-size: 11px;
+    }
+
+
+    .problem-types {
+        gap: 8px;
+    }
+
+
+    .type-button {
+        min-height: 70px;
+
+        font-size: 13px;
+    }
 
 }
