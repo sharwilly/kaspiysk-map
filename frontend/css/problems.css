@@ -1,1160 +1,654 @@
-/* =========================================================
-ОСНОВА
-========================================================= */
-
+/* ОСНОВА */
 body {
-margin: 0;
-font-family: Arial, sans-serif;
-background: #f5f8fc;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f8fc;
 }
 
-/* =========================================================
-ШАПКА
-========================================================= */
-
+/* ШАПКА */
 .header {
-min-height: 80px;
-box-sizing: border-box;
-
-display: flex;
-align-items: center;
-justify-content: space-between;
-
-gap: 20px;
-
-padding: 10px 20px;
-
-background: white;
-
-box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.1);
-
-position: relative;
-z-index: 2000;
-
-
+    min-height: 80px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 10px 20px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 2000;
 }
 
 .header-brand {
-display: flex;
-align-items: center;
-gap: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
 .city-logo {
-width: 60px;
-height: 60px;
-
-
-object-fit: contain;
-
-
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
 }
 
 .header h1 {
-margin: 0;
-font-size: 28px;
+    margin: 0;
+    font-size: 28px;
 }
 
 .header p {
-margin: 3px 0 0;
-
-
-color: #666;
-font-size: 14px;
-
-
+    margin: 3px 0 0;
+    color: #666;
+    font-size: 14px;
 }
 
-/* =========================================================
-МЕНЮ
-========================================================= */
-
+/* МЕНЮ */
 .menu {
-display: flex;
-gap: 20px;
-
-
-align-items: center;
-
-
+    display: flex;
+    gap: 20px;
+    align-items: center;
 }
 
 .menu a {
-text-decoration: none;
-
-
-color: #333;
-
-padding: 8px 14px;
-
-border-radius: 8px;
-
-transition: 0.2s;
-
-
+    text-decoration: none;
+    color: #333;
+    padding: 8px 14px;
+    border-radius: 8px;
+    transition: 0.2s;
 }
 
 .menu a:hover {
-color: #0d6efd;
-background: #eef5ff;
+    color: #0d6efd;
+    background: #eef5ff;
 }
 
 .menu a.active {
-color: white;
-
-
-background: #0d6efd;
-
-font-weight: 600;
-
-
+    color: white;
+    background: #0d6efd;
+    font-weight: 600;
 }
 
-/* =========================================================
-ОСНОВНОЙ КОНТЕЙНЕР
-========================================================= */
-
+/* КОНТЕЙНЕР */
 #container {
-display: flex;
-
-
-width: 100%;
-
-height: calc(100vh - 80px);
-
-min-height: 600px;
-
-overflow: hidden;
-
-
+    display: flex;
+    width: 100%;
+    height: calc(100vh - 80px);
+    min-height: 600px;
+    overflow: hidden;
 }
 
-/* =========================================================
-КАРТА
-========================================================= */
-
+/* КАРТА */
 .map-wrapper {
-position: relative;
-
-
-flex: 1;
-
-min-width: 0;
-min-height: 400px;
-
-
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    min-height: 400px;
 }
 
 #map {
-width: 100%;
-height: 100%;
-
-
-min-height: 400px;
-
-background: #e5e7eb;
-
-
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    background: #e5e7eb;
 }
-
-/*
-Leaflet иногда получает нулевой размер,
-если контейнер создаётся/показывается динамически.
-*/
 
 .leaflet-container {
-width: 100%;
-height: 100%;
-
-
-font-family: Arial, sans-serif;
-
-
+    width: 100%;
+    height: 100%;
+    font-family: Arial, sans-serif;
 }
 
-/* =========================================================
-ФИЛЬТРЫ КАРТЫ
-========================================================= */
-
+/* ФИЛЬТРЫ */
 #mapFilters {
-position: absolute;
-
-
-top: 20px;
-left: 20px;
-
-z-index: 1000;
-
-display: flex;
-
-gap: 8px;
-
-flex-wrap: wrap;
-
-max-width: calc(100% - 40px);
-
-
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    max-width: calc(100% - 40px);
 }
 
 .map-filter {
-border: none;
-
-
-background: rgba(255, 255, 255, 0.92);
-
-backdrop-filter: blur(10px);
--webkit-backdrop-filter: blur(10px);
-
-border-radius: 12px;
-
-padding: 9px 13px;
-
-font-size: 13px;
-
-font-weight: 600;
-
-color: #374151;
-
-cursor: pointer;
-
-box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.12);
-
-transition:
-    0.2s ease;
-
-
+    border: none;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 9px 13px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    transition: 0.2s ease;
 }
 
 .map-filter:hover {
-transform: translateY(-1px);
-
-
-background: #ffffff;
-
-
+    transform: translateY(-1px);
+    background: #ffffff;
 }
 
 .map-filter.active {
-background: #2563eb;
-
-
-color: white;
-
-box-shadow:
-    0 4px 12px rgba(37, 99, 235, 0.3);
-
-
+    background: #2563eb;
+    color: white;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
-/* =========================================================
-ПАНЕЛЬ
-========================================================= */
-
+/* ПАНЕЛЬ */
 #panel {
-width: 340px;
-
-
-flex-shrink: 0;
-
-box-sizing: border-box;
-
-padding: 20px;
-
-background: white;
-
-border-left: 1px solid #e5e7eb;
-
-overflow-y: auto;
-
-
+    width: 340px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    padding: 20px;
+    background: white;
+    border-left: 1px solid #e5e7eb;
+    overflow-y: auto;
 }
 
 #panel h2 {
-margin-top: 0;
-margin-bottom: 20px;
-
-
-font-size: 22px;
-
-
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 22px;
 }
 
 #panel label {
-display: block;
-
-
-margin-bottom: 8px;
-
-font-size: 14px;
-
-font-weight: 600;
-
-color: #374151;
-
-
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
 }
 
 .optional {
-font-weight: normal;
-color: #9ca3af;
+    font-weight: normal;
+    color: #9ca3af;
 }
 
-/* =========================================================
-ТИПЫ ПРОБЛЕМ
-========================================================= */
-
+/* ТИПЫ */
 .problem-types {
-display: grid;
-
-
-grid-template-columns: 1fr 1fr;
-
-gap: 10px;
-
-margin-bottom: 18px;
-
-
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 18px;
 }
 
 .type-button {
-box-sizing: border-box;
-
-
-background: #f3f4f6;
-
-color: #333;
-
-border: 1px solid #ddd;
-
-border-radius: 10px;
-
-min-height: 80px;
-
-padding: 10px;
-
-font-size: 14px;
-
-display: flex;
-
-flex-direction: column;
-
-align-items: center;
-
-justify-content: center;
-
-gap: 6px;
-
-cursor: pointer;
-
-transition: 0.2s;
-
-
+    box-sizing: border-box;
+    background: #f3f4f6;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    min-height: 80px;
+    padding: 10px;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: 0.2s;
 }
 
 .type-button:hover {
-border-color: #3498db;
-
-
-transform: translateY(-1px);
-
-
+    border-color: #3498db;
+    transform: translateY(-1px);
 }
 
 .type-button.active {
-background: #3498db;
-
-
-color: white;
-
-border-color: #3498db;
-
-
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
 }
 
 .type-button span {
-font-size: 13px;
+    font-size: 13px;
 }
 
-/* =========================================================
-INPUT / TEXTAREA
-========================================================= */
-
+/* INPUT */
 #panel input[type="text"],
 #panel textarea {
-width: 100%;
-
-
-box-sizing: border-box;
-
-margin-bottom: 12px;
-
-padding: 10px;
-
-border: 1px solid #d1d5db;
-
-border-radius: 8px;
-
-font-family: inherit;
-
-font-size: 14px;
-
-outline: none;
-
-transition: 0.2s;
-
-
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 12px;
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: 0.2s;
 }
 
 #panel input[type="text"]:focus,
 #panel textarea:focus {
-border-color: #2563eb;
-
-
-box-shadow:
-    0 0 0 3px rgba(37, 99, 235, 0.1);
-
-
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 #problemDescription {
-resize: vertical;
-
-
-min-height: 100px;
-
-
+    resize: vertical;
+    min-height: 100px;
 }
 
-/* =========================================================
-КНОПКИ
-========================================================= */
-
+/* КНОПКИ */
 #findAddress,
 #myLocation {
-width: 100%;
-
-
-box-sizing: border-box;
-
-padding: 10px;
-
-margin-bottom: 10px;
-
-border: none;
-
-border-radius: 8px;
-
-cursor: pointer;
-
-font-size: 14px;
-
-font-weight: 600;
-
-
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
 }
 
 #findAddress {
-background: #eef5ff;
-
-
-color: #2563eb;
-
-
+    background: #eef5ff;
+    color: #2563eb;
 }
 
 #findAddress:hover {
-background: #dbeafe;
+    background: #dbeafe;
 }
 
 #myLocation {
-background: #27ae60;
-
-
-color: white;
-
-
+    background: #27ae60;
+    color: white;
 }
 
 #myLocation:hover {
-opacity: 0.9;
+    opacity: 0.9;
 }
 
-/* =========================================================
-РЕЗУЛЬТАТЫ АДРЕСА
-========================================================= */
-
+/* РЕЗУЛЬТАТЫ */
 #addressResults {
-margin-bottom: 15px;
-
-
-font-size: 13px;
-
-color: #4b5563;
-
-
+    margin-bottom: 15px;
+    font-size: 13px;
+    color: #4b5563;
 }
 
 #addressResults button {
-width: 100%;
-
-
-box-sizing: border-box;
-
-padding: 9px;
-
-text-align: left;
-
-background: #f9fafb;
-
-border: 1px solid #e5e7eb;
-
-border-radius: 7px;
-
-cursor: pointer;
-
-color: #374151;
-
-font-size: 13px;
-
-
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px;
+    text-align: left;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 7px;
+    cursor: pointer;
+    color: #374151;
+    font-size: 13px;
 }
 
 #addressResults button:hover {
-background: #eef5ff;
-
-
-border-color: #93c5fd;
-
-
+    background: #eef5ff;
+    border-color: #93c5fd;
 }
 
-/* =========================================================
-ФОТО
-========================================================= */
-
+/* ФОТО */
 .photo-button {
-display: block;
-
-
-width: 100%;
-
-box-sizing: border-box;
-
-padding: 14px;
-
-text-align: center;
-
-background: #3498db;
-
-color: white !important;
-
-border-radius: 10px;
-
-font-size: 16px !important;
-
-font-weight: 600 !important;
-
-cursor: pointer;
-
-margin-bottom: 15px;
-
-
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px;
+    text-align: center;
+    background: #3498db;
+    color: white !important;
+    border-radius: 10px;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    margin-bottom: 15px;
 }
 
 .photo-button:hover {
-opacity: 0.9;
+    opacity: 0.9;
 }
 
 .photo-button input {
-display: none;
+    display: none;
 }
 
 #photoPreview {
-display: flex;
-
-
-flex-wrap: wrap;
-
-gap: 10px;
-
-margin-top: 10px;
-
-margin-bottom: 10px;
-
-
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .photo-item {
-position: relative;
+    position: relative;
 }
 
 .photo-item img {
-width: 90px;
-height: 90px;
-
-
-object-fit: cover;
-
-border-radius: 10px;
-
-display: block;
-
-
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 10px;
+    display: block;
 }
 
 .photo-item button {
-position: absolute;
-
-
-top: -8px;
-right: -8px;
-
-width: 25px;
-height: 25px;
-
-border: none;
-
-background: white;
-
-border-radius: 50%;
-
-cursor: pointer;
-
-box-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.2);
-
-
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 25px;
+    height: 25px;
+    border: none;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-/* =========================================================
-КНОПКА ОТПРАВКИ
-========================================================= */
-
+/* ОТПРАВКА */
 #saveProblem {
-width: 100%;
-
-
-box-sizing: border-box;
-
-background: #27ae60;
-
-color: white;
-
-border: none;
-
-padding: 15px;
-
-font-size: 17px;
-
-font-weight: 600;
-
-border-radius: 12px;
-
-margin-top: 10px;
-
-cursor: pointer;
-
-transition: 0.2s;
-
-
+    width: 100%;
+    box-sizing: border-box;
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: 600;
+    border-radius: 12px;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: 0.2s;
 }
 
 #saveProblem:hover {
-opacity: 0.9;
+    opacity: 0.9;
 }
 
 #saveProblem:disabled {
-opacity: 0.6;
-
-
-cursor: wait;
-
-
+    opacity: 0.6;
+    cursor: wait;
 }
 
-/* =========================================================
-УВЕДОМЛЕНИЕ СЕРВЕРА
-========================================================= */
-
+/* СЕРВЕР */
 .server-notice {
-background: #fff3cd;
-
-
-color: #664d03;
-
-padding: 12px;
-
-border-radius: 8px;
-
-margin-top: 10px;
-
-font-size: 14px;
-
-line-height: 1.5;
-
-
+    background: #fff3cd;
+    color: #664d03;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.5;
 }
 
 .hidden {
-display: none !important;
+    display: none !important;
 }
 
-/* =========================================================
-POPUP ПРОБЛЕМ
-========================================================= */
-
+/* POPUP */
 .problem-popup {
-min-width: 220px;
-
-
-max-width: 300px;
-
-
+    min-width: 220px;
+    max-width: 300px;
 }
 
 .problem-title {
-font-size: 15px;
-
-
-font-weight: 700;
-
-margin-bottom: 10px;
-
-
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 10px;
 }
 
 .problem-description {
-color: #4b5563;
-
-
-line-height: 1.4;
-
-word-break: break-word;
-
-
+    color: #4b5563;
+    line-height: 1.4;
+    word-break: break-word;
 }
-
-/* =========================================================
-ФОТО В POPUP
-========================================================= */
 
 .popup-gallery {
-display: flex;
-
-
-gap: 8px;
-
-margin-top: 8px;
-
-flex-wrap: wrap;
-
-
-}
-
-.popup-thumb {
-width: 80px;
-height: 80px;
-
-
-object-fit: cover;
-
-border-radius: 8px;
-
-cursor: pointer;
-
-transition: 0.2s;
-
-border: 2px solid transparent;
-
-
-}
-
-.popup-thumb:hover {
-transform: scale(1.05);
-
-
-border-color: #3498db;
-
-
-}
-
-/* =========================================================
-ПРОСМОТР ФОТО
-========================================================= */
-
-.photo-viewer {
-display: none;
-
-
-position: fixed;
-
-z-index: 9999;
-
-inset: 0;
-
-width: 100%;
-height: 100%;
-
-background: rgba(0, 0, 0, 0.85);
-
-align-items: center;
-
-justify-content: center;
-
-
-}
-
-#viewerImage {
-max-width: 90%;
-
-
-max-height: 85%;
-
-border-radius: 10px;
-
-object-fit: contain;
-
-
-}
-
-#photoViewer button {
-position: absolute;
-
-
-background: white;
-
-border: none;
-
-border-radius: 50%;
-
-width: 40px;
-height: 40px;
-
-font-size: 22px;
-
-cursor: pointer;
-
-z-index: 2;
-
-
-}
-
-#photoViewer button:hover {
-transform: scale(1.05);
-}
-
-#closeViewer {
-top: 20px;
-right: 20px;
-}
-
-#prevPhoto {
-left: 20px;
-}
-
-#nextPhoto {
-right: 20px;
-}
-
-/* =========================================================
-ОТКЛЮЧЕНИЯ ЭЛЕКТРОЭНЕРГИИ
-========================================================= */
-
-.outage-marker {
-background: transparent;
-
-
-border: none;
-
-
-}
-
-.outage-marker-inner {
-width: 38px;
-height: 38px;
-
-
-border-radius: 50%;
-
-display: flex;
-
-align-items: center;
-
-justify-content: center;
-
-background: #f59e0b;
-
-border: 3px solid #ffffff;
-
-box-shadow:
-    0 3px 10px rgba(0, 0, 0, 0.25);
-
-font-size: 20px;
-
-
-}
-
-.outage-popup {
-min-width: 230px;
-}
-
-.outage-title {
-font-size: 15px;
-
-
-font-weight: 700;
-
-margin-bottom: 10px;
-
-
-}
-
-.outage-address {
-margin-bottom: 8px;
-}
-
-.outage-description {
-color: #6b7280;
-
-
-margin-bottom: 8px;
-
-
-}
-
-.outage-time {
-margin-top: 8px;
-
-
-padding: 7px 9px;
-
-border-radius: 8px;
-
-background: #fff7ed;
-
-color: #c2410c;
-
-
-}
-
-.outage-date {
-margin-top: 8px;
-
-
-color: #6b7280;
-
-font-size: 12px;
-
-
-}
-
-/* =========================================================
-LEAFLET
-========================================================= */
-
-.leaflet-tooltip {
-background: white;
-
-
-border: 1px solid #3498db;
-
-color: #333;
-
-font-size: 14px;
-
-font-weight: 600;
-
-border-radius: 8px;
-
-padding: 6px 10px;
-
-
-}
-
-/* =========================================================
-SUCCESS MESSAGE
-========================================================= */
-
-.success-message {
-position: fixed;
-
-
-inset: 0;
-
-display: flex;
-
-align-items: center;
-
-justify-content: center;
-
-background: rgba(0, 0, 0, 0.4);
-
-z-index: 9999;
-
-
-}
-
-.success-message div {
-background: white;
-
-
-padding: 25px;
-
-border-radius: 15px;
-
-text-align: center;
-
-font-size: 18px;
-
-box-shadow:
-    0 5px 20px rgba(0, 0, 0, 0.2);
-
-
-}
-
-/* =========================================================
-МОБИЛЬНАЯ ВЕРСИЯ
-========================================================= */
-
-@media (max-width: 768px) {
-
-
-.header {
-    min-height: auto;
-
-    padding: 10px 15px;
-
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
     flex-wrap: wrap;
 }
 
-
-.city-logo {
-    width: 45px;
-    height: 45px;
+.popup-thumb {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+    border: 2px solid transparent;
 }
 
-
-.header h1 {
-    font-size: 21px;
+.popup-thumb:hover {
+    transform: scale(1.05);
+    border-color: #3498db;
 }
 
-
-.header p {
-    font-size: 12px;
-}
-
-
-.menu {
+/* VIEWER */
+.photo-viewer {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    inset: 0;
     width: 100%;
-
-    justify-content: center;
-
-    gap: 5px;
-}
-
-
-.menu a {
-    font-size: 13px;
-
-    padding: 7px 10px;
-}
-
-
-#container {
-    flex-direction: column;
-
-    height: auto;
-
-    min-height: 0;
-
-    overflow: visible;
-}
-
-
-.map-wrapper {
-    width: 100%;
-
-    height: 55vh;
-
-    min-height: 350px;
-}
-
-
-#map {
-    width: 100%;
-
     height: 100%;
-
-    min-height: 350px;
+    background: rgba(0, 0, 0, 0.85);
+    align-items: center;
+    justify-content: center;
 }
 
-
-#mapFilters {
-    top: 10px;
-
-    left: 10px;
-
-    max-width: calc(100% - 20px);
-
-    gap: 5px;
+#viewerImage {
+    max-width: 90%;
+    max-height: 85%;
+    border-radius: 10px;
+    object-fit: contain;
 }
 
+#photoViewer button {
+    position: absolute;
+    background: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+    cursor: pointer;
+    z-index: 2;
+}
 
-.map-filter {
+#photoViewer button:hover {
+    transform: scale(1.05);
+}
+
+#closeViewer {
+    top: 20px;
+    right: 20px;
+}
+
+#prevPhoto {
+    left: 20px;
+}
+
+#nextPhoto {
+    right: 20px;
+}
+
+/* ОТКЛЮЧЕНИЯ */
+.outage-marker {
+    background: transparent;
+    border: none;
+}
+
+.outage-marker-inner {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f59e0b;
+    border: 3px solid #ffffff;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+    font-size: 20px;
+}
+
+.outage-popup {
+    min-width: 230px;
+}
+
+.outage-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.outage-address {
+    margin-bottom: 8px;
+}
+
+.outage-description {
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+.outage-time {
+    margin-top: 8px;
     padding: 7px 9px;
+    border-radius: 8px;
+    background: #fff7ed;
+    color: #c2410c;
+}
 
+.outage-date {
+    margin-top: 8px;
+    color: #6b7280;
     font-size: 12px;
 }
 
-
-#panel {
-    width: 100%;
-
-    border-left: none;
-
-    border-top: 1px solid #e5e7eb;
-
-    overflow: visible;
-
-    padding: 18px;
+/* LEAFLET */
+.leaflet-tooltip {
+    background: white;
+    border: 1px solid #3498db;
+    color: #333;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 6px 10px;
 }
 
-
+/* SUCCESS */
+.success-message {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
 }
 
-/* =========================================================
-ОЧЕНЬ МАЛЕНЬКИЕ ЭКРАНЫ
-========================================================= */
+.success-message div {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    text-align: center;
+    font-size: 18px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* МОБИЛЬНАЯ */
+@media (max-width: 768px) {
+    .header {
+        min-height: auto;
+        padding: 10px 15px;
+        flex-wrap: wrap;
+    }
+
+    .city-logo {
+        width: 45px;
+        height: 45px;
+    }
+
+    .header h1 {
+        font-size: 21px;
+    }
+
+    .header p {
+        font-size: 12px;
+    }
+
+    .menu {
+        width: 100%;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .menu a {
+        font-size: 13px;
+        padding: 7px 10px;
+    }
+
+    #container {
+        flex-direction: column;
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+    }
+
+    .map-wrapper {
+        width: 100%;
+        height: 55vh;
+        min-height: 350px;
+    }
+
+    #map {
+        width: 100%;
+        height: 100%;
+        min-height: 350px;
+    }
+
+    #mapFilters {
+        top: 10px;
+        left: 10px;
+        max-width: calc(100% - 20px);
+        gap: 5px;
+    }
+
+    .map-filter {
+        padding: 7px 9px;
+        font-size: 12px;
+    }
+
+    #panel {
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid #e5e7eb;
+        overflow: visible;
+        padding: 18px;
+    }
+}
 
 @media (max-width: 450px) {
+    .problem-types {
+        grid-template-columns: 1fr 1fr;
+    }
 
+    .map-wrapper {
+        min-height: 320px;
+        height: 50vh;
+    }
 
-.problem-types {
-    grid-template-columns: 1fr 1fr;
-}
+    #map {
+        min-height: 320px;
+    }
 
-
-.map-wrapper {
-    min-height: 320px;
-
-    height: 50vh;
-}
-
-
-#map {
-    min-height: 320px;
-}
-
-
-#mapFilters {
-    position: absolute;
-
-    max-height: 120px;
-
-    overflow-y: auto;
-}
-
-
+    #mapFilters {
+        position: absolute;
+        max-height: 120px;
+        overflow-y: auto;
+    }
 }

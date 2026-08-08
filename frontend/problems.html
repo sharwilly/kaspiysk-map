@@ -1,429 +1,94 @@
 <!DOCTYPE html>
-
 <html lang="ru">
-
 <head>
-
-```
-<meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
-<title>Проблемы города — Каспийск</title>
-
-
-<!-- =====================================================
-     LEAFLET
-====================================================== -->
-
-<link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
->
-
-
-<!-- =====================================================
-     СТИЛИ ПРОЕКТА
-====================================================== -->
-
-<link
-    rel="stylesheet"
-    href="css/common.css"
->
-
-<link
-    rel="stylesheet"
-    href="css/problems.css"
->
-```
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Проблемы города — Каспийск</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/problems.css">
 </head>
-
 <body>
-
-<!-- =========================================================
-     ШАПКА
-========================================================= -->
-
 <header class="header">
-
-```
-<div class="header-brand">
-
-    <img
-        src="images/logo.png"
-        alt="Каспийск"
-        class="city-logo"
-        onerror="this.style.display='none'"
-    >
-
-    <div>
-
-        <h1>Каспийск</h1>
-
-        <p>
-            Городская карта проблем
-        </p>
-
+    <div class="header-brand">
+        <img src="images/logo.png" alt="Каспийск" class="city-logo" onerror="this.style.display='none'">
+        <div>
+            <h1>Каспийск</h1>
+            <p>Городская карта проблем</p>
+        </div>
     </div>
-
-</div>
-
-
-<nav class="menu">
-
-    <a href="index.html">
-        Главная
-    </a>
-
-    <a
-        href="problems.html"
-        class="active"
-    >
-        Проблемы
-    </a>
-
-    <a href="weather.html">
-        Погода
-    </a>
-
-</nav>
-```
-
+    <nav class="menu">
+        <a href="index.html">Главная</a>
+        <a href="problems.html" class="active">Проблемы</a>
+        <a href="weather.html">Погода</a>
+    </nav>
 </header>
 
-<!-- =========================================================
-     ОСНОВНОЙ КОНТЕЙНЕР
-========================================================= -->
-
 <main id="container">
-
-```
-<!-- =====================================================
-     КАРТА
-====================================================== -->
-
-<section class="map-wrapper">
-
-    <div id="map"></div>
-
-
-    <!-- =================================================
-         ФИЛЬТРЫ КАРТЫ
-    ================================================== -->
-
-    <div id="mapFilters">
-
-        <button
-            type="button"
-            class="map-filter active"
-            data-filter="all"
-        >
-            Все
-        </button>
-
-
-        <button
-            type="button"
-            class="map-filter"
-            data-filter="подтопление"
-        >
-            💧 Подтопления
-        </button>
-
-
-        <button
-            type="button"
-            class="map-filter"
-            data-filter="яма"
-        >
-            🕳 Ямы
-        </button>
-
-
-        <button
-            type="button"
-            class="map-filter"
-            data-filter="мусор"
-        >
-            🗑 Мусор
-        </button>
-
-
-        <button
-            type="button"
-            class="map-filter"
-            data-filter="освещение"
-        >
-            💡 Освещение
-        </button>
-
-
-        <button
-            type="button"
-            class="map-filter"
-            data-filter="другое"
-        >
-            ❗ Другое
-        </button>
-
-
-        <button
-            type="button"
-            class="map-filter"
-            data-filter="outage"
-        >
-            ⚡ Электричество
-        </button>
-
-    </div>
-
-</section>
-
-
-<!-- =====================================================
-     ПАНЕЛЬ СОЗДАНИЯ ОБРАЩЕНИЯ
-====================================================== -->
-
-<aside id="panel">
-
-    <h2>
-        Новое обращение
-    </h2>
-
-
-    <!-- Тип -->
-
-    <label>
-        Тип проблемы
-    </label>
-
-
-    <div class="problem-types">
-
-
-        <button
-            type="button"
-            class="type-button"
-            data-type="подтопление"
-        >
-            💧
-            <span>Подтопление</span>
-        </button>
-
-
-        <button
-            type="button"
-            class="type-button"
-            data-type="яма"
-        >
-            🕳
-            <span>Яма</span>
-        </button>
-
-
-        <button
-            type="button"
-            class="type-button"
-            data-type="мусор"
-        >
-            🗑
-            <span>Мусор</span>
-        </button>
-
-
-        <button
-            type="button"
-            class="type-button"
-            data-type="освещение"
-        >
-            💡
-            <span>Освещение</span>
-        </button>
-
-
-        <button
-            type="button"
-            class="type-button"
-            data-type="другое"
-        >
-            ❗
-            <span>Другое</span>
-        </button>
-
-    </div>
-
-
-    <input
-        type="hidden"
-        id="problemType"
-        value=""
-    >
-
-
-    <!-- Адрес -->
-
-    <label for="problemAddress">
-        Адрес
-        <span class="optional">
-            (необязательно)
-        </span>
-    </label>
-
-
-    <input
-        type="text"
-        id="problemAddress"
-        placeholder="Например: ул. Ленина, 24"
-        autocomplete="off"
-    >
-
-
-    <button
-        type="button"
-        id="findAddress"
-    >
-        🔎 Найти адрес
-    </button>
-
-
-    <button
-        type="button"
-        id="myLocation"
-    >
-        📍 Моё местоположение
-    </button>
-
-
-    <div id="addressResults"></div>
-
-
-    <!-- Описание -->
-
-    <label for="problemDescription">
-        Описание
-    </label>
-
-
-    <textarea
-        id="problemDescription"
-        rows="5"
-        placeholder="Опишите проблему"
-    ></textarea>
-
-
-    <!-- Фото -->
-
-    <label>
-        Фотографии
-        <span class="optional">
-            (до 3)
-        </span>
-    </label>
-
-
-    <label class="photo-button">
-
-        📷 Добавить фото
-
-        <input
-            type="file"
-            id="photos"
-            multiple
-            accept="image/*"
-        >
-
-    </label>
-
-
-    <div id="photoPreview"></div>
-
-
-    <!-- Отправка -->
-
-    <button
-        type="button"
-        id="saveProblem"
-    >
-        🚀 Отправить обращение
-    </button>
-
-
-    <div
-        id="serverNotice"
-        class="server-notice hidden"
-    >
-        ⏳ Сервер запускается...
-        <br>
-        Первая отправка может занять до минуты.
-        <br>
-        Пожалуйста, не закрывайте страницу.
-    </div>
-
-</aside>
-```
-
+    <section class="map-wrapper">
+        <div id="map"></div>
+        <div id="mapFilters">
+            <button type="button" class="map-filter active" data-filter="all">Все</button>
+            <button type="button" class="map-filter" data-filter="подтопление">💧 Подтопления</button>
+            <button type="button" class="map-filter" data-filter="яма">🕳 Ямы</button>
+            <button type="button" class="map-filter" data-filter="мусор">🗑 Мусор</button>
+            <button type="button" class="map-filter" data-filter="освещение">💡 Освещение</button>
+            <button type="button" class="map-filter" data-filter="другое">❗ Другое</button>
+            <button type="button" class="map-filter" data-filter="outage">⚡ Электричество</button>
+        </div>
+    </section>
+
+    <aside id="panel">
+        <h2>Новое обращение</h2>
+        <label>Тип проблемы</label>
+        <div class="problem-types">
+            <button type="button" class="type-button" data-type="подтопление">💧 <span>Подтопление</span></button>
+            <button type="button" class="type-button" data-type="яма">🕳 <span>Яма</span></button>
+            <button type="button" class="type-button" data-type="мусор">🗑 <span>Мусор</span></button>
+            <button type="button" class="type-button" data-type="освещение">💡 <span>Освещение</span></button>
+            <button type="button" class="type-button" data-type="другое">❗ <span>Другое</span></button>
+            <button type="button" class="type-button" data-type="outage">⚡ <span>Электричество</span></button>
+        </div>
+        <input type="hidden" id="problemType" value="">
+
+        <label for="problemAddress">Адрес <span class="optional">(необязательно)</span></label>
+        <input type="text" id="problemAddress" placeholder="Например: ул. Ленина, 24" autocomplete="off">
+        <button type="button" id="findAddress">🔎 Найти адрес</button>
+        <button type="button" id="myLocation">📍 Моё местоположение</button>
+        <div id="addressResults"></div>
+
+        <label for="problemDescription">Описание</label>
+        <textarea id="problemDescription" rows="5" placeholder="Опишите проблему"></textarea>
+
+        <label>Фотографии <span class="optional">(до 3)</span></label>
+        <label class="photo-button">
+            📷 Добавить фото
+            <input type="file" id="photos" multiple accept="image/*">
+        </label>
+        <div id="photoPreview"></div>
+
+        <button type="button" id="saveProblem">🚀 Отправить обращение</button>
+        <div id="serverNotice" class="server-notice hidden">
+            ⏳ Сервер запускается...<br>
+            Первая отправка может занять до минуты.<br>
+            Пожалуйста, не закрывайте страницу.
+        </div>
+    </aside>
 </main>
 
-<!-- =========================================================
-     ПРОСМОТР ФОТОГРАФИИ
-========================================================= -->
-
-<div
-    id="photoViewer"
-    class="photo-viewer"
->
-
-```
-<button
-    type="button"
-    id="closeViewer"
-    aria-label="Закрыть"
->
-    ✕
-</button>
-
-
-<button
-    type="button"
-    id="prevPhoto"
-    aria-label="Предыдущая фотография"
->
-    ‹
-</button>
-
-
-<img
-    id="viewerImage"
-    src=""
-    alt="Фотография проблемы"
->
-
-
-<button
-    type="button"
-    id="nextPhoto"
-    aria-label="Следующая фотография"
->
-    ›
-</button>
-
+<div id="photoViewer" class="photo-viewer">
+    <button type="button" id="closeViewer" aria-label="Закрыть">✕</button>
+    <button type="button" id="prevPhoto" aria-label="Предыдущая фотография">‹</button>
+    <img id="viewerImage" src="" alt="Фотография проблемы">
+    <button type="button" id="nextPhoto" aria-label="Следующая фотография">›</button>
 </div>
 
 <script>
     const API_URL = "https://kaspiysk-map-1.onrender.com";
 </script>
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
-
-<script src="js/weather-widget.js"></script>
 <script src="js/header.js"></script>
 <script src="js/problems.js"></script>
-
 </body>
-
 </html>
