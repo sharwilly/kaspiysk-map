@@ -182,10 +182,13 @@ async function saveOutage(outage) {
         // отключение, но в нём вообще нет фидера,
         // не создаём сомнительную запись.
 
-        if (feeders.length === 0) {
+        if (
+            feeders.length === 0 &&
+            transformerPoints.length === 0
+        ) {
 
             console.log(
-                "⚠️ Отключение без фидера. Новая запись не создаётся."
+                "⚠️ Отключение без фидера и ТП. Новая запись не создаётся."
             );
 
             return;
@@ -251,7 +254,9 @@ async function saveOutage(outage) {
 
         console.log(
             "✅ Новое отключение сохранено:",
-            feeders.join(", ")
+            feeders.length
+                ? `фидеры: ${feeders.join(", ")}`
+                : `ТП: ${transformerPoints.join(", ")}`
         );
 
 
