@@ -1,74 +1,187 @@
-<!-- Leaflet -->
-<link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet/dist/leaflet.css"
-/>
+<!DOCTYPE html>
+<html lang="ru">
 
-<link rel="stylesheet" href="css/problems.css">
-<link rel="stylesheet" href="css/common.css">
+<head>
 
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Проблемы города — Каспийск</title>
+
+
+    <!-- =========================
+         LEAFLET
+    ========================== -->
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet/dist/leaflet.css"
+    >
+
+
+    <!-- =========================
+         CSS
+    ========================== -->
+
+    <link
+        rel="stylesheet"
+        href="css/problems.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="css/common.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+
+<header class="header">
+
+    <div class="header-left">
+
+        <img
+            src="images/logo.png"
+            alt="Каспийск"
+            class="city-logo"
+        >
+
+        <div>
+
+            <h1>
+                Каспийск
+            </h1>
+
+            <p>
+                Карта городских проблем
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <nav class="menu">
+
+        <a href="index.html">
+            Главная
+        </a>
+
+        <a
+            href="problems.html"
+            class="active"
+        >
+            Проблемы
+        </a>
+
+        <a href="weather.html">
+            Погода
+        </a>
+
+    </nav>
+
+</header>
+
+
+
+<!-- =========================================================
+     MAIN CONTAINER
+========================================================= -->
 
 <div id="container">
 
-    <!-- ============================= -->
-    <!-- КАРТА -->
-    <!-- ============================= -->
 
-    <div id="mapContainer">
+    <!-- =====================================================
+         MAP AREA
+    ====================================================== -->
+
+    <div id="map-container">
+
+
+        <!-- =========================
+             MAP
+        ========================== -->
 
         <div id="map"></div>
 
 
-        <!-- ФИЛЬТРЫ КАРТЫ -->
+
+        <!-- =========================
+             MAP FILTERS
+        ========================== -->
 
         <div id="mapFilters">
 
             <button
                 type="button"
                 class="map-filter active"
-                data-filter="all">
+                data-filter="all"
+            >
                 Все
             </button>
 
+
             <button
                 type="button"
                 class="map-filter"
-                data-filter="подтопление">
+                data-filter="подтопление"
+            >
                 💧 Подтопления
             </button>
 
+
             <button
                 type="button"
                 class="map-filter"
-                data-filter="яма">
+                data-filter="яма"
+            >
                 🕳 Ямы
             </button>
 
+
             <button
                 type="button"
                 class="map-filter"
-                data-filter="мусор">
+                data-filter="мусор"
+            >
                 🗑 Мусор
             </button>
 
+
             <button
                 type="button"
                 class="map-filter"
-                data-filter="освещение">
+                data-filter="освещение"
+            >
                 💡 Освещение
             </button>
 
-            <button
-                type="button"
-                class="map-filter"
-                data-filter="другое">
-                ❗ Другое
-            </button>
 
             <button
                 type="button"
                 class="map-filter"
-                data-filter="outage">
+                data-filter="другое"
+            >
+                ❗ Другое
+            </button>
+
+
+            <button
+                type="button"
+                class="map-filter"
+                data-filter="outage"
+            >
                 ⚡ Электричество
             </button>
 
@@ -77,14 +190,22 @@
     </div>
 
 
-    <!-- ============================= -->
-    <!-- ПАНЕЛЬ ОБРАЩЕНИЯ -->
-    <!-- ============================= -->
 
-    <div id="panel">
+    <!-- =====================================================
+         RIGHT PANEL
+    ====================================================== -->
 
-        <h2>Новое обращение</h2>
+    <aside id="panel">
 
+
+        <h2>
+            Новое обращение
+        </h2>
+
+
+        <!-- =========================
+             PROBLEM TYPE
+        ========================== -->
 
         <label>
             Тип проблемы
@@ -93,40 +214,66 @@
 
         <div class="problem-types">
 
-            <button
-                type="button"
-                class="type-button"
-                data-type="подтопление">
-                💧 Подтопление
-            </button>
 
             <button
                 type="button"
                 class="type-button"
-                data-type="яма">
-                🕳 Яма
+                data-type="подтопление"
+            >
+                💧
+                <span>
+                    Подтопление
+                </span>
             </button>
+
 
             <button
                 type="button"
                 class="type-button"
-                data-type="мусор">
-                🗑 Мусор
+                data-type="яма"
+            >
+                🕳
+                <span>
+                    Яма
+                </span>
             </button>
+
 
             <button
                 type="button"
                 class="type-button"
-                data-type="освещение">
-                💡 Освещение
+                data-type="мусор"
+            >
+                🗑
+                <span>
+                    Мусор
+                </span>
             </button>
+
 
             <button
                 type="button"
                 class="type-button"
-                data-type="другое">
-                ❗ Другое
+                data-type="освещение"
+            >
+                💡
+                <span>
+                    Освещение
+                </span>
             </button>
+
+
+            <button
+                type="button"
+                class="type-button"
+                data-type="другое"
+            >
+                ❗
+                <span>
+                    Другое
+                </span>
+            </button>
+
 
         </div>
 
@@ -134,31 +281,42 @@
         <input
             type="hidden"
             id="problemType"
-            value="">
+            value=""
+        >
 
 
-        <!-- АДРЕС -->
 
-        <label>
-            Адрес (необязательно)
+        <!-- =========================
+             ADDRESS
+        ========================== -->
+
+        <label for="problemAddress">
+            Адрес
+            <span>
+                (необязательно)
+            </span>
         </label>
+
 
         <input
             type="text"
             id="problemAddress"
-            placeholder="Например: ул. Ленина, 24">
+            placeholder="Например: ул. Ленина, 24"
+        >
 
 
         <button
             type="button"
-            id="findAddress">
+            id="findAddress"
+        >
             🔎 Найти адрес
         </button>
 
 
         <button
             type="button"
-            id="myLocation">
+            id="myLocation"
+        >
             📍 Моё местоположение
         </button>
 
@@ -166,34 +324,48 @@
         <div id="addressResults"></div>
 
 
-        <!-- ОПИСАНИЕ -->
 
-        <label>
+        <!-- =========================
+             DESCRIPTION
+        ========================== -->
+
+        <label for="problemDescription">
             Описание
         </label>
+
 
         <textarea
             id="problemDescription"
             rows="5"
-            placeholder="Опишите проблему"></textarea>
+            placeholder="Опишите проблему"
+        ></textarea>
 
 
-        <!-- ФОТО -->
+
+        <!-- =========================
+             PHOTOS
+        ========================== -->
 
         <label>
-            Фотографии (до 3)
+            Фотографии
+            <span>
+                (до 3)
+            </span>
         </label>
 
 
         <label class="photo-button">
 
-            📷 Добавить фото
+            📷
+            Добавить фото
+
 
             <input
                 type="file"
                 id="photos"
                 multiple
-                accept="image/*">
+                accept="image/*"
+            >
 
         </label>
 
@@ -201,70 +373,146 @@
         <div id="photoPreview"></div>
 
 
-        <!-- ОТПРАВКА -->
+
+        <!-- =========================
+             SEND
+        ========================== -->
 
         <button
             type="button"
-            id="saveProblem">
+            id="saveProblem"
+        >
             🚀 Отправить обращение
         </button>
 
-    </div>
+
+        <!-- =========================
+             SERVER NOTICE
+        ========================== -->
+
+        <div
+            id="serverNotice"
+            class="server-notice hidden"
+        >
+
+            ⏳ Сервер запускается...
+
+            <br>
+
+            Первая отправка может занять до минуты.
+
+            <br>
+
+            Пожалуйста, не закрывайте страницу.
+
+        </div>
+
+
+    </aside>
 
 </div>
 
 
-<!-- ============================= -->
-<!-- УВЕДОМЛЕНИЕ О СЕРВЕРЕ -->
-<!-- ============================= -->
 
-<div
-    id="serverNotice"
-    class="server-notice hidden">
+<!-- =========================================================
+     FOOTER
+========================================================= -->
 
-    ⏳ Сервер запускается...
-    <br>
+<footer>
 
-    Первая отправка может занять до минуты.
-    <br>
+    © 2026 Каспийск — карта городских проблем
 
-    Пожалуйста, не закрывайте страницу.
-
-</div>
+</footer>
 
 
-<!-- ============================= -->
-<!-- ПРОСМОТР ФОТО -->
-<!-- ============================= -->
+
+<!-- =========================================================
+     PHOTO VIEWER
+========================================================= -->
 
 <div id="photoViewer">
 
+
     <button
-        type="button"
         id="closeViewer"
-        aria-label="Закрыть">
+        type="button"
+        aria-label="Закрыть"
+    >
         ✕
     </button>
 
 
     <button
-        type="button"
         id="prevPhoto"
-        aria-label="Предыдущее фото">
+        type="button"
+        aria-label="Предыдущая фотография"
+    >
         ‹
     </button>
 
 
     <img
         id="viewerImage"
-        alt="Фото обращения">
+        src=""
+        alt="Фотография проблемы"
+    >
 
 
     <button
-        type="button"
         id="nextPhoto"
-        aria-label="Следующее фото">
+        type="button"
+        aria-label="Следующая фотография"
+    >
         ›
     </button>
 
+
 </div>
+
+
+
+<!-- =========================================================
+     LEAFLET JS
+========================================================= -->
+
+<script
+    src="https://unpkg.com/leaflet/dist/leaflet.js"
+></script>
+
+
+<!-- =========================================================
+     TURF
+========================================================= -->
+
+<script
+    src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"
+></script>
+
+
+
+<!-- =========================================================
+     COMMON / CONFIG
+========================================================= -->
+
+<script src="js/config.js"></script>
+
+
+
+<!-- =========================================================
+     WEATHER / HEADER
+========================================================= -->
+
+<script src="js/weather-widget.js"></script>
+
+
+
+<!-- =========================================================
+     PROBLEMS JS
+========================================================= -->
+
+<script src="js/problems.js"></script>
+
+
+</body>
+
+</html>
