@@ -321,95 +321,46 @@ function parseOutage(text) {
     // 6. ТРАНСФОРМАТОРНЫЕ ПОДСТАНЦИИ
     // =========================================================
     //
-    // Поддерживаем:
+    // Поддерживает:
     //
     // ТП-43
     // ТП 43
     // ТП-Каспийская гавань
     // ТП Каспийская гавань
     // ТП-43 и ТП-Каспийская гавань
+    // ТП-43, ТП-44 и ТП-Каспийская гавань
     //
-    // Важно:
-    // ТП-Каспийская гавань не должна превращаться
-    // в одну огромную строку вместе с адресами.
+    // Каждая ТП сохраняется отдельно.
     // =========================================================
 
-    const transformerSectionMatch = text.match(
-        /(?:отключени[ея]|отключен[а-яё]*)\s+(.*?)(?=\.\s*(?:Под\s+отключение|Под\s+ограничение)|$)/iu
-    );
-
-
-    if (transformerSectionMatch) {
-
-        const transformerText =
-            transformerSectionMatch[1];
-
-
-        const tpMatches = [
-            ...transformerText.matchAll(
-                /ТП\s*[-–—]?\s*([^,.;]+?)(?=\s+и\s+ТП|\s*,\s*ТП|\s*,|\s+Под\s+отключение|$)/giu
-            )
-        ];
-
-
-        for (const match of tpMatches) {
-
-            let value =
-                match[1]
-                    .trim()
-                    .replace(/\s+/g, " ");
-
-
-            if (!value) {
-                continue;
-            }
-
-
-            // Если после названия ТП случайно остался
-            // лишний союз/служебный текст.
-            value = value
-                .replace(
-                    /\s+(?:и|а также)\s*$/iu,
-                    ""
-                )
-                .trim();
-
-
-            addTransformerPoint(value);
-        }
-    }
-
-
-    // ---------------------------------------------------------
-    // Дополнительный надёжный поиск ТП
-    // ---------------------------------------------------------
-
-    const standaloneTpMatches = [
+    const tpMatches = [
         ...text.matchAll(
-            /ТП\s*[-–—]?\s*([А-ЯЁA-Z0-9][А-ЯЁA-Z0-9\s-]*?)(?=\s+и\s+ТП|\s*,\s*ТП|[.,;:]|\s+Под\s+отключение|$)/giu
+            /ТП\s*[-–—]?\s*([^,.;]+?)(?=\s+и\s+ТП|\s*,\s*ТП|\s+ТП\b|\s+Под\s+отключение|\s+Под\s+ограничение|[.,;]|$)/giu
         )
     ];
 
 
-    for (const match of standaloneTpMatches) {
+    for (const match of tpMatches) {
 
-        let value =
-            match[1]
-                .trim()
-                .replace(/\s+/g, " ");
-
-
-        value = value
-            .replace(
-                /\s+(?:и|а также)\s*$/iu,
-                ""
-            )
+        let value = match[1]
+            .trim()
+            .replace(/\s+/g, " ")
+            .replace(/[.,;:]+$/u, "")
             .trim();
 
 
-        if (value) {
-            addTransformerPoint(value);
+        if (!value) {
+            continue;
         }
+
+
+        // Убираем случайно захваченный союз
+        value = value
+            .replace(/\s+(?:и|а также)\s*$/iu, "")
+            .trim();
+
+
+        addTransformerPoint(value);
     }
 
 
@@ -419,7 +370,6 @@ function parseOutage(text) {
 
     result.transformer_point =
         result.transformer_points[0] || null;
-
 
     // =========================================================
     // 7. ТИП ОТКЛЮЧЕНИЯ
