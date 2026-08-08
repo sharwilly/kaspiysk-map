@@ -1,20 +1,297 @@
 const feederMap = require("./feederMap");
 
+
+// =============================================================
+// НОРМАЛИЗАЦИЯ НАЗВАНИЯ УЛИЦЫ
+// =============================================================
+
+function normalizeStreet(street) {
+
+    street =
+        String(street || "")
+            .trim()
+            .replace(/\s+/g, " ")
+            .replace(/[.,;:]+$/u, "")
+            .trim();
+
+
+    if (!street) {
+        return "";
+    }
+
+
+    // Уже есть сокращение "ул."
+    if (/^ул\.?\s+/iu.test(street)) {
+
+        return street
+            .replace(/^ул\.?\s*/iu, "ул. ")
+            .trim();
+    }
+
+
+    // Уже написано "улица"
+    if (/^улиц[аеуы]\s+/iu.test(street)) {
+
+        return street
+            .replace(/^улиц[аеуы]\s*/iu, "ул. ")
+            .trim();
+    }
+
+
+    // Проспект
+    if (/^проспект\s+/iu.test(street)) {
+
+        return street
+            .replace(/^проспект\s*/iu, "пр-т ")
+            .trim();
+    }
+
+
+    // Переулок
+    if (/^переулок\s+/iu.test(street)) {
+
+        return street
+            .replace(/^переулок\s*/iu, "пер. ")
+            .trim();
+    }
+
+
+    // Улица без типа
+    return `ул. ${street}`;
+}
+
+
+// =============================================================
+// НОРМАЛИЗАЦИЯ НОМЕРА ДОМА
+// =============================================================
+
+function normalizeHouseNumber(value) {
+
+    if (!value) {
+        return "";
+    }
+
+
+    return String(value)
+        .trim()
+        .replace(/\s+/g, "")
+        .replace(/[.,;:]+$/u, "")
+        .toUpperCase();
+}
+
+
+// =============================================================
+// ПРОВЕРКА: ЯВЛЯЕТСЯ ЛИ СТРОКА НОМЕРОМ ДОМА
+// =============================================================
+
+function isHouseNumber(value) {
+
+    if (!value) {
+        return false;
+    }
+
+
+    return /^\d+\s*[А-ЯЁA-Z]?(?:\s*[-–—]\s*\d+\s*[А-ЯЁA-Z]?)?$/iu
+        .test(
+            String(value).trim()
+        );
+}
+
+
+// =============================================================
+// РАЗБИВАЕМ НОМЕРА ДОМОВ
+//
+// "33, 33А, 33Б"
+// ->
+// ["33", "33А", "33Б"]
+// =============================================================
+
+function splitHouseNumbers(text) {
+
+    if (!text) {
+        return [];
+    }
+
+
+    return String(text)
+        .split(/\s*,\s*/)
+        .map(normalizeHouseNumber)
+        .filter(Boolean)
+        .filter(isHouseNumber);
+}
+
+
+// =============================================================
+// ДОБАВЛЕНИЕ АДРЕСОВ УЛИЦА + ДОМ
+// =============================================================
+
+function buildStreetHouseAddresses(street, houses) {
+
+    const normalizedStreet =
+        normalizeStreet(street);
+
+
+    if (!normalizedStreet) {
+        return [];
+    }
+
+
+    const houseNumbers =
+        Array.isArray(houses)
+            ? houses
+            : splitHouseNumbers(houses);
+
+
+    return houseNumbers
+        .map(normalizeHouseNumber)
+        .filter(Boolean)
+        .map(
+            house =>
+                `${normalizedStreet}, ${house}`
+        );
+}
+
+
+// =============================================================
+// УНИКАЛИЗАЦИЯ
+// =============================================================
+
+function unique(array) {
+
+    return [
+        ...new Set(
+            array.filter(Boolean)
+        )
+    ];
+}
+
+
+// =============================================================
+// НОРМАЛИЗАЦИЯ ФИДЕРА
+// =============================================================
+
+function normalizeFeeder(value) {
+
+    if (!value) {
+        return null;
+    }
+
+
+    value =
+        String(value)
+            .trim()
+            .toUpperCase()
+            .replace(/\s+/g, " ");
+
+
+    const ztmMatch =
+        value.match(
+            /^ЗТМ\s*-?\s*(\d+)$/iu
+        );
+
+
+    if (ztmMatch) {
+
+        return `ЗТМ-${ztmMatch[1]}`;
+    }
+
+
+    return value;
+}
+
+
+// =============================================================
+// НОРМАЛИЗАЦИЯ ТРАНСФОРМАТОРНОЙ ПОДСТАНЦИИ
+// =============================================================
+
+function normalizeTransformerPoint(value) {
+
+    if (!value) {
+        return null;
+    }
+
+
+    let tp =
+        String(value)
+            .trim()
+            .replace(/\s+/g, " ")
+            .replace(/[.,;:]+$/u, "")
+            .trim();
+
+
+    if (!tp) {
+        return null;
+    }
+
+
+    // Удаляем случайно захваченное время
+    tp =
+        tp.replace(
+            /\s+до\s+\d{1,2}:\d{2}.*$/iu,
+            ""
+        )
+        .trim();
+
+
+    // Удаляем завершающее "и"
+    tp =
+        tp.replace(
+            /\s+(?:и|а\s+также)\s*$/iu,
+            ""
+        )
+        .trim();
+
+
+    if (!tp) {
+        return null;
+    }
+
+
+    if (!/^ТП\b/iu.test(tp)) {
+
+        tp =
+            `ТП-${tp}`;
+    }
+
+
+    tp =
+        tp.replace(
+            /^ТП\s+/iu,
+            "ТП-"
+        );
+
+
+    tp =
+        tp.replace(
+            /^ТП--+/iu,
+            "ТП-"
+        );
+
+
+    return tp;
+}
+
+
+// =============================================================
+// ОСНОВНОЙ PARSER
+// =============================================================
+
 function parseOutage(text) {
 
     // =========================================================
     // 1. НОРМАЛИЗАЦИЯ ТЕКСТА
     // =========================================================
 
-    text = String(text || "")
-        .replace(/\r?\n/g, " ")
-        .replace(/\u00A0/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
+    text =
+        String(text || "")
+            .replace(/\r?\n/g, " ")
+            .replace(/\u00A0/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
 
 
     // =========================================================
-    // 2. ПУСТОЙ РЕЗУЛЬТАТ
+    // 2. РЕЗУЛЬТАТ
     // =========================================================
 
     const result = {
@@ -45,38 +322,8 @@ function parseOutage(text) {
 
 
     // =========================================================
-    // 3. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+    // 3. ДОБАВЛЕНИЕ ФИДЕРА
     // =========================================================
-
-    function unique(array) {
-        return [...new Set(array)];
-    }
-
-
-    function normalizeFeeder(value) {
-
-        if (!value) {
-            return null;
-        }
-
-        value = String(value)
-            .trim()
-            .toUpperCase()
-            .replace(/\s+/g, " ");
-
-
-        const ztmMatch =
-            value.match(/^ЗТМ\s*-?\s*(\d+)$/iu);
-
-
-        if (ztmMatch) {
-            return `ЗТМ-${ztmMatch[1]}`;
-        }
-
-
-        return value;
-    }
-
 
     function addFeeder(value) {
 
@@ -90,23 +337,22 @@ function parseOutage(text) {
 
 
         if (!result.feeders.includes(feeder)) {
-            result.feeders.push(feeder);
+
+            result.feeders.push(
+                feeder
+            );
         }
     }
 
 
+    // =========================================================
+    // 4. ДОБАВЛЕНИЕ ТП
+    // =========================================================
+
     function addTransformerPoint(value) {
 
-        if (!value) {
-            return;
-        }
-
-
-        let tp = String(value)
-            .trim()
-            .replace(/\s+/g, " ")
-            .replace(/[.,;:]+$/u, "")
-            .trim();
+        const tp =
+            normalizeTransformerPoint(value);
 
 
         if (!tp) {
@@ -114,74 +360,9 @@ function parseOutage(text) {
         }
 
 
-        /*
-         * Удаляем случайно захваченное время.
-         *
-         * Например:
-         *
-         * ТП 109 до 18:00
-         *
-         * должно стать:
-         *
-         * ТП-109
-         */
-
-        tp = tp
-            .replace(
-                /\s+до\s+\d{1,2}:\d{2}.*$/iu,
-                ""
-            )
-            .trim();
-
-
-        /*
-         * Убираем слова, которые вообще
-         * не относятся к названию ТП.
-         */
-
-        tp = tp
-            .replace(
-                /\s+(?:и|а\s+также)\s*$/iu,
-                ""
-            )
-            .trim();
-
-
-        if (!tp) {
-            return;
-        }
-
-
-        /*
-         * ТП 43 -> ТП-43
-         *
-         * ТП 103-а -> ТП-103-а
-         *
-         * ТП Каспийская гавань -> ТП-Каспийская гавань
-         */
-
-        if (!/^ТП\b/iu.test(tp)) {
-            tp = `ТП-${tp}`;
-        }
-
-
-        tp = tp.replace(
-            /^ТП\s+/iu,
-            "ТП-"
-        );
-
-
-        /*
-         * Убираем двойные дефисы.
-         */
-
-        tp = tp.replace(
-            /^ТП--+/iu,
-            "ТП-"
-        );
-
-
-        if (!result.transformer_points.includes(tp)) {
+        if (
+            !result.transformer_points.includes(tp)
+        ) {
 
             result.transformer_points.push(
                 tp
@@ -191,20 +372,33 @@ function parseOutage(text) {
 
 
     // =========================================================
-    // 4. ПОЛНОЕ ВОССТАНОВЛЕНИЕ
+    // 5. ПОЛНОЕ ВОССТАНОВЛЕНИЕ
     // =========================================================
 
     const allFeedersWorking =
 
-        /все\s+фидер[а-яё]*\s+(?:в\s+работ[еа]|работают|в\s+рабочем\s+состоянии)/iu.test(text) ||
+        /все\s+фидер[а-яё]*\s+(?:в\s+работ[еа]|работают|в\s+рабочем\s+состоянии)/iu
+            .test(text)
 
-        /все\s+фидер[а-яё]*\s+включен[а-яё]*/iu.test(text) ||
+        ||
 
-        /все\s+фидер[а-яё]*\s+восстановлен[а-яё]*/iu.test(text) ||
+        /все\s+фидер[а-яё]*\s+включен[а-яё]*/iu
+            .test(text)
 
-        /электроснабжение\s+восстановлено\s+полностью/iu.test(text) ||
+        ||
 
-        /электроснабжение\s+восстановлено\s+в\s+полном\s+объ[её]ме/iu.test(text);
+        /все\s+фидер[а-яё]*\s+восстановлен[а-яё]*/iu
+            .test(text)
+
+        ||
+
+        /электроснабжение\s+восстановлено\s+полностью/iu
+            .test(text)
+
+        ||
+
+        /электроснабжение\s+восстановлено\s+в\s+полном\s+объ[её]ме/iu
+            .test(text);
 
 
     if (allFeedersWorking) {
@@ -223,13 +417,10 @@ function parseOutage(text) {
 
 
     // =========================================================
-    // 5. ФИДЕРЫ
+    // 6. ФИДЕРЫ
     // =========================================================
 
-    // ---------------------------------------------------------
     // Фидер-6 ЗТМ
-    // ---------------------------------------------------------
-
     const feederNumberZtmAfterMatches = [
         ...text.matchAll(
             /Фидер[а-яё]*\s*-?\s*(\d+)\s*ЗТМ\b/giu
@@ -237,7 +428,10 @@ function parseOutage(text) {
     ];
 
 
-    for (const match of feederNumberZtmAfterMatches) {
+    for (
+        const match
+        of feederNumberZtmAfterMatches
+    ) {
 
         addFeeder(
             `ЗТМ-${match[1]}`
@@ -245,10 +439,7 @@ function parseOutage(text) {
     }
 
 
-    // ---------------------------------------------------------
     // Фидеры 3,5,7 ЗТМ
-    // ---------------------------------------------------------
-
     const feederNumbersZtmAfterMatches = [
         ...text.matchAll(
             /Фидер[а-яё]*\s*-?\s*((?:\d+\s*[,;]\s*)+\d+)\s*ЗТМ\b/giu
@@ -256,12 +447,17 @@ function parseOutage(text) {
     ];
 
 
-    for (const match of feederNumbersZtmAfterMatches) {
+    for (
+        const match
+        of feederNumbersZtmAfterMatches
+    ) {
 
         const numbers =
             match[1]
                 .split(/[,;]/)
-                .map(x => x.trim())
+                .map(
+                    x => x.trim()
+                )
                 .filter(Boolean);
 
 
@@ -274,10 +470,7 @@ function parseOutage(text) {
     }
 
 
-    // ---------------------------------------------------------
     // Фидеры ЗТМ 3,5,7
-    // ---------------------------------------------------------
-
     const feederZtmMatches = [
         ...text.matchAll(
             /Фидер[а-яё]*\s+ЗТМ\s*-?\s*((?:\d+\s*[,;]\s*)+\d+)/giu
@@ -285,12 +478,17 @@ function parseOutage(text) {
     ];
 
 
-    for (const match of feederZtmMatches) {
+    for (
+        const match
+        of feederZtmMatches
+    ) {
 
         const numbers =
             match[1]
                 .split(/[,;]/)
-                .map(x => x.trim())
+                .map(
+                    x => x.trim()
+                )
                 .filter(Boolean);
 
 
@@ -303,10 +501,7 @@ function parseOutage(text) {
     }
 
 
-    // ---------------------------------------------------------
     // Фидер ЗТМ-3 / Фидер ЗТМ 3
-    // ---------------------------------------------------------
-
     const singleZtmMatches = [
         ...text.matchAll(
             /Фидер[а-яё]*\s*-?\s*ЗТМ\s*-?\s*(\d+)/giu
@@ -314,7 +509,10 @@ function parseOutage(text) {
     ];
 
 
-    for (const match of singleZtmMatches) {
+    for (
+        const match
+        of singleZtmMatches
+    ) {
 
         addFeeder(
             `ЗТМ-${match[1]}`
@@ -322,10 +520,7 @@ function parseOutage(text) {
     }
 
 
-    // ---------------------------------------------------------
     // Обычные фидеры
-    // ---------------------------------------------------------
-
     const normalFeederMatches = [
         ...text.matchAll(
             /Фидер[а-яё]*\s*-?\s*(\d+(?:\s*[,;]\s*\d+)*)/giu
@@ -333,7 +528,10 @@ function parseOutage(text) {
     ];
 
 
-    for (const match of normalFeederMatches) {
+    for (
+        const match
+        of normalFeederMatches
+    ) {
 
         const fullMatch =
             match[0];
@@ -341,14 +539,20 @@ function parseOutage(text) {
 
         const afterNumber =
             text.substring(
-                match.index + fullMatch.length,
-                match.index + fullMatch.length + 10
+                match.index +
+                fullMatch.length,
+
+                match.index +
+                fullMatch.length +
+                10
             );
 
 
         if (
-            /^\s*ЗТМ\b/iu.test(afterNumber)
+            /^\s*ЗТМ\b/iu
+                .test(afterNumber)
         ) {
+
             continue;
         }
 
@@ -356,11 +560,16 @@ function parseOutage(text) {
         const numbers =
             match[1]
                 .split(/[,;]/)
-                .map(x => x.trim())
+                .map(
+                    x => x.trim()
+                )
                 .filter(Boolean);
 
 
-        for (const number of numbers) {
+        for (
+            const number
+            of numbers
+        ) {
 
             addFeeder(number);
         }
@@ -368,23 +577,7 @@ function parseOutage(text) {
 
 
     // =========================================================
-    // 6. ТРАНСФОРМАТОРНЫЕ ПОДСТАНЦИИ
-    // =========================================================
-    //
-    // Поддерживаем:
-    //
-    // ТП-43
-    // ТП 43
-    // ТП 103-а
-    // ТП-103-а
-    // ТП-Каспийская гавань
-    // ТП Каспийская гавань
-    // ТП-43 и ТП-Каспийская гавань
-    // ТП - Прогресс 2 до 17:30
-    // ТП 109 до 18:00
-    //
-    // ВАЖНО:
-    // "до 17:30" не попадает в название ТП.
+    // 7. ТРАНСФОРМАТОРНЫЕ ПОДСТАНЦИИ
     // =========================================================
 
     const tpMatches = [
@@ -394,7 +587,10 @@ function parseOutage(text) {
     ];
 
 
-    for (const match of tpMatches) {
+    for (
+        const match
+        of tpMatches
+    ) {
 
         let value =
             match[1]
@@ -404,17 +600,12 @@ function parseOutage(text) {
                 .trim();
 
 
-        /*
-         * Защита от времени.
-         */
-
         value =
-            value
-                .replace(
-                    /\s+до\s+\d{1,2}:\d{2}.*$/iu,
-                    ""
-                )
-                .trim();
+            value.replace(
+                /\s+до\s+\d{1,2}:\d{2}.*$/iu,
+                ""
+            )
+            .trim();
 
 
         if (!value) {
@@ -426,14 +617,7 @@ function parseOutage(text) {
     }
 
 
-    /*
-     * Дополнительная защита для сложных ТП.
-     *
-     * Например:
-     *
-     * "аварийное отключение ТП 103-а."
-     */
-
+    // Fallback для простых ТП
     if (
         result.transformer_points.length === 0
     ) {
@@ -445,7 +629,10 @@ function parseOutage(text) {
         ];
 
 
-        for (const match of simpleTpMatches) {
+        for (
+            const match
+            of simpleTpMatches
+        ) {
 
             addTransformerPoint(
                 match[1]
@@ -461,41 +648,55 @@ function parseOutage(text) {
 
 
     result.transformer_point =
-        result.transformer_points[0] || null;
+        result.transformer_points[0] ||
+        null;
 
 
     // =========================================================
-    // 7. ТИП ОТКЛЮЧЕНИЯ
+    // 8. ТИП ОТКЛЮЧЕНИЯ
     // =========================================================
 
     const isPlanned =
 
-        /планов(?:ое|ая|ому|ым|ых)/iu.test(text) ||
+        /планов(?:ое|ая|ому|ым|ых)/iu
+            .test(text)
 
-        /планов[а-яё]*\s+отключен/iu.test(text) ||
+        ||
 
-        /планов[а-яё]*\s+работ/iu.test(text) ||
+        /планов[а-яё]*\s+отключен/iu
+            .test(text)
 
-        /плановые\s+работы/iu.test(text);
+        ||
+
+        /планов[а-яё]*\s+работ/iu
+            .test(text)
+
+        ||
+
+        /плановые\s+работы/iu
+            .test(text);
 
 
     const isEmergency =
 
-        /аварийн/iu.test(text) ||
+        /аварийн/iu.test(text)
 
-        /обрыв/iu.test(text) ||
+        ||
 
-        /земля\s+на\s+линии/iu.test(text) ||
+        /обрыв/iu.test(text)
 
-        /повреждени[ея].*(?:линии|кабел)/iu.test(text) ||
+        ||
+
+        /земля\s+на\s+линии/iu.test(text)
+
+        ||
+
+        /повреждени[ея].*(?:линии|кабел)/iu.test(text)
+
+        ||
 
         /аварийно/iu.test(text);
 
-
-    /*
-     * Ограничение электроснабжения без слова
-     * "аварийное" считаем emergency, как раньше.
-     */
 
     if (isPlanned) {
 
@@ -512,7 +713,8 @@ function parseOutage(text) {
 
 
         if (
-            /обрыв|земля\s+на\s+линии|повреждени[ея]/iu.test(text)
+            /обрыв|земля\s+на\s+линии|повреждени[ея]/iu
+                .test(text)
         ) {
 
             result.description =
@@ -535,26 +737,48 @@ function parseOutage(text) {
 
 
     // =========================================================
-    // 8. ОКОНЧАНИЕ РАБОТ
+    // 9. ОКОНЧАНИЕ РАБОТ
     // =========================================================
 
     const isCompleted =
 
-        /работ[а-яё]*\s+(?:завершен|оконч|законч)/iu.test(text) ||
+        /работ[а-яё]*\s+(?:завершен|оконч|законч)/iu
+            .test(text)
 
-        /завершен[а-яё]*\s+(?:аварийн|ремонтн|восстановительн)[а-яё]*\s+работ/iu.test(text) ||
+        ||
 
-        /электроснабжени[ея]\s+(?:полностью\s+)?восстановлен/iu.test(text) ||
+        /завершен[а-яё]*\s+(?:аварийн|ремонтн|восстановительн)[а-яё]*\s+работ/iu
+            .test(text)
 
-        /подача\s+электроэнергии\s+восстановлен/iu.test(text) ||
+        ||
 
-        /электроэнергия\s+(?:полностью\s+)?восстановлен/iu.test(text) ||
+        /электроснабжени[ея]\s+(?:полностью\s+)?восстановлен/iu
+            .test(text)
 
-        /ограничени[ея]\s+(?:электроснабжения\s+)?снят/iu.test(text) ||
+        ||
 
-        /аварийн(?:ые|ых)\s+работ[ыа]\s+(?:завершен|оконч|законч)/iu.test(text) ||
+        /подача\s+электроэнергии\s+восстановлен/iu
+            .test(text)
 
-        /все\s+фидер[а-яё]*\s+(?:в\s+работ[еа]|работают)/iu.test(text);
+        ||
+
+        /электроэнергия\s+(?:полностью\s+)?восстановлен/iu
+            .test(text)
+
+        ||
+
+        /ограничени[ея]\s+(?:электроснабжения\s+)?снят/iu
+            .test(text)
+
+        ||
+
+        /аварийн(?:ые|ых)\s+работ[ыа]\s+(?:завершен|оконч|законч)/iu
+            .test(text)
+
+        ||
+
+        /все\s+фидер[а-яё]*\s+(?:в\s+работ[еа]|работают)/iu
+            .test(text);
 
 
     if (isCompleted) {
@@ -568,7 +792,7 @@ function parseOutage(text) {
 
 
     // =========================================================
-    // 9. ПОДСТАНЦИЯ
+    // 10. ПОДСТАНЦИЯ
     // =========================================================
 
     const substationMatch =
@@ -616,7 +840,7 @@ function parseOutage(text) {
 
 
     // =========================================================
-    // 10. ВРЕМЯ ВОССТАНОВЛЕНИЯ
+    // 11. ВРЕМЯ ВОССТАНОВЛЕНИЯ
     // =========================================================
 
     const timePatterns = [
@@ -641,7 +865,10 @@ function parseOutage(text) {
     ];
 
 
-    for (const pattern of timePatterns) {
+    for (
+        const pattern
+        of timePatterns
+    ) {
 
         const match =
             text.match(pattern);
@@ -658,43 +885,27 @@ function parseOutage(text) {
 
 
     // =========================================================
-    // 11. АДРЕСА
+    // 12. ИЗВЛЕЧЕНИЕ АДРЕСОВ
     // =========================================================
     //
-    // Поддерживаем:
+    // Главная новая часть.
     //
-    // Под отключение попали следующие адреса:
-    // ул. Ленина, ул. Омарова
+    // Примеры:
     //
-    // Под ограничения частично попали следующие адреса:
-    // ул. Западная, ул. Каспийская
+    // ул. Ленина, 33, 33А, 33Б
     //
-    // Под ограничения попали следующие дома по улице Акулиничева:
-    // 13, 13А
+    // превращается в:
     //
-    // Под отключение попали следующие дома по улице Халилова:
-    // 32, 32А, 32Б, 44
+    // ул. Ленина, 33
+    // ул. Ленина, 33А
+    // ул. Ленина, 33Б
     //
-    // Под ограничения попали дома по улице Акулиничева:
-    // 13, 13А
     // =========================================================
 
     const addressPatterns = [
 
         // -----------------------------------------------------
-        // Дома по улице
-        // -----------------------------------------------------
-        {
-            regex:
-                /(?:Под\s+ограничени[яе]|Под\s+отключени[ея])\s+попали\s+(?:следующие\s+)?дома\s+по\s+улице\s+([^:]+?)\s*:\s*([\s\S]*?)(?=(?:Ориентировочное|Аварийная|Аварийные|Дальнейшая|На\s+место|Работы|Всего\s+\d+|$))/iu,
-
-            streetHouse: true
-        },
-
-
-        // -----------------------------------------------------
-        // Дома по улице
-        // "Под ограничения попали дома..."
+        // "дома по улице Халилова: 32, 32А, 32Б"
         // -----------------------------------------------------
         {
             regex:
@@ -705,7 +916,7 @@ function parseOutage(text) {
 
 
         // -----------------------------------------------------
-        // Дома по улице с "следующие"
+        // "дома по улице..."
         // -----------------------------------------------------
         {
             regex:
@@ -716,33 +927,11 @@ function parseOutage(text) {
 
 
         // -----------------------------------------------------
-        // Адреса
+        // "следующие адреса:"
         // -----------------------------------------------------
         {
             regex:
                 /(?:Под\s+отключени(?:е|я)|Под\s+ограничени(?:е|я))(?:\s+частично)?\s+(?:попали|попадает|попадают)(?:\s+следующие)?(?:\s+адреса|\s+улицы)?\s*:\s*([\s\S]*?)(?=(?:Ориентировочное|Аварийная|Аварийные|Дальнейшая|На\s+место|Работы\s+проводятся|Работы\s+заверш|Всего\s+\d+|$))/iu,
-
-            streetHouse: false
-        },
-
-
-        // -----------------------------------------------------
-        // "следующие улицы"
-        // -----------------------------------------------------
-        {
-            regex:
-                /Под\s+ограничения\s+частично\s+попали\s+следующие\s+улицы\s*:\s*([\s\S]*?)(?=(?:Ориентировочное|Аварийная|Дальнейшая|На\s+место|Работы|$))/iu,
-
-            streetHouse: false
-        },
-
-
-        // -----------------------------------------------------
-        // "следующие адреса"
-        // -----------------------------------------------------
-        {
-            regex:
-                /Под\s+ограничения\s+частично\s+попали\s+следующие\s+адреса\s*:\s*([\s\S]*?)(?=(?:Ориентировочное|Аварийная|Дальнейшая|На\s+место|Работы|$))/iu,
 
             streetHouse: false
         },
@@ -760,7 +949,18 @@ function parseOutage(text) {
 
 
         // -----------------------------------------------------
-        // "следующие адреса:"
+        // "следующие улицы"
+        // -----------------------------------------------------
+        {
+            regex:
+                /Под\s+ограничения\s+частично\s+попали\s+следующие\s+улицы\s*:\s*([\s\S]*?)(?=(?:Ориентировочное|Аварийная|Дальнейшая|На\s+место|Работы|$))/iu,
+
+            streetHouse: false
+        },
+
+
+        // -----------------------------------------------------
+        // Просто "следующие адреса:"
         // -----------------------------------------------------
         {
             regex:
@@ -775,7 +975,10 @@ function parseOutage(text) {
     let addressIsStreetHouse = false;
 
 
-    for (const pattern of addressPatterns) {
+    for (
+        const pattern
+        of addressPatterns
+    ) {
 
         const match =
             text.match(pattern.regex);
@@ -795,7 +998,7 @@ function parseOutage(text) {
 
 
     // =========================================================
-    // 12. ОБРАБОТКА АДРЕСОВ
+    // 13. ОБРАБОТКА АДРЕСОВ
     // =========================================================
 
     if (addressMatch) {
@@ -813,9 +1016,9 @@ function parseOutage(text) {
         if (addressIsStreetHouse) {
 
             const street =
-                addressMatch[1]
-                    .trim()
-                    .replace(/\s+/g, " ");
+                normalizeStreet(
+                    addressMatch[1]
+                );
 
 
             let houses =
@@ -824,81 +1027,79 @@ function parseOutage(text) {
                     .replace(/\s+/g, " ");
 
 
+            // Удаляем хвост сообщения
             houses =
                 houses
+
                     .replace(
                         /Аварийная\s+бригада.*$/iu,
                         ""
                     )
+
                     .replace(
                         /Аварийные\s+бригады.*$/iu,
                         ""
                     )
+
                     .replace(
                         /Дальнейшая\s+информация.*$/iu,
                         ""
                     )
+
                     .replace(
                         /На\s+место\s+выехал[аи].*$/iu,
                         ""
                     )
+
                     .replace(
                         /Работы\s+проводятся.*$/iu,
                         ""
                     )
+
                     .replace(
                         /Работы\s+будут.*$/iu,
                         ""
                     )
+
                     .replace(
                         /Работы\s+завершены.*$/iu,
                         ""
                     )
+
                     .replace(
                         /Ориентировочное.*$/iu,
                         ""
                     )
+
                     .replace(
                         /Всего\s+\d+.*$/iu,
                         ""
                     )
+
                     .trim();
 
 
-            /*
-             * Разбиваем дома:
-             *
-             * 32, 32А, 32Б, 44
-             */
-
             const houseNumbers =
-                houses
-                    .split(/\s*,\s*/)
-                    .map(x =>
-                        x
-                            .trim()
-                            .replace(/[.;]+$/u, "")
-                    )
-                    .filter(Boolean);
-
-
-            /*
-             * Формируем один нормальный адрес:
-             *
-             * ул. Халилова дома - 32, 32А, 32Б, 44
-             */
-
-            if (street && houseNumbers.length) {
-
-                addresses.push(
-                    `${normalizeStreet(street)} дома - ${houseNumbers.join(", ")}`
+                splitHouseNumbers(
+                    houses
                 );
-            }
+
+
+            addresses =
+                buildStreetHouseAddresses(
+                    street,
+                    houseNumbers
+                );
         }
 
 
         // =====================================================
         // ОБЫЧНЫЙ ФОРМАТ
+        //
+        // Например:
+        //
+        // ул. Ленина, 33, 33А, 33Б,
+        // ул. Омарова, 12
         // =====================================================
 
         else {
@@ -967,9 +1168,9 @@ function parseOutage(text) {
                     .trim();
 
 
-            /*
-             * Нормализация дефисов.
-             */
+            // =================================================
+            // Убираем лишние дефисы
+            // =================================================
 
             addressesText =
                 addressesText
@@ -984,157 +1185,387 @@ function parseOutage(text) {
                     .trim();
 
 
-            /*
-             * Разбиваем по запятым.
-             */
+            // =================================================
+            // Разбиваем запятые
+            // =================================================
 
-            addresses =
+            const parts =
                 addressesText
                     .split(/\s*,\s*/)
-                    .map(address =>
-                        address.trim()
+                    .map(
+                        x => x.trim()
                     )
                     .filter(Boolean);
 
 
-            /*
-             * Объединяем номера домов.
-             */
-
-            const mergedAddresses = [];
+            // =================================================
+            // ГЛАВНЫЙ АЛГОРИТМ
+            //
+            // Ищем улицу.
+            //
+            // Если следующий элемент —
+            // номер дома, добавляем его к улице.
+            //
+            // Если подряд идут:
+            //
+            // Ленина
+            // 33
+            // 33А
+            // 33Б
+            //
+            // получаем:
+            //
+            // Ленина, 33
+            // Ленина, 33А
+            // Ленина, 33Б
+            // =================================================
 
             let currentStreet = null;
 
 
-            for (const address of addresses) {
+            for (
+                let i = 0;
+                i < parts.length;
+                i++
+            ) {
 
-                const looksLikeHouseNumber =
+                let part =
+                    parts[i]
+                        .trim();
 
-                    /^\d+\s*[А-ЯЁA-Z]?(?:\s*[-–—]\s*\d+\s*[А-ЯЁA-Z]?)?\.?$/iu.test(address);
 
+                if (!part) {
+                    continue;
+                }
+
+
+                // ---------------------------------------------
+                // Разделитель "и"
+                // ---------------------------------------------
 
                 if (
-                    looksLikeHouseNumber &&
-                    currentStreet
+                    /\s+и\s+/iu.test(part)
                 ) {
 
-                    currentStreet =
-                        `${currentStreet}, ${address.replace(/\.$/, "")}`;
+                    const splitByAnd =
+                        part
+                            .split(
+                                /\s+и\s+/iu
+                            )
+                            .map(
+                                x => x.trim()
+                            )
+                            .filter(Boolean);
 
 
-                    mergedAddresses[
-                        mergedAddresses.length - 1
-                    ] = currentStreet;
+                    for (
+                        const item
+                        of splitByAnd
+                    ) {
+
+                        if (
+                            isHouseNumber(item) &&
+                            currentStreet
+                        ) {
+
+                            addresses.push(
+                                ...buildStreetHouseAddresses(
+                                    currentStreet,
+                                    [item]
+                                )
+                            );
+
+                        } else {
+
+                            currentStreet =
+                                normalizeStreet(
+                                    item
+                                );
+
+
+                            if (
+                                currentStreet
+                            ) {
+
+                                addresses.push(
+                                    currentStreet
+                                );
+                            }
+                        }
+                    }
 
 
                     continue;
                 }
 
 
+                // ---------------------------------------------
+                // Если это номер дома
+                // ---------------------------------------------
+
+                if (
+                    isHouseNumber(part)
+                ) {
+
+                    if (
+                        currentStreet
+                    ) {
+
+                        addresses.push(
+                            ...buildStreetHouseAddresses(
+                                currentStreet,
+                                [part]
+                            )
+                        );
+                    }
+
+
+                    continue;
+                }
+
+
+                // ---------------------------------------------
+                // Это новая улица
+                // ---------------------------------------------
+
                 currentStreet =
-                    address;
+                    normalizeStreet(
+                        part
+                    );
 
 
-                mergedAddresses.push(
-                    address
-                );
+                if (
+                    currentStreet
+                ) {
+
+                    /*
+                     * Пока не добавляем улицу.
+                     *
+                     * Она будет добавлена только если
+                     * для неё не нашлось номера дома.
+                     */
+                }
+            }
+
+
+            // =================================================
+            // Если были только улицы без домов
+            // =================================================
+
+            if (
+                addresses.length === 0 &&
+                parts.length
+            ) {
+
+                addresses =
+                    parts.map(
+                        normalizeStreet
+                    );
+            }
+
+
+            // =================================================
+            // ВАЖНЫЙ FALLBACK:
+            //
+            // Если в строке есть:
+            //
+            // "ул. Ленина 33, 33А, 33Б"
+            //
+            // без запятой между улицей и первым домом,
+            // предыдущая логика могла получить:
+            //
+            // "ул. Ленина 33"
+            //
+            // Поэтому дополнительно разбираем такие случаи.
+            // =================================================
+
+            const expandedAddresses = [];
+
+
+            for (
+                const address
+                of addresses
+            ) {
+
+                const match =
+                    address.match(
+                        /^(.*?\D)\s+(\d+\s*[А-ЯЁA-Z]?)$/iu
+                    );
+
+
+                if (
+                    match &&
+                    !isHouseNumber(address)
+                ) {
+
+                    const street =
+                        normalizeStreet(
+                            match[1]
+                        );
+
+
+                    const house =
+                        normalizeHouseNumber(
+                            match[2]
+                        );
+
+
+                    expandedAddresses.push(
+                        `${street}, ${house}`
+                    );
+
+                } else {
+
+                    expandedAddresses.push(
+                        address
+                    );
+                }
             }
 
 
             addresses =
-                mergedAddresses;
-
-
-            /*
-             * Обработка "и".
-             *
-             * Например:
-             *
-             * ул. Ленина и ул. Омарова
-             */
-
-            addresses =
-                addresses.flatMap(address => {
-
-                    if (
-                        /\s+и\s+/iu.test(address)
-                    ) {
-
-                        return address
-                            .split(/\s+и\s+/iu)
-                            .map(x =>
-                                x.trim()
-                            )
-                            .filter(Boolean);
-                    }
-
-                    return [address];
-                });
+                expandedAddresses;
         }
 
 
         // =====================================================
-        // УДАЛЕНИЕ МУСОРА
+        // 14. ДОПОЛНИТЕЛЬНОЕ РАЗВИТИЕ АДРЕСОВ
+        //
+        // Если получилось:
+        //
+        // ул. Ленина, 33, 33А, 33Б
+        //
+        // повторно разбираем такие строки.
+        // =====================================================
+
+        const finalAddresses = [];
+
+
+        for (
+            const address
+            of addresses
+        ) {
+
+            const match =
+                address.match(
+                    /^(.*?),\s*(\d+(?:\s*[А-ЯЁA-Z])?(?:\s*[-–—]\s*\d+(?:\s*[А-ЯЁA-Z])?)?)$/iu
+                );
+
+
+            if (match) {
+
+                const street =
+                    normalizeStreet(
+                        match[1]
+                    );
+
+
+                const house =
+                    normalizeHouseNumber(
+                        match[2]
+                    );
+
+
+                if (
+                    street &&
+                    house
+                ) {
+
+                    finalAddresses.push(
+                        `${street}, ${house}`
+                    );
+
+
+                    continue;
+                }
+            }
+
+
+            finalAddresses.push(
+                address
+            );
+        }
+
+
+        // =====================================================
+        // 15. УДАЛЕНИЕ МУСОРА
         // =====================================================
 
         addresses =
-            addresses.filter(address => {
+            finalAddresses.filter(
+                address => {
 
-                if (
-                    /^ул\.?$/iu.test(address)
-                ) {
-                    return false;
+                    if (
+                        !address
+                    ) {
+                        return false;
+                    }
+
+
+                    if (
+                        /^ул\.?$/iu
+                            .test(address)
+                    ) {
+                        return false;
+                    }
+
+
+                    if (
+                        /^адреса$/iu
+                            .test(address)
+                    ) {
+                        return false;
+                    }
+
+
+                    if (
+                        /^улицы$/iu
+                            .test(address)
+                    ) {
+                        return false;
+                    }
+
+
+                    if (
+                        /аварийн(?:ая|ые|ой|ых)/iu
+                            .test(address)
+                    ) {
+                        return false;
+                    }
+
+
+                    if (
+                        /дальнейшая\s+информация/iu
+                            .test(address)
+                    ) {
+                        return false;
+                    }
+
+
+                    if (
+                        /работы\s+проводятся/iu
+                            .test(address)
+                    ) {
+                        return false;
+                    }
+
+
+                    if (
+                        address.length < 3
+                    ) {
+                        return false;
+                    }
+
+
+                    return true;
                 }
-
-
-                if (
-                    /^адреса$/iu.test(address)
-                ) {
-                    return false;
-                }
-
-
-                if (
-                    /^улицы$/iu.test(address)
-                ) {
-                    return false;
-                }
-
-
-                if (
-                    /аварийн(?:ая|ые|ой|ых)/iu.test(address)
-                ) {
-                    return false;
-                }
-
-
-                if (
-                    /дальнейшая\s+информация/iu.test(address)
-                ) {
-                    return false;
-                }
-
-
-                if (
-                    /работы\s+проводятся/iu.test(address)
-                ) {
-                    return false;
-                }
-
-
-                if (
-                    address.length < 3
-                ) {
-                    return false;
-                }
-
-
-                return true;
-            });
+            );
 
 
         result.addresses =
-            unique(addresses);
+            unique(
+                addresses
+            );
 
 
         if (
@@ -1148,26 +1579,32 @@ function parseOutage(text) {
 
 
     // =========================================================
-    // 13. FALLBACK ДЛЯ FEEDER
-    // =========================================================
-    //
-    // Для ТП feederMap НЕ используем.
+    // 16. FALLBACK ПО FEEDER MAP
     // =========================================================
 
     const badAddresses =
 
-        result.addresses.length === 0 ||
+        result.addresses.length === 0
 
+        ||
 
-        result.addresses.some(address =>
+        result.addresses.some(
+            address =>
 
-            address.length < 4 ||
+                address.length < 4
 
-            /^ул\.?$/iu.test(address) ||
+                ||
 
-            /^адреса$/iu.test(address) ||
+                /^ул\.?$/iu.test(address)
 
-            /аварийн|бригада|информация/iu.test(address)
+                ||
+
+                /^адреса$/iu.test(address)
+
+                ||
+
+                /аварийн|бригада|информация/iu
+                    .test(address)
         );
 
 
@@ -1179,7 +1616,10 @@ function parseOutage(text) {
         const mappedAddresses = [];
 
 
-        for (const feeder of result.feeders) {
+        for (
+            const feeder
+            of result.feeders
+        ) {
 
             if (
                 feederMap[feeder]
@@ -1194,10 +1634,14 @@ function parseOutage(text) {
 
 
             const numberMatch =
-                feeder.match(/(\d+)$/);
+                feeder.match(
+                    /(\d+)$/
+                );
 
 
-            if (numberMatch) {
+            if (
+                numberMatch
+            ) {
 
                 const number =
                     numberMatch[1];
@@ -1220,7 +1664,9 @@ function parseOutage(text) {
         ) {
 
             result.addresses =
-                unique(mappedAddresses);
+                unique(
+                    mappedAddresses
+                );
 
             result.address_source =
                 "feederMap";
@@ -1229,7 +1675,7 @@ function parseOutage(text) {
 
 
     // =========================================================
-    // 14. ФИНАЛЬНАЯ НОРМАЛИЗАЦИЯ
+    // 17. ФИНАЛЬНАЯ НОРМАЛИЗАЦИЯ
     // =========================================================
 
     result.feeders =
@@ -1244,16 +1690,24 @@ function parseOutage(text) {
         );
 
 
+    result.addresses =
+        unique(
+            result.addresses
+        );
+
+
     result.feeder =
-        result.feeders[0] || null;
+        result.feeders[0] ||
+        null;
 
 
     result.transformer_point =
-        result.transformer_points[0] || null;
+        result.transformer_points[0] ||
+        null;
 
 
     // =========================================================
-    // 15. ФИНАЛЬНЫЙ ЛОГ
+    // 18. ФИНАЛЬНЫЙ ЛОГ
     // =========================================================
 
     console.log(
@@ -1288,42 +1742,8 @@ function parseOutage(text) {
 
 
 // =============================================================
-// НОРМАЛИЗАЦИЯ НАЗВАНИЯ УЛИЦЫ
+// EXPORT
 // =============================================================
-
-function normalizeStreet(street) {
-
-    street =
-        String(street || "")
-            .trim()
-            .replace(/\s+/g, " ")
-            .replace(/[.,;:]+$/u, "")
-            .trim();
-
-
-    /*
-     * Если Telegram написал:
-     *
-     * Акулиничева
-     *
-     * превращаем в:
-     *
-     * ул. Акулиничева
-     */
-
-    if (
-        !/^ул\.?\s+/iu.test(street) &&
-        !/^улиц[аеуы]\s+/iu.test(street)
-    ) {
-
-        street =
-            `ул. ${street}`;
-    }
-
-
-    return street;
-}
-
 
 module.exports = parseOutage;
 

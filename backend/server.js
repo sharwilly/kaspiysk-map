@@ -350,6 +350,170 @@ app.get("/outages", async (req, res) => {
 
 });
 
+app.get("/outages/map", async (req, res) => {
+
+    try {
+
+        const result = await pool.query(`
+            SELECT
+                id,
+                type,
+                description,
+                addresses,
+                restore_time,
+                created_at,
+                transformer_points,
+                feeder,
+                status
+            FROM power_outages
+            WHERE status = 'active'
+            ORDER BY created_at DESC
+        `);
+
+
+        const outages = [];
+
+
+        for (const outage of result.rows) {
+
+            const locations = [];
+
+
+            if (
+                !Array.isArray(outage.addresses) ||
+                outage.addresses.length === 0
+            ) {
+                continue;
+            }
+
+
+            for (const address of outage.addresses) {
+
+                if (!address) {
+                    continue;
+                }
+
+
+                try {
+
+                    const query =
+                        `${address}, Каспийск, Республика Дагестан, Россия`;
+
+
+                    const response = await fetch(
+                        `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(query)}`,
+                        {
+                            headers: {
+                                "User-Agent": "Kaspiysk Map/1.0"
+                            }
+                        }
+                    );
+
+
+                    if (!response.ok) {
+
+                        console.log(
+                            "Nominatim error:",
+                            response.status,
+                            address
+                        );
+
+                        continue;
+                    }
+
+
+                    const data =
+                        await response.json();
+
+
+                    if (
+                        !data ||
+                        data.length === 0
+                    ) {
+
+                        console.log(
+                            "⚠️ Адрес не найден:",
+                            address
+                        );
+
+                        continue;
+                    }
+
+
+                    locations.push({
+
+                        address,
+
+                        latitude:
+                            Number(data[0].lat),
+
+                        longitude:
+                            Number(data[0].lon)
+
+                    });
+
+
+                } catch (error) {
+
+                    console.error(
+                        "Ошибка геокодирования:",
+                        address,
+                        error.message
+                    );
+
+                }
+
+            }
+
+
+            if (locations.length > 0) {
+
+                outages.push({
+
+                    id: outage.id,
+
+                    type: outage.type,
+
+                    description:
+                        outage.description,
+
+                    addresses:
+                        outage.addresses,
+
+                    restore_time:
+                        outage.restore_time,
+
+                    created_at:
+                        outage.created_at,
+
+                    locations
+
+                });
+
+            }
+
+        }
+
+
+        res.json(outages);
+
+
+    } catch (error) {
+
+        console.error(
+            "Ошибка загрузки отключений для карты:",
+            error
+        );
+
+
+        res.status(500).json({
+            error: "Ошибка загрузки отключений"
+        });
+
+    }
+
+});
+
 app.get("/outages/active", async (req,res)=>{
 
     const result = await pool.query(
