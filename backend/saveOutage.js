@@ -1,19 +1,96 @@
 const pool = require("./db");
+const geocodeAddress = require("./utils/geocodeAddress");
+
+// =========================================================
+// ГЕОКОДИРОВАНИЕ МАССИВА АДРЕСОВ
+// =========================================================
+
+async function geocodeAddresses(addresses) {
+
+    const points = [];
+
+    if (!Array.isArray(addresses) || addresses.length === 0) {
+        return points;
+    }
+
+    for (const address of addresses) {
+
+        if (!address) {
+            continue;
+        }
+
+        try {
+
+            console.log(
+                `🌍 Геокодируем адрес: ${address}`
+            );
+
+            const point =
+                await geocodeAddress(address);
+
+            if (
+                point &&
+                point.latitude != null &&
+                point.longitude != null
+            ) {
+
+                points.push({
+                    address: address,
+                    latitude: Number(point.latitude),
+                    longitude: Number(point.longitude)
+                });
+
+                console.log(
+                    `✅ Координаты: ${address} →`,
+                    point.latitude,
+                    point.longitude
+                );
+
+            } else {
+
+                console.log(
+                    `⚠️ Координаты не найдены: ${address}`
+                );
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                `❌ Ошибка геокодирования ${address}:`,
+                error.message
+            );
+
+        }
+    }
+
+    return points;
+}
+
+
+// =========================================================
+// СОХРАНЕНИЕ ОТКЛЮЧЕНИЯ
+// =========================================================
 
 async function saveOutage(outage) {
 
     try {
 
-        // =========================================================
-        // 1. ПОЛУЧАЕМ ФИДЕРЫ И ТП
-        // =========================================================
+        // =====================================================
+        // 1. ПОЛУЧАЕМ ФИДЕРЫ
+        // =====================================================
 
-        const feeders = Array.isArray(outage.feeders)
-            ? outage.feeders.filter(Boolean)
-            : outage.feeder
-                ? [outage.feeder]
-                : [];
+        const feeders =
+            Array.isArray(outage.feeders)
+                ? outage.feeders.filter(Boolean)
+                : outage.feeder
+                    ? [outage.feeder]
+                    : [];
 
+
+        // =====================================================
+        // 2. ПОЛУЧАЕМ ТП
+        // =====================================================
 
         const transformerPoints =
             Array.isArray(outage.transformer_points)
@@ -23,9 +100,9 @@ async function saveOutage(outage) {
                     : [];
 
 
-        // =========================================================
-        // 2. ВСЕ ФИДЕРЫ В РАБОТЕ
-        // =========================================================
+        // =====================================================
+        // 3. ВСЕ ФИДЕРЫ РАБОТАЮТ
+        // =====================================================
 
         if (outage.all_feeders_working === true) {
 
@@ -60,15 +137,15 @@ async function saveOutage(outage) {
         }
 
 
-        // =========================================================
-        // 3. СООБЩЕНИЕ О ЗАВЕРШЕНИИ
-        // =========================================================
+        // =====================================================
+        // 4. СООБЩЕНИЕ О ЗАВЕРШЕНИИ
+        // =====================================================
 
         if (outage.status === "completed") {
 
-            // -----------------------------------------------------
-            // 3.1. Если нет ни фидеров, ни ТП
-            // -----------------------------------------------------
+            // -------------------------------------------------
+            // Нет ни фидера, ни ТП
+            // -------------------------------------------------
 
             if (
                 feeders.length === 0 &&
@@ -76,16 +153,16 @@ async function saveOutage(outage) {
             ) {
 
                 console.log(
-                    "⚠️ Сообщение о восстановлении без фидера и ТП. Новая запись не создаётся."
+                    "⚠️ Сообщение о восстановлении без фидера и ТП."
                 );
 
                 return;
             }
 
 
-            // -----------------------------------------------------
-            // 3.2. Закрываем фидеры
-            // -----------------------------------------------------
+            // -------------------------------------------------
+            // Закрываем фидеры
+            // -------------------------------------------------
 
             for (const feeder of feeders) {
 
@@ -132,9 +209,9 @@ async function saveOutage(outage) {
             }
 
 
-            // -----------------------------------------------------
-            // 3.3. Закрываем ТП
-            // -----------------------------------------------------
+            // -------------------------------------------------
+            // Закрываем ТП
+            // -------------------------------------------------
 
             for (const transformerPoint of transformerPoints) {
 
@@ -185,9 +262,9 @@ async function saveOutage(outage) {
         }
 
 
-        // =========================================================
-        // 4. ЗАЩИТА ОТ ПУСТОГО ОТКЛЮЧЕНИЯ
-        // =========================================================
+        // =====================================================
+        // 5. ЗАЩИТА ОТ ПУСТОГО ОТКЛЮЧЕНИЯ
+        // =====================================================
 
         if (
             feeders.length === 0 &&
@@ -202,13 +279,15 @@ async function saveOutage(outage) {
         }
 
 
-        // =========================================================
-        // 5. ПОДГОТОВКА АДРЕСОВ
-        // =========================================================
+        // =====================================================
+        // 6. ПОДГОТОВКА ДАННЫХ
+        // =====================================================
 
         const addresses =
             Array.isArray(outage.addresses)
-                ? outage.addresses.filter(Boolean)
+                ? outage.addresses
+                    .filter(Boolean)
+                    .map(address => String(address).trim())
                 : [];
 
 
@@ -226,18 +305,9 @@ async function saveOutage(outage) {
             "электричество";
 
 
-        // =========================================================
-        // 6. СОХРАНЕНИЕ ФИДЕРОВ
-        // =========================================================
-        //
-        // Обычно parser уже разделяет несколько фидеров
-        // и передаёт telegram_id вида:
-        //
-        // go_i_chs/16965_ЗТМ-3
-        //
-        // Поэтому здесь сохраняем один объект.
-        //
-        // =========================================================
+        // =====================================================
+        // 7. СОХРАНЕНИЕ ФИДЕРА
+        // =====================================================
 
         if (feeders.length > 0) {
 
@@ -250,9 +320,9 @@ async function saveOutage(outage) {
                 outage.telegram_id || null;
 
 
-            // -----------------------------------------------------
-            // Проверяем существующую запись
-            // -----------------------------------------------------
+            // =================================================
+            // 7.1. ПРОВЕРЯЕМ СУЩЕСТВУЮЩУЮ ЗАПИСЬ
+            // =================================================
 
             if (telegramId) {
 
@@ -261,6 +331,7 @@ async function saveOutage(outage) {
                     SELECT
                         id,
                         addresses,
+                        address_points,
                         status,
                         restore_time
                     FROM power_outages
@@ -270,10 +341,6 @@ async function saveOutage(outage) {
                     [telegramId]
                 );
 
-
-                // -------------------------------------------------
-                // ЗАПИСЬ УЖЕ СУЩЕСТВУЕТ
-                // -------------------------------------------------
 
                 if (exists.rows.length > 0) {
 
@@ -296,28 +363,77 @@ async function saveOutage(outage) {
                         );
 
 
+                    let addressPoints = null;
+
+
+                    // -----------------------------------------
+                    // Адреса изменились → геокодируем заново
+                    // -----------------------------------------
+
                     if (shouldUpdateAddresses) {
+
+                        console.log(
+                            `🌍 Адреса изменились. Геокодируем ${addresses.length} адресов`
+                        );
+
+                        addressPoints =
+                            await geocodeAddresses(addresses);
+                    }
+
+
+                    // -----------------------------------------
+                    // Обновление
+                    // -----------------------------------------
+
+                    if (
+                        shouldUpdateAddresses ||
+                        (
+                            restoreTime &&
+                            existing.restore_time !== restoreTime
+                        )
+                    ) {
 
                         await pool.query(
                             `
                             UPDATE power_outages
                             SET
-                                addresses = $1,
+
+                                addresses = CASE
+                                    WHEN $1::text[] IS NOT NULL
+                                        AND cardinality($1::text[]) > 0
+                                    THEN $1
+                                    ELSE addresses
+                                END,
+
+                                address_points = CASE
+                                    WHEN $2::jsonb IS NOT NULL
+                                    THEN $2::jsonb
+                                    ELSE address_points
+                                END,
+
                                 restore_time = COALESCE(
-                                    $2,
+                                    $3,
                                     restore_time
                                 ),
-                                status = $3
+
+                                status = 'active'
+
                             WHERE telegram_id = $4
                             `,
                             [
-                                addresses,
+
+                                addresses.length > 0
+                                    ? addresses
+                                    : null,
+
+                                addressPoints !== null
+                                    ? JSON.stringify(addressPoints)
+                                    : null,
 
                                 restoreTime,
 
-                                "active",
-
                                 telegramId
+
                             ]
                         );
 
@@ -342,9 +458,18 @@ async function saveOutage(outage) {
             }
 
 
-            // -----------------------------------------------------
-            // НОВАЯ ЗАПИСЬ
-            // -----------------------------------------------------
+            // =================================================
+            // 7.2. НОВАЯ ЗАПИСЬ ФИДЕРА
+            // =================================================
+
+            console.log(
+                `🌍 Подготавливаем координаты для ${addresses.length} адресов`
+            );
+
+
+            const addressPoints =
+                await geocodeAddresses(addresses);
+
 
             await pool.query(
                 `
@@ -356,15 +481,29 @@ async function saveOutage(outage) {
                     transformer_points,
                     description,
                     addresses,
+                    address_points,
                     restore_time,
                     status,
                     telegram_id,
                     source
                 )
                 VALUES
-                ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+                (
+                    $1,
+                    $2,
+                    $3,
+                    $4,
+                    $5,
+                    $6,
+                    $7,
+                    $8,
+                    $9,
+                    $10,
+                    $11
+                )
                 `,
                 [
+
                     outageType,
 
                     feeder,
@@ -377,6 +516,8 @@ async function saveOutage(outage) {
 
                     addresses,
 
+                    JSON.stringify(addressPoints),
+
                     restoreTime,
 
                     "active",
@@ -384,13 +525,16 @@ async function saveOutage(outage) {
                     telegramId,
 
                     "telegram"
+
                 ]
             );
 
 
             console.log(
                 "✅ Новое отключение сохранено:",
-                `фидер: ${feeder}`
+                `фидер: ${feeder}`,
+                `адресов: ${addresses.length}`,
+                `координат: ${addressPoints.length}`
             );
 
 
@@ -398,29 +542,15 @@ async function saveOutage(outage) {
         }
 
 
-        // =========================================================
-        // 7. СОХРАНЕНИЕ ТП
-        // =========================================================
-        //
-        // КРИТИЧЕСКИ ВАЖНО:
-        //
-        // Если сообщение:
-        //
-        // ТП-43 и ТП-Каспийская гавань
-        //
-        // создаём ДВЕ записи:
-        //
-        // ТП-43
-        // ТП-Каспийская гавань
-        //
-        // И каждая запись содержит только СВОЮ ТП.
-        //
-        // Адреса при этом относятся к сообщению целиком,
-        // поэтому передаются обеим ТП.
-        //
-        // =========================================================
+        // =====================================================
+        // 8. СОХРАНЕНИЕ ТП
+        // =====================================================
 
         for (const transformerPoint of transformerPoints) {
+
+            // -------------------------------------------------
+            // Для каждой ТП создаём отдельный telegram_id
+            // -------------------------------------------------
 
             const telegramId =
                 `${outage.telegram_id}_${transformerPoint}`;
@@ -432,15 +562,16 @@ async function saveOutage(outage) {
             );
 
 
-            // -----------------------------------------------------
-            // Проверяем существующую запись
-            // -----------------------------------------------------
+            // =================================================
+            // 8.1. ПРОВЕРЯЕМ СУЩЕСТВУЮЩУЮ ЗАПИСЬ
+            // =================================================
 
             const exists = await pool.query(
                 `
                 SELECT
                     id,
                     addresses,
+                    address_points,
                     status,
                     restore_time,
                     transformer_points
@@ -451,10 +582,6 @@ async function saveOutage(outage) {
                 [telegramId]
             );
 
-
-            // -----------------------------------------------------
-            // ЗАПИСЬ УЖЕ СУЩЕСТВУЕТ
-            // -----------------------------------------------------
 
             if (exists.rows.length > 0) {
 
@@ -490,6 +617,29 @@ async function saveOutage(outage) {
                     );
 
 
+                let addressPoints = null;
+
+
+                // ---------------------------------------------
+                // Адреса изменились → геокодируем
+                // ---------------------------------------------
+
+                if (shouldUpdateAddresses) {
+
+                    console.log(
+                        `🌍 Адреса ТП ${transformerPoint} изменились`
+                    );
+
+
+                    addressPoints =
+                        await geocodeAddresses(addresses);
+                }
+
+
+                // ---------------------------------------------
+                // Обновление записи
+                // ---------------------------------------------
+
                 if (
                     shouldUpdateAddresses ||
                     shouldFixTransformerPoint ||
@@ -503,30 +653,47 @@ async function saveOutage(outage) {
                         `
                         UPDATE power_outages
                         SET
+
                             transformer_points = $1,
+
                             addresses = CASE
                                 WHEN $2::text[] IS NOT NULL
                                     AND cardinality($2::text[]) > 0
                                 THEN $2
                                 ELSE addresses
                             END,
+
+                            address_points = CASE
+                                WHEN $3::jsonb IS NOT NULL
+                                THEN $3::jsonb
+                                ELSE address_points
+                            END,
+
                             restore_time = COALESCE(
-                                $3,
+                                $4,
                                 restore_time
                             ),
+
                             status = 'active'
-                        WHERE telegram_id = $4
+
+                        WHERE telegram_id = $5
                         `,
                         [
+
                             [transformerPoint],
 
                             addresses.length > 0
                                 ? addresses
                                 : null,
 
+                            addressPoints !== null
+                                ? JSON.stringify(addressPoints)
+                                : null,
+
                             restoreTime,
 
                             telegramId
+
                         ]
                     );
 
@@ -550,9 +717,18 @@ async function saveOutage(outage) {
             }
 
 
-            // -----------------------------------------------------
-            // НОВАЯ ЗАПИСЬ ТП
-            // -----------------------------------------------------
+            // =================================================
+            // 8.2. НОВАЯ ЗАПИСЬ ТП
+            // =================================================
+
+            console.log(
+                `🌍 Подготавливаем координаты для ТП ${transformerPoint}`
+            );
+
+
+            const addressPoints =
+                await geocodeAddresses(addresses);
+
 
             await pool.query(
                 `
@@ -564,15 +740,29 @@ async function saveOutage(outage) {
                     transformer_points,
                     description,
                     addresses,
+                    address_points,
                     restore_time,
                     status,
                     telegram_id,
                     source
                 )
                 VALUES
-                ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+                (
+                    $1,
+                    $2,
+                    $3,
+                    $4,
+                    $5,
+                    $6,
+                    $7,
+                    $8,
+                    $9,
+                    $10,
+                    $11
+                )
                 `,
                 [
+
                     outageType,
 
                     null,
@@ -585,6 +775,8 @@ async function saveOutage(outage) {
 
                     addresses,
 
+                    JSON.stringify(addressPoints),
+
                     restoreTime,
 
                     "active",
@@ -592,16 +784,19 @@ async function saveOutage(outage) {
                     telegramId,
 
                     "telegram"
+
                 ]
             );
 
 
             console.log(
                 "✅ Новое отключение сохранено:",
-                `ТП: ${transformerPoint}`
+                `ТП: ${transformerPoint}`,
+                `адресов: ${addresses.length}`,
+                `координат: ${addressPoints.length}`
             );
-        }
 
+        }
 
     } catch (error) {
 
@@ -610,8 +805,16 @@ async function saveOutage(outage) {
             error.message
         );
 
+        console.error(
+            error.stack
+        );
     }
 }
 
 
+// =========================================================
+// EXPORT
+// =========================================================
+
 module.exports = saveOutage;
+
