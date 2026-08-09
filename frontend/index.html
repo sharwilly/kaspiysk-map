@@ -112,16 +112,12 @@ rel="stylesheet"
 
 
 
-<div class="address-search">
-    <input
-        id="cityAddressSearch"
-        type="text"
-        placeholder="Поиск улицы..."
-        autocomplete="off"
-    >
-
-    <div id="cityAddressResults" class="city-address-results"></div>
-</div>
+<input
+    id="cityAddressSearch"
+    type="text"
+    placeholder="Поиск улицы..."
+    autocomplete="off"
+>
 
 <a
     href="problems.html"
@@ -350,104 +346,22 @@ class="service orange"
 
 <script>
 const cityAddressSearch = document.getElementById("cityAddressSearch");
-const cityAddressResults = document.getElementById("cityAddressResults");
 const reportProblemButton = document.getElementById("reportProblemButton");
 
-let selectedCityAddress = null;
+reportProblemButton.addEventListener("click", function (e) {
+    const address = cityAddressSearch.value.trim();
 
-cityAddressSearch.addEventListener("input", async function () {
-    const text = this.value.trim();
-
-    selectedCityAddress = null;
-    reportProblemButton.href = "problems.html";
-
-    if (text.length < 3) {
-        cityAddressResults.innerHTML = "";
+    if (!address) {
         return;
     }
 
-    cityAddressResults.innerHTML = "🔎 Ищем адрес...";
+    e.preventDefault();
 
-    try {
-        const query =
-            `${text}, Каспийск, Республика Дагестан, Россия`;
+    const params = new URLSearchParams({
+        address: address
+    });
 
-        const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&q=${encodeURIComponent(query)}&limit=10`,
-            {
-                headers: {
-                    "User-Agent": "KaspiyskMap/1.0"
-                }
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        const results = data.filter(item => {
-            const addr = item.address;
-
-            return (
-                addr?.road &&
-                addr?.house_number &&
-                (
-                    addr.city === "Каспийск" ||
-                    addr.town === "Каспийск" ||
-                    addr.municipality === "Каспийск"
-                )
-            );
-        });
-
-        if (!results.length) {
-            cityAddressResults.innerHTML = "Адрес не найден";
-            return;
-        }
-
-        cityAddressResults.innerHTML = "";
-
-        results.forEach(item => {
-            const road = item.address.road;
-            const house = item.address.house_number;
-
-            const button = document.createElement("button");
-            button.type = "button";
-            button.textContent = `📍 ${road}, ${house}`;
-
-            button.addEventListener("click", () => {
-                selectedCityAddress = {
-                    latitude: Number(item.lat),
-                    longitude: Number(item.lon),
-                    address: `${road}, ${house}`
-                };
-
-                cityAddressSearch.value =
-                    selectedCityAddress.address;
-
-                cityAddressResults.innerHTML =
-                    `<div class="selected-address">
-                        📍 ${selectedCityAddress.address}
-                    </div>`;
-
-                const params = new URLSearchParams({
-                    lat: selectedCityAddress.latitude,
-                    lon: selectedCityAddress.longitude,
-                    address: selectedCityAddress.address
-                });
-
-                reportProblemButton.href =
-                    `problems.html?${params.toString()}`;
-            });
-
-            cityAddressResults.appendChild(button);
-        });
-
-    } catch (error) {
-        console.error("Ошибка поиска адреса:", error);
-        cityAddressResults.innerHTML = "Ошибка поиска адреса";
-    }
+    window.location.href = `problems.html?${params.toString()}`;
 });
 </script>
 

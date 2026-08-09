@@ -701,24 +701,41 @@ function loadLocationFromURL() {
     return true;
 }
 
+function loadAddressFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const address = params.get("address");
+
+    if (!address) return;
+
+    const addressInput = document.getElementById("problemAddress");
+    const findButton = document.getElementById("findAddress");
+
+    if (!addressInput || !findButton) return;
+
+    addressInput.value = address;
+
+    // Запускаем существующий поиск адреса
+    findButton.click();
+
+    // Убираем параметр из адресной строки
+    window.history.replaceState(
+        {},
+        document.title,
+        "problems.html"
+    );
+}
+
 async function initProblemsPage() {
     console.log("🚀 problems.js загружен");
 
     await loadCityBoundary();
-
-    const locationFromURL = loadLocationFromURL();
 
     await Promise.allSettled([
         loadProblemsOnMap(),
         loadOutagesOnMap()
     ]);
 
-    if (locationFromURL) {
-        map.setView(
-            [selectedLocation.latitude, selectedLocation.longitude],
-            17
-        );
-    }
+    loadAddressFromURL();
 
     invalidateMapSize();
 
