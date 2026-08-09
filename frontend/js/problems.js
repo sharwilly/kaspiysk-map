@@ -119,7 +119,7 @@ function createProblemMarker(problem) {
         done: "#22C55E"          // 🟢 Выполнено
     };
 
-    const borderColor = statusColors[problem.status] || "#EF4444";
+    const backgroundColor = statusColors[problem.status] || "#EF4444";
 
     return L.marker(
         [Number(problem.latitude), Number(problem.longitude)],
@@ -134,9 +134,9 @@ function createProblemMarker(problem) {
                         display:flex;
                         align-items:center;
                         justify-content:center;
-                        background:white;
-                        border:3px solid ${borderColor};
-                        box-shadow:0 3px 10px rgba(0,0,0,.25);
+                        background:${backgroundColor};
+                        border:3px solid white;
+                        box-shadow:0 3px 10px rgba(0,0,0,.3);
                         font-size:18px;
                         box-sizing:border-box;
                     ">${icon}</div>
