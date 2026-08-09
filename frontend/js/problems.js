@@ -112,12 +112,35 @@ function getStatusName(status) {
 
 function createProblemMarker(problem) {
     const icon = getProblemIcon(problem.type);
+
+    const statusColors = {
+        new: "#EF4444",          // 🔴 Новое
+        in_progress: "#F59E0B",  // 🟡 В работе
+        done: "#22C55E"          // 🟢 Выполнено
+    };
+
+    const borderColor = statusColors[problem.status] || "#EF4444";
+
     return L.marker(
         [Number(problem.latitude), Number(problem.longitude)],
         {
             icon: L.divIcon({
                 className: "problem-marker",
-                html: `<div style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:white;border:3px solid #2563eb;box-shadow:0 3px 10px rgba(0,0,0,.25);font-size:18px;">${icon}</div>`,
+                html: `
+                    <div style="
+                        width:34px;
+                        height:34px;
+                        border-radius:50%;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        background:white;
+                        border:3px solid ${borderColor};
+                        box-shadow:0 3px 10px rgba(0,0,0,.25);
+                        font-size:18px;
+                        box-sizing:border-box;
+                    ">${icon}</div>
+                `,
                 iconSize: [34, 34],
                 iconAnchor: [17, 17],
                 popupAnchor: [0, -17]
