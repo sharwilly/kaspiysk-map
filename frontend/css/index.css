@@ -916,25 +916,10 @@ grid-template-columns:1fr 1fr;
     pointer-events: none;
 }
 
-.service-disabled .service-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 14px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    background: rgba(255, 255, 255, 0.7);
-    font-size: 24px;
-
-    flex-shrink: 0;
-}
-
 .service-info {
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: 6px;
 }
 
 .service-title {
@@ -946,7 +931,6 @@ grid-template-columns:1fr 1fr;
 
 .service-status {
     width: fit-content;
-
     padding: 4px 9px;
     border-radius: 999px;
 
