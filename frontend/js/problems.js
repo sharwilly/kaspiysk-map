@@ -663,6 +663,6 @@ initProblemsPage();
 setInterval(async () => {
     console.log("🔄 Обновляем карту...");
     await Promise.allSettled([loadProblemsOnMap(), loadOutagesOnMap()]);
-}, 60000);
+}, 300000);
 
 map.attributionControl.remove();
