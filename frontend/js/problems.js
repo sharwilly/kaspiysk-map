@@ -650,11 +650,78 @@ document.addEventListener("keydown", e => {
     if (e.key === "ArrowLeft") showPrevPhoto();
 });
 
+function loadLocationFromURL() {
+    const params = new URLSearchParams(window.location.search);
+
+    const lat = Number(params.get("lat"));
+    const lon = Number(params.get("lon"));
+    const address = params.get("address");
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+        return false;
+    }
+
+    selectedLocation = {
+        latitude: lat,
+        longitude: lon
+    };
+
+    selectedAddress = address
+        ? decodeURIComponent(address)
+        : "Адрес не определён";
+
+    if (tempMarker) {
+        map.removeLayer(tempMarker);
+    }
+
+    tempMarker = L.marker([lat, lon])
+        .addTo(map)
+        .bindTooltip(
+            "📍 " + selectedAddress,
+            {
+                permanent: true,
+                direction: "top",
+                offset: [0, -10]
+            }
+        )
+        .openTooltip();
+
+    map.setView([lat, lon], 17);
+
+    const addressResults = document.getElementById("addressResults");
+
+    if (addressResults) {
+        addressResults.innerHTML =
+            "Выбрано: 📍 " + selectedAddress;
+    }
+
+    // Убираем параметры из адресной строки
+    window.history.replaceState({}, document.title, "problems.html");
+
+    return true;
+}
+
 async function initProblemsPage() {
     console.log("🚀 problems.js загружен");
+
     await loadCityBoundary();
-    await Promise.allSettled([loadProblemsOnMap(), loadOutagesOnMap()]);
+
+    const locationFromURL = loadLocationFromURL();
+
+    await Promise.allSettled([
+        loadProblemsOnMap(),
+        loadOutagesOnMap()
+    ]);
+
+    if (locationFromURL) {
+        map.setView(
+            [selectedLocation.latitude, selectedLocation.longitude],
+            17
+        );
+    }
+
     invalidateMapSize();
+
     console.log("✅ Страница проблем инициализирована");
 }
 

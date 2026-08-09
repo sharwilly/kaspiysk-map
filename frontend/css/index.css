@@ -941,3 +941,36 @@ grid-template-columns:1fr 1fr;
     font-weight: 600;
     letter-spacing: 0.02em;
 }
+
+.address-search {
+    position: relative;
+}
+
+.city-address-results {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    z-index: 1000;
+}
+
+.city-address-results button,
+.selected-address {
+    display: block;
+    width: 100%;
+    padding: 12px 14px;
+    border: 0;
+    background: rgba(255, 255, 255, 0.96);
+    text-align: left;
+    cursor: pointer;
+}
+
+.city-address-results button:hover {
+    background: #f3f6fa;
+}
+
+.selected-address {
+    border-radius: 10px;
+    color: #2563eb;
+    font-weight: 600;
+}
