@@ -1012,3 +1012,12 @@ grid-template-columns:1fr 1fr;
 #cityAddressSearch {
     margin-bottom: 20px;
 }
+
+.site-disclaimer {
+    margin: 32px auto 20px;
+    padding: 0 20px;
+    text-align: center;
+    color: #9CA3AF;
+    font-size: 11px;
+    line-height: 1.5;
+}
