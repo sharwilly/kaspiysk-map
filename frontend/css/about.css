@@ -84,49 +84,8 @@
 
 /* Красная — проблемы */
 
-.about-card:nth-child(1) {
-    background: #FEF2F2;
-    border-color: #FECACA;
-}
-
-.about-card:nth-child(1) h3 {
-    color: #DC2626;
-}
-
-
-/* Оранжевая — отключения */
-
-.about-card:nth-child(2) {
-    background: #FFF7ED;
-    border-color: #FED7AA;
-}
-
-.about-card:nth-child(2) h3 {
-    color: #EA580C;
-}
-
-
-/* Синяя — карта */
-
-.about-card:nth-child(3) {
-    background: #EFF6FF;
-    border-color: #BFDBFE;
-}
-
-.about-card:nth-child(3) h3 {
-    color: #2563EB;
-}
-
-
-/* Зелёная — поиск */
-
-.about-card:nth-child(4) {
-    background: #F0FDF4;
-    border-color: #BBF7D0;
-}
-
-.about-card:nth-child(4) h3 {
-    color: #16A34A;
+.about-card h3 {
+    color: #111827;
 }
 
 .about-card h3 {
