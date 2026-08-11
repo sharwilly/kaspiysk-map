@@ -1123,12 +1123,27 @@ app.put(
 
             if (status === "done" && req.file) {
 
+                console.log("AFTER PHOTO: начинаем загрузку");
+
                 const photoPaths = await savePhotos(
                     [req.file],
                     id
                 );
 
+                console.log(
+                    "AFTER PHOTO: Cloudinary OK",
+                    photoPaths
+                );
+
                 for (const photoPath of photoPaths) {
+
+                    console.log(
+                        "AFTER PHOTO: записываем в БД",
+                        {
+                            id,
+                            photoPath
+                        }
+                    );
 
                     await pool.query(
                         `
