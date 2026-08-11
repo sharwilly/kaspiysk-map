@@ -1022,109 +1022,154 @@ app.post(
     }
 });
 
-app.put("/problems/:id", adminAuth, async (req, res) => {
-    try {
+app.put(
+    "/problems/:id",
+    adminAuth,
+    upload.single("resolution_photo"),
+    async (req, res) => {
 
-        const { id } = req.params;
+        try {
 
-        const {
-            status,
-            resolution_comment
-        } = req.body;
+            const { id } = req.params;
 
+            const {
+                status,
+                resolution_comment
+            } = req.body;
 
-        console.log({
-            id,
-            status,
-            resolution_comment
-        });
-
-
-        let result;
-
-
-        if (status === "done") {
-
-            result = await pool.query(
-                `
-                UPDATE public.problems
-
-                SET 
-                    status = $1,
-                    resolved_at = NOW(),
-                    resolution_comment = $2
-
-                WHERE id = $3
-
-                RETURNING 
-                    id,
-                    type,
-                    description,
-                    address,
-                    landmark,
-                    status,
-                    priority,
-                    created_at,
-                    resolved_at,
-                    resolution_comment;
-                `,
-                [
-                    status,
-                    resolution_comment,
-                    id
-                ]
-            );
-
-
-        } else {
-
-
-            result = await pool.query(
-                `
-                UPDATE public.problems
-
-                SET 
-                    status = $1
-
-                WHERE id = $2
-
-                RETURNING 
-                    id,
-                    type,
-                    description,
-                    status,
-                    priority,
-                    created_at;
-                `,
-                [
-                    status,
-                    id
-                ]
-            );
-
-        }
-
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({
-                error: "Проблема не найдена"
+            console.log({
+                id,
+                status,
+                resolution_comment,
+                resolution_photo: req.file
+                    ? req.file.originalname
+                    : null
             });
+
+            let result;
+
+            if (status === "done") {
+
+                result = await pool.query(
+                    `
+                    UPDATE public.problems
+
+                    SET
+                        status = $1,
+                        resolved_at = NOW(),
+                        resolution_comment = $2
+
+                    WHERE id = $3
+
+                    RETURNING
+                        id,
+                        type,
+                        description,
+                        address,
+                        landmark,
+                        status,
+                        priority,
+                        created_at,
+                        resolved_at,
+                        resolution_comment;
+                    `,
+                    [
+                        status,
+                        resolution_comment,
+                        id
+                    ]
+                );
+
+            } else {
+
+                result = await pool.query(
+                    `
+                    UPDATE public.problems
+
+                    SET
+                        status = $1
+
+                    WHERE id = $2
+
+                    RETURNING
+                        id,
+                        type,
+                        description,
+                        status,
+                        priority,
+                        created_at;
+                    `,
+                    [
+                        status,
+                        id
+                    ]
+                );
+
+            }
+
+            if (result.rows.length === 0) {
+
+                return res.status(404).json({
+                    error: "Проблема не найдена"
+                });
+
+            }
+
+            /*
+             * Если проблема выполнена
+             * и администратор приложил фотографию,
+             * загружаем её в Cloudinary.
+             */
+
+            if (status === "done" && req.file) {
+
+                const photoPaths = await savePhotos(
+                    [req.file],
+                    id
+                );
+
+                for (const photoPath of photoPaths) {
+
+                    await pool.query(
+                        `
+                        INSERT INTO public.problem_photos
+                        (
+                            problem_id,
+                            photo_path,
+                            photo_type
+                        )
+
+                        VALUES
+                        (
+                            $1,
+                            $2,
+                            'after'
+                        );
+                        `,
+                        [
+                            id,
+                            photoPath
+                        ]
+                    );
+
+                }
+
+            }
+
+            res.json(result.rows[0]);
+
+        } catch (error) {
+
+            console.error(error);
+
+            res.status(500).json({
+                error: error.message
+            });
+
         }
-
-
-        res.json(result.rows[0]);
-
-
-    } catch (error) {
-
-        console.error(error);
-
-        res.status(500).json({
-            error: error.message
-        });
 
     }
-});
+);
 
 // Вернуть проблему из архива в активные
 app.put("/problems/:id/restore", adminAuth, async (req, res) => {
