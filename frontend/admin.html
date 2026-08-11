@@ -66,6 +66,70 @@
     Загрузка обращений...
 </div>
 
+<div id="completeModal" class="complete-modal">
+
+    <div class="complete-modal-content">
+
+        <div class="complete-modal-header">
+            <h2>Выполнить проблему</h2>
+
+            <button
+                class="complete-modal-close"
+                onclick="closeCompleteModal()">
+                ×
+            </button>
+        </div>
+
+
+        <label class="complete-label">
+            Комментарий о выполнении
+        </label>
+
+        <textarea
+            id="resolutionComment"
+            class="complete-textarea"
+            placeholder="Опишите, какие работы были выполнены..."
+        ></textarea>
+
+
+        <label class="complete-label">
+            Фото после устранения
+        </label>
+
+        <input
+            id="resolutionPhoto"
+            type="file"
+            accept="image/*"
+            class="complete-file"
+        >
+
+
+        <div
+            id="resolutionPreview"
+            class="resolution-preview">
+        </div>
+
+
+        <div class="complete-modal-actions">
+
+            <button
+                class="complete-cancel-button"
+                onclick="closeCompleteModal()">
+                Отмена
+            </button>
+
+            <button
+                class="complete-confirm-button"
+                onclick="confirmComplete()">
+                Выполнить
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
 <script src="js/header.js"></script>
 <script src="js/admin.js"></script>
 
