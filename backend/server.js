@@ -1030,12 +1030,16 @@ app.put(
 
         try {
 
+            console.log("CONTENT TYPE:", req.headers["content-type"]);
+            console.log("BODY:", req.body);
+            console.log("FILE:", req.file);
+
             const { id } = req.params;
 
             const {
                 status,
                 resolution_comment
-            } = req.body;
+            } = req.body || {};
 
             console.log({
                 id,
