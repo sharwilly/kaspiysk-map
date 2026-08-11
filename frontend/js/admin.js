@@ -28,20 +28,34 @@ const problemIcons = {
 
 async function apiRequest(url, options = {}) {
 
-    options.headers = {
-        "Content-Type": "application/json",
-        "x-admin-key": localStorage.getItem("adminKey"),
+    const headers = {
         ...(options.headers || {})
     };
 
 
+    if (!(options.body instanceof FormData)) {
+
+        headers["Content-Type"] =
+            "application/json";
+
+    }
+
+
+    headers["x-admin-key"] =
+        localStorage.getItem("adminKey");
+
+
     const response = await fetch(
         API + url,
-        options
+        {
+            ...options,
+            headers
+        }
     );
 
 
     return await response.json();
+
 }
 
 function loginAdmin(){
@@ -896,24 +910,92 @@ function loadOutages(){
 
 async function changeStatus(id, status) {
 
+    // Обычные статусы
+    if (status !== "done") {
 
-    const result = await apiRequest(
-        `/problems/${id}`,
-        {
-            method: "PUT",
+        const result = await apiRequest(
+            `/problems/${id}`,
+            {
+                method: "PUT",
 
-            body: JSON.stringify({
-                status: status
-            })
+                body: JSON.stringify({
+                    status: status
+                })
+            }
+        );
+
+        alert(
+            "Статус изменён: " + result.status
+        );
+
+        refreshProblems();
+
+        return;
+    }
+
+
+    // =========================
+    // ВЫПОЛНЕНО
+    // =========================
+
+    const comment = prompt(
+        "Комментарий о выполнении:"
+    );
+
+    if (comment === null) {
+        return;
+    }
+
+
+    const photoInput = document.createElement("input");
+
+    photoInput.type = "file";
+    photoInput.accept = "image/*";
+
+    photoInput.click();
+
+
+    photoInput.onchange = async () => {
+
+        const formData = new FormData();
+
+        formData.append(
+            "status",
+            "done"
+        );
+
+        formData.append(
+            "resolution_comment",
+            comment
+        );
+
+
+        if (photoInput.files.length > 0) {
+
+            formData.append(
+                "resolution_photo",
+                photoInput.files[0]
+            );
+
         }
-    );
 
 
-    alert(
-        "Статус изменён: " + result.status
-    );
+        const result = await apiRequest(
+            `/problems/${id}`,
+            {
+                method: "PUT",
+                body: formData
+            }
+        );
 
-    refreshProblems();
+
+        alert(
+            "Статус изменён: " + result.status
+        );
+
+        refreshProblems();
+
+    };
 
 }
 
