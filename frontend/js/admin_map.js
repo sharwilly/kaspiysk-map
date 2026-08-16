@@ -9,9 +9,6 @@ const urlParams = new URLSearchParams(
 
 const selectedProblemId = urlParams.get("id");
 
-const API_URL = "https://kaspiysk-map-1.onrender.com";
-
-
 L.tileLayer(
 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
 {
