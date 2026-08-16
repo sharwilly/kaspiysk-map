@@ -9,7 +9,7 @@ const urlParams = new URLSearchParams(
 
 const selectedProblemId = urlParams.get("id");
 
-const API_URL = "https://kaspiysk-map-1.onrender.com";
+const API_URL = API_URL;
 
 
 L.tileLayer(
