@@ -1,4 +1,4 @@
-const API = "https://kaspiysk-map-1.onrender.com";
+const API = API_URL;
 
 let currentMode = "active";
 
