@@ -1,7 +1,3 @@
-const API_URL =
-    "https://kaspiysk-map-1.onrender.com";
-
-
 const container =
     document.getElementById("outagesList");
 

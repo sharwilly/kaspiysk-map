@@ -9,9 +9,6 @@ const urlParams = new URLSearchParams(
 
 const selectedProblemId = urlParams.get("id");
 
-const API_URL = API_URL;
-
-
 L.tileLayer(
 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
 {
