@@ -1,182 +1,213 @@
+const express = require("express");
+const multer = require("multer");
 const rateLimit = require("express-rate-limit");
+const cloudinary = require("cloudinary").v2;
+const pool = require("../db");
 
-function createDogsRouter({ express, pool, upload, savePhotos }) {
-    const router = express.Router();
+require("dotenv").config();
 
-    const createDogLimiter = rateLimit({
-        windowMs: 10 * 60 * 1000,
-        max: 5,
-        message: {
-            error: "Слишком много отметок. Попробуйте позже."
-        },
-        standardHeaders: true,
-        legacyHeaders: false
-    });
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
-    router.get("/", async (req, res) => {
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 5 * 1024 * 1024
+    }
+});
+
+const router = express.Router();
+
+const createDogLimiter = rateLimit({
+    windowMs: 10 * 60 * 1000,
+    max: 5,
+    message: {
+        error: "Слишком много отметок. Попробуйте позже."
+    },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+async function saveDogPhotos(files, sightingId) {
+    if (!files || files.length === 0) return [];
+
+    const paths = [];
+
+    for (const file of files) {
+        const result = await cloudinary.uploader.upload(
+            `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
+            {
+                folder: `kaspiysk-map/dogs/${sightingId}`
+            }
+        );
+
+        paths.push(result.secure_url);
+    }
+
+    return paths;
+}
+
+router.get("/", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT
+                d.id,
+                d.description,
+                d.address,
+                d.landmark,
+                ST_X(d.location) AS longitude,
+                ST_Y(d.location) AS latitude,
+                d.created_at,
+                COALESCE(
+                    json_agg(p.photo_path)
+                    FILTER (WHERE p.id IS NOT NULL),
+                    '[]'
+                ) AS photos
+            FROM public.dog_sightings d
+            LEFT JOIN public.dog_photos p
+                ON d.id = p.sighting_id
+            GROUP BY d.id
+            ORDER BY d.created_at DESC
+        `);
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Ошибка загрузки отметок собак:", error);
+        res.status(500).json({
+            error: "Ошибка загрузки отметок собак"
+        });
+    }
+});
+
+router.post(
+    "/",
+    createDogLimiter,
+    upload.array("photos", 3),
+    async (req, res) => {
         try {
-            const result = await pool.query(`
-                SELECT
-                    d.id,
-                    d.description,
-                    d.address,
-                    d.landmark,
-                    ST_X(d.location) AS longitude,
-                    ST_Y(d.location) AS latitude,
-                    d.created_at,
-                    COALESCE(
-                        json_agg(p.photo_path)
-                        FILTER (WHERE p.id IS NOT NULL),
-                        '[]'
-                    ) AS photos
-                FROM public.dog_sightings d
-                LEFT JOIN public.dog_photos p
-                    ON d.id = p.sighting_id
-                GROUP BY d.id
-                ORDER BY d.created_at DESC
-            `);
+            const {
+                description,
+                longitude,
+                latitude
+            } = req.body;
 
-            res.json(result.rows);
-        } catch (error) {
-            console.error("Ошибка загрузки отметок собак:", error);
-            res.status(500).json({
-                error: "Ошибка загрузки отметок собак"
-            });
-        }
-    });
+            const lon = Number(longitude);
+            const lat = Number(latitude);
 
-    router.post(
-        "/",
-        createDogLimiter,
-        upload.array("photos", 3),
-        async (req, res) => {
-            try {
-                const {
-                    description,
-                    longitude,
-                    latitude
-                } = req.body;
-
-                const lon = Number(longitude);
-                const lat = Number(latitude);
-
-                if (!Number.isFinite(lon) || !Number.isFinite(lat)) {
-                    return res.status(400).json({
-                        error: "Некорректные координаты"
-                    });
-                }
-
-                if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
-                    return res.status(400).json({
-                        error: "Координаты находятся вне допустимого диапазона"
-                    });
-                }
-
-                let address = "Адрес не определён";
-                let landmark = null;
-
-                try {
-                    const geoResponse = await fetch(
-                        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${lat}&lon=${lon}`,
-                        {
-                            headers: {
-                                "User-Agent": "Kaspiysk Map/1.0"
-                            }
-                        }
-                    );
-
-                    if (geoResponse.ok) {
-                        const geoData = await geoResponse.json();
-                        address = formatAddress(geoData.address || {});
-                        landmark = formatLandmark(geoData);
-                    } else {
-                        console.warn(
-                            "Nominatim error:",
-                            geoResponse.status
-                        );
-                    }
-                } catch (error) {
-                    console.warn(
-                        "Не удалось определить адрес собаки:",
-                        error.message
-                    );
-                }
-
-                const result = await pool.query(
-                    `
-                    INSERT INTO public.dog_sightings
-                    (
-                        description,
-                        location,
-                        address,
-                        landmark
-                    )
-                    VALUES
-                    (
-                        $1,
-                        ST_SetSRID(ST_MakePoint($2, $3), 4326),
-                        $4,
-                        $5
-                    )
-                    RETURNING
-                        id,
-                        description,
-                        address,
-                        landmark,
-                        ST_X(location) AS longitude,
-                        ST_Y(location) AS latitude,
-                        created_at;
-                    `,
-                    [
-                        description || null,
-                        lon,
-                        lat,
-                        address,
-                        landmark
-                    ]
-                );
-
-                if (!result.rows.length) {
-                    return res.status(500).json({
-                        error: "Не удалось создать отметку"
-                    });
-                }
-
-                const sighting = result.rows[0];
-                const photoPaths = await savePhotos(
-                    req.files,
-                    `dogs/${sighting.id}`
-                );
-
-                for (const photoPath of photoPaths) {
-                    await pool.query(
-                        `
-                        INSERT INTO public.dog_photos
-                        (
-                            sighting_id,
-                            photo_path
-                        )
-                        VALUES ($1, $2)
-                        `,
-                        [sighting.id, photoPath]
-                    );
-                }
-
-                res.status(201).json({
-                    ...sighting,
-                    photos: photoPaths
-                });
-            } catch (error) {
-                console.error("Ошибка создания отметки собаки:", error);
-                res.status(500).json({
-                    error: "Ошибка создания отметки собаки"
+            if (!Number.isFinite(lon) || !Number.isFinite(lat)) {
+                return res.status(400).json({
+                    error: "Некорректные координаты"
                 });
             }
-        }
-    );
 
-    return router;
-}
+            if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+                return res.status(400).json({
+                    error: "Координаты находятся вне допустимого диапазона"
+                });
+            }
+
+            let address = "Адрес не определён";
+            let landmark = null;
+
+            try {
+                const geoResponse = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${lat}&lon=${lon}`,
+                    {
+                        headers: {
+                            "User-Agent": "Kaspiysk Map/1.0"
+                        }
+                    }
+                );
+
+                if (geoResponse.ok) {
+                    const geoData = await geoResponse.json();
+                    address = formatAddress(geoData.address || {});
+                    landmark = formatLandmark(geoData);
+                } else {
+                    console.warn("Nominatim error:", geoResponse.status);
+                }
+            } catch (error) {
+                console.warn(
+                    "Не удалось определить адрес собаки:",
+                    error.message
+                );
+            }
+
+            const result = await pool.query(
+                `
+                INSERT INTO public.dog_sightings
+                (
+                    description,
+                    location,
+                    address,
+                    landmark
+                )
+                VALUES
+                (
+                    $1,
+                    ST_SetSRID(ST_MakePoint($2, $3), 4326),
+                    $4,
+                    $5
+                )
+                RETURNING
+                    id,
+                    description,
+                    address,
+                    landmark,
+                    ST_X(location) AS longitude,
+                    ST_Y(location) AS latitude,
+                    created_at;
+                `,
+                [
+                    description || null,
+                    lon,
+                    lat,
+                    address,
+                    landmark
+                ]
+            );
+
+            if (!result.rows.length) {
+                return res.status(500).json({
+                    error: "Не удалось создать отметку"
+                });
+            }
+
+            const sighting = result.rows[0];
+            const photoPaths = await saveDogPhotos(
+                req.files,
+                sighting.id
+            );
+
+            for (const photoPath of photoPaths) {
+                await pool.query(
+                    `
+                    INSERT INTO public.dog_photos
+                    (
+                        sighting_id,
+                        photo_path
+                    )
+                    VALUES ($1, $2)
+                    `,
+                    [sighting.id, photoPath]
+                );
+            }
+
+            res.status(201).json({
+                ...sighting,
+                photos: photoPaths
+            });
+        } catch (error) {
+            console.error("Ошибка создания отметки собаки:", error);
+            res.status(500).json({
+                error: "Ошибка создания отметки собаки"
+            });
+        }
+    }
+);
 
 function formatAddress(address) {
     if (!address) return "Адрес не определён";
@@ -224,4 +255,4 @@ function formatLandmark(data) {
     return null;
 }
 
-module.exports = createDogsRouter;
+module.exports = router;
