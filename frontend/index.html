@@ -1,361 +1,75 @@
 <!DOCTYPE html>
 <html lang="ru">
-
-
 <head>
-
 <link rel="icon" href="images/favicon.ico">
-
-
 <meta charset="UTF-8">
-
-
-<title>
-Открытый Каспийск
-</title>
-
-
-
-<link 
-rel="stylesheet" 
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-/>
-
-
-
+<title>Открытый Каспийск</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="css/common.css">
-
 <link rel="stylesheet" href="css/index.css">
-
-
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
-
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-
-
-<link 
-href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" 
-rel="stylesheet"
->
-
-
-
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-
-
-
-
 <body data-page="main">
-
 <div id="header-container"></div>
-
 <main>
-
-
-
 <section class="hero">
-
-
-
-
-
 <div class="hero-bg"></div>
-
-
 <div class="hero-content">
-
-
-
-
-
 <div class="hero-left">
-
-
-
-
-
-<h1>
-
-Открытый
-
-<br>
-
-Каспийск
-
-</h1>
-
-
-
-
-
-<p>
-
-Все городские сервисы
-
-<br>
-
-в одном месте
-
-</p>
-
-
-
-
-
-
-
-
-
+<h1>Открытый<br>Каспийск</h1>
+<p>Все городские сервисы<br>в одном месте</p>
 <div class="search-box">
-
-
-
-<input
-    id="cityAddressSearch"
-    type="text"
-    placeholder="Поиск улицы..."
-    autocomplete="off"
->
-
-<a
-    href="problems.html"
-    id="reportProblemButton"
-    class="primary"
->
-    Сообщить проблему
-</a>
-
-<a
-    href="problems.html"
-    class="secondary"
->
-    Открыть карту
-</a>
-
+<input id="cityAddressSearch" type="text" placeholder="Поиск улицы..." autocomplete="off">
+<a href="problems.html" id="reportProblemButton" class="primary">Сообщить проблему</a>
+<a href="problems.html" class="secondary">Открыть карту</a>
 </div>
-
-
-</div> <!-- закрываем hero-left -->
-
-
-
+</div>
 <div class="hero-map">
-
-
 <div id="city-map"></div>
-
-
-
 <div class="layers">
-
-
-<b>
-Слои
-</b>
-
-
-<label>
-☑ Дороги
-</label>
-
-
-<label>
-☑ Отключения
-</label>
-
-
-<label>
-☑ Камеры
-</label>
-
-
-<label>
-☑ Школы
-</label>
-
-
-<label>
-☑ Благоустройство
-</label>
-
-
+<b>Слои</b>
+<label>☑ Дороги</label>
+<label>☑ Отключения</label>
+<label>☑ Камеры</label>
+<label>☑ Школы</label>
+<label>☑ Благоустройство</label>
+<label>☑ Собаки</label>
 </div>
-
-
 </div>
-
-
-
 </div>
-
-
-</div>
-
-
 </section>
-
-
-
 <section class="statistics">
-
-<div>
-
-<b id="problemsCount">
--
-</b>
-
-<span>
-Активных проблем
-</span>
-
-</div>
-
-
-<div>
-
-<b id="outagesCount">
--
-</b>
-
-<span>
-Отключений
-</span>
-
-</div>
-
-
+<div><b id="problemsCount">-</b><span>Активных обращений</span></div>
+<div><b id="outagesCount">-</b><span>Отключений</span></div>
 </section>
-
-
 <section class="services">
-
-
-
-
-
-<h2>
-Популярные сервисы
-</h2>
-
-
-
-
-
-
-
-
+<h2>Популярные сервисы</h2>
 <div class="service-grid">
-
-
-
-
-
-<a href="problems.html"
-class="service red">
-
-<h3>
-Проблемы города
-</h3>
-
-<p>
-Сообщить о проблемах
-</p>
-
-</a>
-
-<a 
-href="outages.html"
-class="service orange"
->
-
-
-<h3>
-Отключения
-</h3>
-
-
-
-<p>
-Аварийные работы
-</p>
-
-</a>
-
-<div class="service blue service-disabled">
-    <div class="service-info">
-        <div class="service-title">
-            Вывоз мелкогабаритных отходов
-        </div>
-
-        <span class="service-status">
-            Скоро
-        </span>
-    </div>
+<a href="problems.html" class="service red"><h3>Проблемы города</h3><p>Сообщить о проблемах</p></a>
+<a href="outages.html" class="service orange"><h3>Отключения</h3><p>Аварийные работы</p></a>
+<div class="service blue service-disabled"><div class="service-info"><div class="service-title">Вывоз мелкогабаритных отходов</div><span class="service-status">Скоро</span></div></div>
+<a href="problems.html?type=собака" class="service green"><h3>Бездомные собаки</h3><p>Сообщить о бездомной собаке</p></a>
 </div>
-
-<a href="dogs.html"
-class="service green">
-
-<h3>
-Бездомные собаки
-</h3>
-
-<p>
-Сообщить о бездомной собаке
-</p>
-
-</a>
-
-</div>
-
 </section>
-
 </main>
-
-
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-
 <script src="js/markers.js"></script>
-
-
 <script src="js/mainMap.js"></script>
-
-
 <script src="js/weather-widget.js"></script>
 <script src="js/header.js"></script>
 <script src="js/index.js"></script>
-
-
-
 <script>
 const cityAddressSearch = document.getElementById("cityAddressSearch");
 const reportProblemButton = document.getElementById("reportProblemButton");
-
 reportProblemButton.addEventListener("click", function (e) {
     const address = cityAddressSearch.value.trim();
-
-    if (!address) {
-        return;
-    }
-
+    if (!address) return;
     e.preventDefault();
-
-    const params = new URLSearchParams({
-        address: address
-    });
-
-    window.location.href = `problems.html?${params.toString()}`;
+    window.location.href = `problems.html?${new URLSearchParams({ address }).toString()}`;
 });
 </script>
-
-<div class="site-disclaimer">
-    «Открытый Каспийск» — неофициальный независимый информационный сервис.
-</div>
-
+<div class="site-disclaimer">«Открытый Каспийск» — неофициальный независимый информационный сервис.</div>
 </body>
-
-
 </html>
