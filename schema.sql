@@ -2,7 +2,6 @@
 -- PostgreSQL database dump
 --
 
-
 -- Dumped from database version 18.3
 -- Dumped by pg_dump version 18.3
 
@@ -24,16 +23,13 @@ SET row_security = off;
 
 CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA public;
 
-
 --
--- Name: EXTENSION postgis; Type: COMMENT; Schema: -; Owner: 
+-- Name: EXTENSION postgis; Type: COMMENT; Schema: -; Owner:
 --
 
 COMMENT ON EXTENSION postgis IS 'PostGIS geometry and geography spatial types and functions';
 
-
 SET default_tablespace = '';
-
 SET default_table_access_method = heap;
 
 --
@@ -47,12 +43,7 @@ CREATE TABLE public.problem_photos (
     created_at timestamp without time zone DEFAULT now()
 );
 
-
 ALTER TABLE public.problem_photos OWNER TO postgres;
-
---
--- Name: problem_photos_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
 
 CREATE SEQUENCE public.problem_photos_id_seq
     AS integer
@@ -62,64 +53,8 @@ CREATE SEQUENCE public.problem_photos_id_seq
     NO MAXVALUE
     CACHE 1;
 
-
 ALTER SEQUENCE public.problem_photos_id_seq OWNER TO postgres;
-
---
--- Name: problem_photos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
 ALTER SEQUENCE public.problem_photos_id_seq OWNED BY public.problem_photos.id;
-
---
--- Name: dog_sightings; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.dog_sightings (
-    id integer NOT NULL,
-    description text,
-    location public.geometry(Point,4326) NOT NULL,
-    address text,
-    landmark text,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
-);
-
-ALTER TABLE public.dog_sightings OWNER TO postgres;
-
-CREATE SEQUENCE public.dog_sightings_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE public.dog_sightings_id_seq OWNER TO postgres;
-ALTER SEQUENCE public.dog_sightings_id_seq OWNED BY public.dog_sightings.id;
-
---
--- Name: dog_photos; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.dog_photos (
-    id integer NOT NULL,
-    sighting_id integer NOT NULL,
-    photo_path text NOT NULL,
-    created_at timestamp without time zone DEFAULT now()
-);
-
-ALTER TABLE public.dog_photos OWNER TO postgres;
-
-CREATE SEQUENCE public.dog_photos_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE public.dog_photos_id_seq OWNER TO postgres;
-ALTER SEQUENCE public.dog_photos_id_seq OWNED BY public.dog_photos.id;
 
 --
 -- Name: problems; Type: TABLE; Schema: public; Owner: postgres
@@ -139,12 +74,7 @@ CREATE TABLE public.problems (
     landmark text
 );
 
-
 ALTER TABLE public.problems OWNER TO postgres;
-
---
--- Name: problems_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
 
 CREATE SEQUENCE public.problems_id_seq
     AS integer
@@ -154,7 +84,6 @@ CREATE SEQUENCE public.problems_id_seq
     NO MAXVALUE
     CACHE 1;
 
-
 ALTER SEQUENCE public.problems_id_seq OWNER TO postgres;
 ALTER SEQUENCE public.problems_id_seq OWNED BY public.problems.id;
 
@@ -163,18 +92,6 @@ ALTER SEQUENCE public.problems_id_seq OWNED BY public.problems.id;
 --
 
 ALTER TABLE ONLY public.problem_photos ALTER COLUMN id SET DEFAULT nextval('public.problem_photos_id_seq'::regclass);
-
---
--- Name: dog_sightings id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.dog_sightings ALTER COLUMN id SET DEFAULT nextval('public.dog_sightings_id_seq'::regclass);
-
---
--- Name: dog_photos id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.dog_photos ALTER COLUMN id SET DEFAULT nextval('public.dog_photos_id_seq'::regclass);
 
 --
 -- Name: problems id; Type: DEFAULT; Schema: public; Owner: postgres
@@ -188,20 +105,6 @@ ALTER TABLE ONLY public.problems ALTER COLUMN id SET DEFAULT nextval('public.pro
 
 ALTER TABLE ONLY public.problem_photos
     ADD CONSTRAINT problem_photos_pkey PRIMARY KEY (id);
-
---
--- Name: dog_sightings dog_sightings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.dog_sightings
-    ADD CONSTRAINT dog_sightings_pkey PRIMARY KEY (id);
-
---
--- Name: dog_photos dog_photos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.dog_photos
-    ADD CONSTRAINT dog_photos_pkey PRIMARY KEY (id);
 
 --
 -- Name: problems problems_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
@@ -218,13 +121,5 @@ ALTER TABLE ONLY public.problem_photos
     ADD CONSTRAINT problem_photos_problem_id_fkey FOREIGN KEY (problem_id) REFERENCES public.problems(id) ON DELETE CASCADE;
 
 --
--- Name: dog_photos dog_photos_sighting_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.dog_photos
-    ADD CONSTRAINT dog_photos_sighting_id_fkey FOREIGN KEY (sighting_id) REFERENCES public.dog_sightings(id) ON DELETE CASCADE;
-
---
 -- PostgreSQL database dump complete
 --
-
