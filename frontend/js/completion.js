@@ -33,31 +33,57 @@ async function confirmComplete() {
         .trim();
 
     const photoInput = document.getElementById("resolutionPhoto");
-    const formData = new FormData();
 
-    formData.append("status", "done");
-    formData.append("resolution_comment", comment);
-
+    // PUT /problems/:id currently accepts JSON. The old implementation
+    // sent FormData, while admin.js forced Content-Type: application/json.
+    // That produced an invalid request body and caused a 400 response.
+    // Keep the completion request JSON-only for now.
     if (photoInput.files.length > 0) {
-        formData.append("resolution_photo", photoInput.files[0]);
-    }
-
-    const result = await apiRequest(
-        `/problems/${completeProblemId}`,
-        {
-            method: "PUT",
-            body: formData
-        }
-    );
-
-    if (result.error) {
-        alert("Ошибка: " + result.error);
+        alert("Фото выполнения пока не отправляется. Сначала сохраните выполнение без фото.");
         return;
     }
 
-    closeCompleteModal();
-    alert("Проблема выполнена");
-    refreshProblems();
+    try {
+        const response = await fetch(
+            `${API_URL}/problems/${completeProblemId}`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-admin-key": localStorage.getItem("adminKey") || ""
+                },
+                body: JSON.stringify({
+                    status: "done",
+                    resolution_comment: comment
+                })
+            }
+        );
+
+        const contentType = response.headers.get("content-type") || "";
+        let result;
+
+        if (contentType.includes("application/json")) {
+            result = await response.json();
+        } else {
+            const text = await response.text();
+            result = {
+                error: text || `HTTP ${response.status}`
+            };
+        }
+
+        if (!response.ok || result.error) {
+            alert("Ошибка: " + (result.error || `HTTP ${response.status}`));
+            return;
+        }
+
+        closeCompleteModal();
+        alert("Проблема выполнена");
+        refreshProblems();
+
+    } catch (error) {
+        console.error("Ошибка завершения проблемы:", error);
+        alert("Не удалось завершить проблему: " + error.message);
+    }
 }
 
 // В main старый admin.js вызывает finishProblem().
