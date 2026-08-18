@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Проблемы города — Каспийск</title>
+    <title>Карта Каспийска — Открытый Каспийск</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/problems.css">
@@ -21,6 +21,7 @@
             <button type="button" class="map-filter" data-filter="яма">🕳 Ямы</button>
             <button type="button" class="map-filter" data-filter="мусор">🗑 Мусор</button>
             <button type="button" class="map-filter" data-filter="освещение">💡 Освещение</button>
+            <button type="button" class="map-filter" data-filter="собака">🐕 Собаки</button>
             <button type="button" class="map-filter" data-filter="другое">❗ Другое</button>
             <button type="button" class="map-filter" data-filter="outage">⚡ Электричество</button>
         </div>
@@ -28,12 +29,13 @@
 
     <aside id="panel">
         <h2>Новое обращение</h2>
-        <label>Тип проблемы</label>
+        <label>Тип обращения</label>
         <div class="problem-types">
             <button type="button" class="type-button" data-type="подтопление">💧 <span>Подтопление</span></button>
             <button type="button" class="type-button" data-type="яма">🕳 <span>Яма</span></button>
             <button type="button" class="type-button" data-type="мусор">🗑 <span>Мусор</span></button>
             <button type="button" class="type-button" data-type="освещение">💡 <span>Освещение</span></button>
+            <button type="button" class="type-button" data-type="собака">🐕 <span>Бездомная собака</span></button>
             <button type="button" class="type-button" data-type="другое">❗ <span>Другое</span></button>
             <button type="button" class="type-button" data-type="outage">⚡ <span>Электричество</span></button>
         </div>
@@ -46,7 +48,7 @@
         <div id="addressResults"></div>
 
         <label for="problemDescription">Описание</label>
-        <textarea id="problemDescription" rows="5" placeholder="Опишите проблему"></textarea>
+        <textarea id="problemDescription" rows="5" placeholder="Опишите проблему или собаку"></textarea>
 
         <label>Фотографии <span class="optional">(до 3)</span></label>
         <label class="photo-button">
@@ -67,7 +69,7 @@
 <div id="photoViewer" class="photo-viewer">
     <button type="button" id="closeViewer" aria-label="Закрыть">✕</button>
     <button type="button" id="prevPhoto" aria-label="Предыдущая фотография">‹</button>
-    <img id="viewerImage" src="" alt="Фотография проблемы">
+    <img id="viewerImage" src="" alt="Фотография">
     <button type="button" id="nextPhoto" aria-label="Следующая фотография">›</button>
 </div>
 
