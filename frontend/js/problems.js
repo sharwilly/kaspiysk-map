@@ -1,5 +1,6 @@
 /* =========================================================
-ПРОБЛЕМЫ ГОРОДА — КАРТА
+ПРОБЛЕМЫ ГОРОДА — ЕДИНАЯ КАРТА
+Включает городские проблемы, собак и отключения.
 ========================================================= */
 
 if (typeof L === "undefined") {
@@ -11,16 +12,10 @@ const problemsApi = typeof API_URL !== "undefined" ? API_URL : "";
 if (!problemsApi) console.warn("⚠️ API_URL не найден");
 
 const mapElement = document.getElementById("map");
-if (!mapElement) {
-    console.error("❌ Элемент #map не найден");
-    throw new Error("Элемент #map отсутствует в HTML");
-}
+if (!mapElement) throw new Error("Элемент #map отсутствует в HTML");
 
-const map = L.map("map", {
-    maxZoom: 18,
-    minZoom: 12,
-    zoomControl: true
-}).setView([42.8913, 47.6397], 13);
+const map = L.map("map", { maxZoom: 18, minZoom: 12, zoomControl: true })
+    .setView([42.8913, 47.6397], 13);
 
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
@@ -41,6 +36,15 @@ let currentPhotoIndex = 0;
 const viewer = document.getElementById("photoViewer");
 const viewerImage = document.getElementById("viewerImage");
 
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 function shortAddress(item) {
     const addr = item?.address;
     if (!addr) return item?.display_name || "Адрес не определён";
@@ -55,7 +59,7 @@ function shortAddress(item) {
 }
 
 window.openPhotoViewer = function (photos, index) {
-    if (!Array.isArray(photos) || photos.length === 0) return;
+    if (!Array.isArray(photos) || !photos.length) return;
     currentPhotos = photos;
     currentPhotoIndex = index;
     viewerImage.src = currentPhotos[currentPhotoIndex];
@@ -63,6 +67,7 @@ window.openPhotoViewer = function (photos, index) {
 };
 
 function closePhotoViewer() {
+    if (!viewer || !viewerImage) return;
     viewer.style.display = "none";
     viewerImage.src = "";
 }
@@ -82,71 +87,60 @@ function showPrevPhoto() {
 document.getElementById("closeViewer")?.addEventListener("click", closePhotoViewer);
 document.getElementById("nextPhoto")?.addEventListener("click", showNextPhoto);
 document.getElementById("prevPhoto")?.addEventListener("click", showPrevPhoto);
-
-viewer?.addEventListener("click", e => {
-    if (e.target === viewer) closePhotoViewer();
-});
+viewer?.addEventListener("click", e => { if (e.target === viewer) closePhotoViewer(); });
 
 function getProblemIcon(type) {
-    const icons = {
+    return {
         "подтопление": "💧",
         "яма": "🕳",
         "мусор": "🗑",
         "освещение": "💡",
+        "собака": "🐕",
         "другое": "❗",
         "outage": "⚡"
-    };
-    return icons[type] || "❗";
+    }[type] || "❗";
+}
+
+function getProblemName(type) {
+    return {
+        "подтопление": "Подтопление",
+        "яма": "Яма",
+        "мусор": "Мусор",
+        "освещение": "Освещение",
+        "собака": "Бездомная собака",
+        "другое": "Другое",
+        "outage": "Электричество"
+    }[type] || "Обращение";
 }
 
 function getStatusName(status) {
-    const statuses = {
+    return {
         new: "Новое",
         accepted: "Принято",
         in_progress: "В работе",
         done: "Выполнено",
         archive: "Архив"
-    };
-    return statuses[status] || status || "Неизвестно";
+    }[status] || status || "Неизвестно";
 }
 
 function createProblemMarker(problem) {
     const icon = getProblemIcon(problem.type);
-
     const statusColors = {
-        new: "#EF4444",          // 🔴 Новое
-        in_progress: "#F59E0B",  // 🟡 В работе
-        done: "#22C55E"          // 🟢 Выполнено
+        new: "#EF4444",
+        in_progress: "#F59E0B",
+        done: "#22C55E"
     };
-
     const backgroundColor = statusColors[problem.status] || "#EF4444";
 
-    return L.marker(
-        [Number(problem.latitude), Number(problem.longitude)],
-        {
-            icon: L.divIcon({
-                className: "problem-marker",
-                html: `
-                    <div style="
-                        width:34px;
-                        height:34px;
-                        border-radius:50%;
-                        display:flex;
-                        align-items:center;
-                        justify-content:center;
-                        background:${backgroundColor};
-                        border:3px solid white;
-                        box-shadow:0 3px 10px rgba(0,0,0,.3);
-                        font-size:18px;
-                        box-sizing:border-box;
-                    ">${icon}</div>
-                `,
-                iconSize: [34, 34],
-                iconAnchor: [17, 17],
-                popupAnchor: [0, -17]
-            })
-        }
-    );
+    return L.marker([Number(problem.latitude), Number(problem.longitude)], {
+        icon: L.divIcon({
+            className: "problem-marker",
+            html: `<div style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:${backgroundColor};border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,.3);font-size:18px;box-sizing:border-box;">${icon}</div>`,
+            iconSize: [34, 34],
+            iconAnchor: [17, 17],
+            popupAnchor: [0, -17]
+        })
+    });
 }
 
 function applyMapFilter() {
@@ -169,41 +163,39 @@ function applyMapFilter() {
     });
 }
 
+function buildProblemPopup(problem) {
+    const photos = Array.isArray(problem.photos) ? problem.photos : [];
+    const gallery = photos.length
+        ? `<br><div class="popup-gallery">${photos.map((photo, index) =>
+            `<img src="${escapeHtml(photo)}" class="popup-thumb" alt="Фото" onclick='openPhotoViewer(${JSON.stringify(photos)}, ${index})'>`
+        ).join("")}</div>`
+        : "";
+
+    return `<div class="problem-popup">
+        <div class="problem-title">${getProblemIcon(problem.type)} ${getProblemName(problem.type)}</div>
+        <div class="problem-description">${escapeHtml(problem.description || "Описание отсутствует")}</div>
+        <br>
+        <div>📅 <b>Дата:</b> ${problem.created_at ? new Date(problem.created_at).toLocaleDateString("ru-RU") : "неизвестно"}</div>
+        <div>📍 <b>Адрес:</b> ${escapeHtml(problem.address || "не определён")}</div>
+        ${problem.landmark ? `<div>🏷 <b>Ориентир:</b> ${escapeHtml(problem.landmark)}</div>` : ""}
+        <div>📌 <b>Статус:</b> ${getStatusName(problem.status)}</div>
+        ${gallery}
+    </div>`;
+}
+
 async function loadProblemsOnMap() {
     try {
-        if (!problemsApi) throw new Error("API_URL отсутствует");
         const response = await fetch(`${problemsApi}/problems/active`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const problems = await response.json();
 
-        problemMarkers.forEach(item => {
-            if (map.hasLayer(item.marker)) map.removeLayer(item.marker);
-        });
+        problemMarkers.forEach(item => { if (map.hasLayer(item.marker)) map.removeLayer(item.marker); });
         problemMarkers = [];
 
         problems.forEach(problem => {
             if (problem.status === "done" || problem.latitude == null || problem.longitude == null) return;
-
             const marker = createProblemMarker(problem);
-            const photos = Array.isArray(problem.photos) ? problem.photos : [];
-            const gallery = photos.length
-                ? `<br><div class="popup-gallery">${photos.map((photo, index) =>
-                    `<img src="${photo}" class="popup-thumb" alt="Фото" onclick='openPhotoViewer(${JSON.stringify(photos)}, ${index})'>`
-                ).join("")}</div>`
-                : "";
-
-            marker.bindPopup(`
-                <div class="problem-popup">
-                    <div class="problem-title">${getProblemIcon(problem.type)} ${problem.type || "Проблема"}</div>
-                    <div class="problem-description">${problem.description || "Описание отсутствует"}</div>
-                    <br>
-                    <div>📅 <b>Дата:</b> ${problem.created_at ? new Date(problem.created_at).toLocaleDateString("ru-RU") : "неизвестно"}</div>
-                    <div>📍 <b>Адрес:</b> ${problem.address || "не определён"}</div>
-                    <div>📌 <b>Статус:</b> ${getStatusName(problem.status)}</div>
-                    ${gallery}
-                </div>
-            `);
-
+            marker.bindPopup(buildProblemPopup(problem));
             if (currentMapFilter === "all" || currentMapFilter === problem.type) marker.addTo(map);
             problemMarkers.push({ marker, type: problem.type });
         });
@@ -223,51 +215,23 @@ document.querySelectorAll(".map-filter").forEach(button => {
 });
 
 function createOutageIcon() {
-    return L.divIcon({
-        className: "outage-marker",
-        html: `<div class="outage-marker-inner">⚡</div>`,
-        iconSize: [38, 38],
-        iconAnchor: [19, 19],
-        popupAnchor: [0, -20]
-    });
-}
-
-function formatRestoreTime(time) {
-    return time ? `Ожидаемое восстановление: <b>${time}</b>` : "Время восстановления неизвестно";
+    return L.divIcon({ className: "outage-marker", html: `<div class="outage-marker-inner">⚡</div>`, iconSize: [38, 38], iconAnchor: [19, 19], popupAnchor: [0, -20] });
 }
 
 async function loadOutagesOnMap() {
     try {
-        if (!problemsApi) throw new Error("API_URL отсутствует");
         const response = await fetch(`${problemsApi}/outages/map`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const outages = await response.json();
-
-        outageMarkers.forEach(marker => {
-            if (map.hasLayer(marker)) map.removeLayer(marker);
-        });
+        outageMarkers.forEach(marker => { if (map.hasLayer(marker)) map.removeLayer(marker); });
         outageMarkers = [];
 
         outages.forEach(outage => {
             if (!Array.isArray(outage.locations)) return;
             outage.locations.forEach(location => {
                 if (location.latitude == null || location.longitude == null) return;
-
-                const marker = L.marker(
-                    [Number(location.latitude), Number(location.longitude)],
-                    { icon: createOutageIcon() }
-                );
-
-                marker.bindPopup(`
-                    <div class="outage-popup">
-                        <div class="outage-title">⚡ Отключение электроэнергии</div>
-                        <div class="outage-address">📍 <b>${location.address || "Адрес не указан"}</b></div>
-                        <div class="outage-description">${outage.description || "Аварийное отключение"}</div>
-                        <div class="outage-time">${formatRestoreTime(outage.restore_time)}</div>
-                        <div class="outage-date">📅 Сообщение: ${outage.created_at ? new Date(outage.created_at).toLocaleString("ru-RU") : "неизвестно"}</div>
-                    </div>
-                `);
-
+                const marker = L.marker([Number(location.latitude), Number(location.longitude)], { icon: createOutageIcon() });
+                marker.bindPopup(`<div class="outage-popup"><div class="outage-title">⚡ Отключение электроэнергии</div><div class="outage-address">📍 <b>${escapeHtml(location.address || "Адрес не указан")}</b></div><div class="outage-description">${escapeHtml(outage.description || "Аварийное отключение")}</div><div class="outage-time">${outage.restore_time ? `Ожидаемое восстановление: <b>${escapeHtml(outage.restore_time)}</b>` : "Время восстановления неизвестно"}</div><div class="outage-date">📅 Сообщение: ${outage.created_at ? new Date(outage.created_at).toLocaleString("ru-RU") : "неизвестно"}</div></div>`);
                 if (currentMapFilter === "all" || currentMapFilter === "outage") marker.addTo(map);
                 outageMarkers.push(marker);
             });
@@ -283,12 +247,7 @@ async function loadCityBoundary() {
         const response = await fetch("data/kaspiysk_boundary.geojson");
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         cityBoundary = await response.json();
-
-        const boundary = L.geoJSON(cityBoundary, {
-            style: { color: "#0d6efd", weight: 3, opacity: 1, fillColor: "#0d6efd", fillOpacity: 0.03 },
-            interactive: false
-        }).addTo(map);
-
+        const boundary = L.geoJSON(cityBoundary, { style: { color: "#0d6efd", weight: 3, opacity: 1, fillColor: "#0d6efd", fillOpacity: 0.03 }, interactive: false }).addTo(map);
         boundary.bringToBack();
         const bounds = boundary.getBounds();
         if (bounds.isValid()) map.fitBounds(bounds, { padding: [20, 20] });
@@ -297,104 +256,48 @@ async function loadCityBoundary() {
     }
 }
 
-map.on("click", async function (e) {
-    if (!cityBoundary) {
-        alert("Граница города ещё не загружена");
-        return;
-    }
-
+map.on("click", async e => {
+    if (!cityBoundary) return alert("Граница города ещё не загружена");
     const point = turf.point([e.latlng.lng, e.latlng.lat]);
-    if (!turf.booleanPointInPolygon(point, cityBoundary)) {
-        alert("Обращение можно создать только в пределах Каспийска");
-        return;
-    }
+    if (!turf.booleanPointInPolygon(point, cityBoundary)) return alert("Обращение можно создать только в пределах Каспийска");
 
     const { lat: latitude, lng: longitude } = e.latlng;
     selectedLocation = { latitude, longitude };
     selectedAddress = "Получение адреса...";
-
     if (tempMarker) map.removeLayer(tempMarker);
-    tempMarker = L.marker([latitude, longitude])
-        .addTo(map)
-        .bindTooltip("📍 Получение адреса...", { permanent: true, direction: "top", offset: [0, -10] })
-        .openTooltip();
+    tempMarker = L.marker([latitude, longitude]).addTo(map).bindTooltip("📍 Получение адреса...", { permanent: true, direction: "top", offset: [0, -10] }).openTooltip();
 
     try {
-        const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${latitude}&lon=${longitude}`,
-            { headers: { "User-Agent": "KaspiyskMap/1.0" } }
-        );
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        selectedAddress = shortAddress(data);
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${latitude}&lon=${longitude}`, { headers: { "User-Agent": "KaspiyskMap/1.0" } });
+        if (response.ok) selectedAddress = shortAddress(await response.json());
     } catch (error) {
-        console.error("Ошибка получения адреса:", error);
+        console.warn("Ошибка получения адреса:", error);
         selectedAddress = "Адрес не определён";
     }
 
-    if (tempMarker) {
-        tempMarker.unbindTooltip();
-        tempMarker.bindTooltip("📍 " + selectedAddress, {
-            permanent: true, direction: "top", offset: [0, -10]
-        }).openTooltip();
-    }
-
-    document.getElementById("addressResults").innerHTML = "Выбрано: 📍 " + selectedAddress;
+    tempMarker.unbindTooltip().bindTooltip("📍 " + selectedAddress, { permanent: true, direction: "top", offset: [0, -10] }).openTooltip();
+    document.getElementById("addressResults").innerHTML = "Выбрано: 📍 " + escapeHtml(selectedAddress);
 });
 
-document.getElementById("findAddress").addEventListener("click", async function () {
+document.getElementById("findAddress")?.addEventListener("click", async () => {
     const text = document.getElementById("problemAddress").value.trim();
-    if (!text) {
-        alert("Введите адрес");
-        return;
-    }
-
-    const query = `${text}, Каспийск, Республика Дагестан, Россия`;
     const container = document.getElementById("addressResults");
+    if (!text) return alert("Введите адрес");
     container.innerHTML = "🔎 Ищем адрес...";
 
     try {
-        const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&q=${encodeURIComponent(query)}&limit=50`,
-            { headers: { "User-Agent": "KaspiyskMap/1.0" } }
-        );
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&q=${encodeURIComponent(`${text}, Каспийск, Республика Дагестан, Россия`)}&limit=50`, { headers: { "User-Agent": "KaspiyskMap/1.0" } });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
-
-        const filteredData = data.filter(item => {
-            const addr = item.address;
-            return addr?.road && addr.house_number &&
-                (addr.city === "Каспийск" || addr.town === "Каспийск" || addr.municipality === "Каспийск");
-        });
-
-        filteredData.sort((a, b) => {
-            const getType = item => {
-                const road = item.address.road.toLowerCase();
-                if (road === "улица кирова") return { type: 1, line: 0 };
-                if (road === "переулок кирова") return { type: 2, line: 0 };
-                const lineMatch = road.match(/(\d+)-я линия/);
-                if (lineMatch) return { type: 3, line: Number(lineMatch[1]) };
-                return { type: 4, line: 999 };
-            };
-            const aInfo = getType(a), bInfo = getType(b);
-            return aInfo.type !== bInfo.type ? aInfo.type - bInfo.type : aInfo.line - bInfo.line;
-        });
-
-        if (!filteredData.length) {
-            container.innerHTML = "Адрес не найден";
-            return;
-        }
+        const filteredData = data.filter(item => item.address?.road && item.address.house_number && (item.address.city === "Каспийск" || item.address.town === "Каспийск" || item.address.municipality === "Каспийск"));
+        if (!filteredData.length) return void (container.innerHTML = "Адрес не найден");
 
         const uniqueData = filteredData.filter((item, index, self) => {
             const key = item.address.road + "_" + item.address.house_number;
             return index === self.findIndex(t => t.address.road + "_" + t.address.house_number === key);
         });
 
-        if (uniqueData.length === 1) {
-            selectAddressResult(uniqueData[0]);
-            return;
-        }
-
+        if (uniqueData.length === 1) return selectAddressResult(uniqueData[0]);
         container.innerHTML = "";
         uniqueData.forEach(item => {
             const button = document.createElement("button");
@@ -410,45 +313,26 @@ document.getElementById("findAddress").addEventListener("click", async function 
 });
 
 function selectAddressResult(item) {
-    const latitude = Number(item.lat);
-    const longitude = Number(item.lon);
+    const latitude = Number(item.lat), longitude = Number(item.lon);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return alert("У адреса нет корректных координат");
     selectedLocation = { latitude, longitude };
     selectedAddress = shortAddress(item);
-
     if (tempMarker) map.removeLayer(tempMarker);
-    tempMarker = L.marker([latitude, longitude])
-        .addTo(map)
-        .bindTooltip("📍 " + selectedAddress, { permanent: true, direction: "top", offset: [0, -10] })
-        .openTooltip();
-
+    tempMarker = L.marker([latitude, longitude]).addTo(map).bindTooltip("📍 " + selectedAddress, { permanent: true, direction: "top", offset: [0, -10] }).openTooltip();
     map.setView([latitude, longitude], 17);
-    document.getElementById("addressResults").innerHTML = "Выбрано: 📍 " + selectedAddress;
+    document.getElementById("addressResults").innerHTML = "Выбрано: 📍 " + escapeHtml(selectedAddress);
 }
 
-document.getElementById("saveProblem").addEventListener("click", async function () {
+document.getElementById("saveProblem")?.addEventListener("click", async () => {
     const saveButton = document.getElementById("saveProblem");
     const serverNotice = document.getElementById("serverNotice");
-
-    if (!selectedLocation) {
-        alert("Укажите место на карте или введите адрес");
-        return;
-    }
+    if (!selectedLocation) return alert("Укажите место на карте или введите адрес");
 
     const type = document.getElementById("problemType").value;
     const description = document.getElementById("problemDescription").value.trim();
-
-    if (!type) {
-        alert("Выберите тип проблемы");
-        return;
-    }
-    if (selectedPhotos.length > 3) {
-        alert("Можно загрузить максимум 3 фотографии");
-        return;
-    }
-    if (!problemsApi) {
-        alert("API сервера не настроен");
-        return;
-    }
+    if (!type) return alert("Выберите тип обращения");
+    if (selectedPhotos.length > 3) return alert("Можно загрузить максимум 3 фотографии");
+    if (!problemsApi) return alert("API сервера не настроен");
 
     const formData = new FormData();
     formData.append("type", type);
@@ -460,44 +344,18 @@ document.getElementById("saveProblem").addEventListener("click", async function 
 
     saveButton.disabled = true;
     saveButton.textContent = "⏳ Отправляем...";
-
-    const loadingTimer = setTimeout(() => serverNotice.classList.remove("hidden"), 10000);
+    const loadingTimer = setTimeout(() => serverNotice?.classList.remove("hidden"), 10000);
 
     try {
         const response = await fetch(`${problemsApi}/problems`, { method: "POST", body: formData });
-        if (!response.ok) {
-            let message = `HTTP ${response.status}`;
-            try {
-                const errorData = await response.json();
-                if (errorData.message) message = errorData.message;
-            } catch (_) {}
-            throw new Error(message);
-        }
-
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const problem = await response.json();
         clearTimeout(loadingTimer);
-        serverNotice.classList.add("hidden");
+        serverNotice?.classList.add("hidden");
 
         if (problem.latitude != null && problem.longitude != null) {
             const marker = createProblemMarker(problem);
-            const photos = Array.isArray(problem.photos) ? problem.photos : [];
-            const gallery = photos.length
-                ? `<br><br><div class="popup-gallery">${photos.map((photo, index) =>
-                    `<img src="${photo}" class="popup-thumb" alt="Фото" onclick='openPhotoViewer(${JSON.stringify(photos)}, ${index})'>`
-                ).join("")}</div>`
-                : "";
-
-            marker.bindPopup(`
-                <div class="problem-popup">
-                    <div class="problem-title">${getProblemIcon(problem.type)} ${problem.type}</div>
-                    <div class="problem-description">${problem.description || "Описание отсутствует"}</div>
-                    <br>
-                    📅 <b>Дата:</b> ${problem.created_at ? new Date(problem.created_at).toLocaleDateString("ru-RU") : "сейчас"}<br>
-                    📍 <b>Адрес:</b> ${problem.address || selectedAddress || "не определён"}<br>
-                    📌 <b>Статус:</b> ${getStatusName(problem.status)}
-                    ${gallery}
-                </div>
-            `);
+            marker.bindPopup(buildProblemPopup(problem));
             marker.addTo(map);
             problemMarkers.push({ marker, type: problem.type });
             applyMapFilter();
@@ -509,18 +367,15 @@ document.getElementById("saveProblem").addEventListener("click", async function 
         document.getElementById("photos").value = "";
         document.querySelectorAll(".type-button").forEach(btn => btn.classList.remove("active"));
         document.getElementById("problemType").value = "";
-
-        if (tempMarker) {
-            map.removeLayer(tempMarker);
-            tempMarker = null;
-        }
+        if (tempMarker) map.removeLayer(tempMarker);
+        tempMarker = null;
         selectedLocation = null;
         selectedAddress = null;
         document.getElementById("addressResults").innerHTML = "";
         showSuccessMessage(problem.id);
     } catch (error) {
         clearTimeout(loadingTimer);
-        serverNotice.classList.add("hidden");
+        serverNotice?.classList.add("hidden");
         console.error("❌ Ошибка отправки:", error);
         alert("Не удалось отправить обращение.\n\n" + error.message);
     } finally {
@@ -537,73 +392,43 @@ document.querySelectorAll(".type-button").forEach(button => {
     });
 });
 
-document.getElementById("myLocation").addEventListener("click", function () {
-    if (!navigator.geolocation) {
-        alert("Геолокация не поддерживается вашим браузером");
-        return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-        async position => {
-            const { latitude, longitude } = position.coords;
-
-            if (cityBoundary && typeof turf !== "undefined") {
-                const point = turf.point([longitude, latitude]);
-                if (!turf.booleanPointInPolygon(point, cityBoundary)) {
-                    alert("Ваше местоположение находится за пределами Каспийска");
-                    return;
-                }
+document.getElementById("myLocation")?.addEventListener("click", () => {
+    if (!navigator.geolocation) return alert("Геолокация не поддерживается вашим браузером");
+    navigator.geolocation.getCurrentPosition(async position => {
+        const { latitude, longitude } = position.coords;
+        if (cityBoundary && typeof turf !== "undefined" && !turf.booleanPointInPolygon(turf.point([longitude, latitude]), cityBoundary)) return alert("Ваше местоположение находится за пределами Каспийска");
+        selectedLocation = { latitude, longitude };
+        selectedAddress = "Моё местоположение";
+        if (tempMarker) map.removeLayer(tempMarker);
+        tempMarker = L.marker([latitude, longitude]).addTo(map).bindPopup("📍 Вы здесь").openPopup();
+        map.setView([latitude, longitude], 17);
+        document.getElementById("addressResults").innerHTML = "Выбрано: 📍 Моё местоположение";
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${latitude}&lon=${longitude}`, { headers: { "User-Agent": "KaspiyskMap/1.0" } });
+            if (response.ok) {
+                selectedAddress = shortAddress(await response.json());
+                document.getElementById("addressResults").innerHTML = "Выбрано: 📍 " + escapeHtml(selectedAddress);
             }
-
-            selectedLocation = { latitude, longitude };
-            selectedAddress = "Моё местоположение";
-
-            if (tempMarker) map.removeLayer(tempMarker);
-            tempMarker = L.marker([latitude, longitude]).addTo(map).bindPopup("📍 Вы здесь").openPopup();
-            map.setView([latitude, longitude], 17);
-            document.getElementById("addressResults").innerHTML = "Выбрано: 📍 Моё местоположение";
-
-            try {
-                const response = await fetch(
-                    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${latitude}&lon=${longitude}`,
-                    { headers: { "User-Agent": "KaspiyskMap/1.0" } }
-                );
-                if (response.ok) {
-                    const data = await response.json();
-                    selectedAddress = shortAddress(data);
-                    document.getElementById("addressResults").innerHTML = "Выбрано: 📍 " + selectedAddress;
-                }
-            } catch (error) {
-                console.warn("Не удалось определить адрес:", error);
-            }
-        },
-        error => {
-            let message = "Не удалось определить местоположение";
-            if (error.code === error.PERMISSION_DENIED) message = "Доступ к геолокации запрещён.";
-            if (error.code === error.POSITION_UNAVAILABLE) message = "Местоположение сейчас недоступно.";
-            if (error.code === error.TIMEOUT) message = "Время ожидания геолокации истекло.";
-            alert(message);
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-    );
+        } catch (error) { console.warn("Не удалось определить адрес:", error); }
+    }, error => {
+        const messages = { 1: "Доступ к геолокации запрещён.", 2: "Местоположение сейчас недоступно.", 3: "Время ожидания геолокации истекло." };
+        alert(messages[error.code] || "Не удалось определить местоположение");
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
 });
 
 const photoInput = document.getElementById("photos");
 const photoPreview = document.getElementById("photoPreview");
-
-photoInput.addEventListener("change", function () {
-    const files = Array.from(photoInput.files);
-    const total = selectedPhotos.length + files.length;
-    if (total > 3) {
+photoInput?.addEventListener("change", function () {
+    const files = Array.from(photoInput.files || []);
+    if (selectedPhotos.length + files.length > 3) {
         alert("Можно загрузить максимум 3 фотографии");
         selectedPhotos = [...selectedPhotos, ...files].slice(0, 3);
-    } else {
-        selectedPhotos = [...selectedPhotos, ...files];
-    }
+    } else selectedPhotos = [...selectedPhotos, ...files];
     renderPhotoPreview();
 });
 
 function renderPhotoPreview() {
+    if (!photoPreview) return;
     photoPreview.innerHTML = "";
     selectedPhotos.forEach((file, index) => {
         const url = URL.createObjectURL(file);
@@ -615,138 +440,25 @@ function renderPhotoPreview() {
         const removeButton = document.createElement("button");
         removeButton.type = "button";
         removeButton.textContent = "❌";
-        removeButton.addEventListener("click", () => removePhoto(index));
+        removeButton.addEventListener("click", () => {
+            URL.revokeObjectURL(url);
+            selectedPhotos.splice(index, 1);
+            renderPhotoPreview();
+        });
         block.appendChild(image);
         block.appendChild(removeButton);
         photoPreview.appendChild(block);
     });
 }
 
-function removePhoto(index) {
-    if (index < 0 || index >= selectedPhotos.length) return;
-    selectedPhotos.splice(index, 1);
-    renderPhotoPreview();
-}
-
 function showSuccessMessage(id) {
-    const message = document.createElement("div");
-    message.className = "success-message";
-    message.innerHTML = `<div>✅ Спасибо!<br><br>Ваше обращение №${id} принято.</div>`;
-    document.body.appendChild(message);
-    setTimeout(() => message.remove(), 4000);
+    const panel = document.getElementById("panel");
+    if (!panel) return;
+    const success = document.createElement("div");
+    success.className = "success-message";
+    success.innerHTML = `<div>✅ Спасибо!<br><small>Обращение #${escapeHtml(id)} добавлено на карту.</small></div>`;
+    panel.appendChild(success);
+    setTimeout(() => success.remove(), 3000);
 }
 
-function invalidateMapSize() {
-    setTimeout(() => map.invalidateSize(true), 100);
-    setTimeout(() => map.invalidateSize(true), 500);
-}
-
-window.addEventListener("resize", invalidateMapSize);
-window.addEventListener("load", invalidateMapSize);
-
-document.addEventListener("keydown", e => {
-    if (e.key === "Escape") closePhotoViewer();
-    if (e.key === "ArrowRight") showNextPhoto();
-    if (e.key === "ArrowLeft") showPrevPhoto();
-});
-
-function loadLocationFromURL() {
-    const params = new URLSearchParams(window.location.search);
-
-    const lat = Number(params.get("lat"));
-    const lon = Number(params.get("lon"));
-    const address = params.get("address");
-
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-        return false;
-    }
-
-    selectedLocation = {
-        latitude: lat,
-        longitude: lon
-    };
-
-    selectedAddress = address
-        ? decodeURIComponent(address)
-        : "Адрес не определён";
-
-    if (tempMarker) {
-        map.removeLayer(tempMarker);
-    }
-
-    tempMarker = L.marker([lat, lon])
-        .addTo(map)
-        .bindTooltip(
-            "📍 " + selectedAddress,
-            {
-                permanent: true,
-                direction: "top",
-                offset: [0, -10]
-            }
-        )
-        .openTooltip();
-
-    map.setView([lat, lon], 17);
-
-    const addressResults = document.getElementById("addressResults");
-
-    if (addressResults) {
-        addressResults.innerHTML =
-            "Выбрано: 📍 " + selectedAddress;
-    }
-
-    // Убираем параметры из адресной строки
-    window.history.replaceState({}, document.title, "problems.html");
-
-    return true;
-}
-
-function loadAddressFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    const address = params.get("address");
-
-    if (!address) return;
-
-    const addressInput = document.getElementById("problemAddress");
-    const findButton = document.getElementById("findAddress");
-
-    if (!addressInput || !findButton) return;
-
-    addressInput.value = address;
-
-    // Запускаем существующий поиск адреса
-    findButton.click();
-
-    // Убираем параметр из адресной строки
-    window.history.replaceState(
-        {},
-        document.title,
-        "problems.html"
-    );
-}
-
-async function initProblemsPage() {
-    console.log("🚀 problems.js загружен");
-
-    await loadCityBoundary();
-
-    await Promise.allSettled([
-        loadProblemsOnMap(),
-        loadOutagesOnMap()
-    ]);
-
-    loadAddressFromURL();
-
-    invalidateMapSize();
-
-    console.log("✅ Страница проблем инициализирована");
-}
-
-initProblemsPage();
-
-setInterval(async () => {
-    console.log("🔄 Обновляем карту...");
-    await Promise.allSettled([loadProblemsOnMap(), loadOutagesOnMap()]);
-}, 300000);
-
-map.attributionControl.remove();
+Promise.allSettled([loadCityBoundary(), loadProblemsOnMap(), loadOutagesOnMap()]);
