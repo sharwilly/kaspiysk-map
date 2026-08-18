@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бездомные собаки — Каспийск</title>
+    <link rel="icon" href="images/favicon.ico">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/dogs.css">
+</head>
+<body data-page="dogs">
+
+<div id="header-container"></div>
+
+<main id="container">
+    <section class="map-wrapper">
+        <div id="map"></div>
+    </section>
+
+    <aside id="panel">
+        <h2>🐾 Бездомная собака</h2>
+        <p class="panel-hint">Отметьте место на карте, где вы видели бездомную собаку</p>
+
+        <label for="dogAddress">Адрес <span class="optional">(необязательно)</span></label>
+        <input type="text" id="dogAddress" placeholder="Например: ул. Ленина, 24" autocomplete="off">
+        <button type="button" id="findAddress" class="panel-btn find-btn">🔎 Найти адрес</button>
+        <button type="button" id="myLocation" class="panel-btn geo-btn">📍 Моё местоположение</button>
+        <div id="addressResults"></div>
+
+        <label for="dogDescription">Описание <span class="optional">(необязательно)</span></label>
+        <textarea id="dogDescription" rows="4" placeholder="Опишите собаку: размер, окрас, поведение, есть ли ошейник и т.д."></textarea>
+
+        <label>Фотография <span class="optional">(необязательно)</span></label>
+        <label class="photo-button">
+            📷 Добавить фото
+            <input type="file" id="dogPhoto" accept="image/*">
+        </label>
+        <div id="photoPreview"></div>
+
+        <button type="button" id="saveDog">🚀 Отправить отметку</button>
+        <div id="serverNotice" class="server-notice hidden">
+            ⏳ Отправка...<br>
+            Пожалуйста, подождите.
+        </div>
+    </aside>
+</main>
+
+<div id="photoViewer" class="photo-viewer">
+    <button type="button" id="closeViewer" aria-label="Закрыть">✕</button>
+    <img id="viewerImage" src="" alt="Фотография собаки">
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/iife.min.js"></script>
+<script src="js/weather-widget.js"></script>
+<script src="js/header.js"></script>
+<script src="js/dogs.js"></script>
+</body>
+</html>
