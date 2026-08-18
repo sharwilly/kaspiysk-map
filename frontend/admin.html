@@ -4,9 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Kaspiysk Map - Админ</title>
-
     <link rel="stylesheet" href="css/admin.css">
-
+    <link rel="stylesheet" href="css/completion.css">
 </head>
 
 <body>
@@ -14,109 +13,46 @@
 <h1>Панель администрации</h1>
 
 <input id="adminPassword" type="password">
-
-<button onclick="loginAdmin()">
-    Войти
-</button>
-
-<button onclick="logoutAdmin()">
-    Выйти
-</button>
+<button onclick="loginAdmin()">Войти</button>
+<button onclick="logoutAdmin()">Выйти</button>
 
 <div class="tabs">
-
-    <button
-        id="activeTab"
-        class="tab-button active"
-        onclick="loadActive()">
-
-        Активные
-        (<span id="activeCount"></span>)
-
+    <button id="activeTab" class="tab-button active" onclick="loadActive()">
+        Активные (<span id="activeCount"></span>)
     </button>
-
-    <button
-        id="outagesTab"
-        class="tab-button"
-        onclick="loadOutages()">
-
-        Коммунальные
-        (<span id="outagesCount"></span>)
-
+    <button id="outagesTab" class="tab-button" onclick="loadOutages()">
+        Коммунальные (<span id="outagesCount"></span>)
     </button>
-
-    <button
-        id="archiveTab"
-        class="tab-button"
-        onclick="loadArchive()">
-
-        Архив
-        (<span id="archiveCount"></span>)
-
+    <button id="archiveTab" class="tab-button" onclick="loadArchive()">
+        Архив (<span id="archiveCount"></span>)
     </button>
-
 </div>
 
 <hr>
-
 <div id="filters"></div>
-
-<div id="problems">
-    Загрузка обращений...
-</div>
+<div id="problems">Загрузка обращений...</div>
 
 <div id="completeModal" class="complete-modal">
     <div class="complete-modal-content">
         <div class="complete-modal-header">
             <h2>Выполнить проблему</h2>
-            <button
-                class="complete-modal-close"
-                onclick="closeCompleteModal()">
-                ×
-            </button>
+            <button class="complete-modal-close" onclick="closeCompleteModal()">×</button>
         </div>
-
-        <label class="complete-label">
-            Комментарий о выполнении
-        </label>
-
-        <textarea
-            id="resolutionComment"
-            class="complete-textarea"
-            placeholder="Опишите, какие работы были выполнены..."
-        ></textarea>
-
-        <label class="complete-label">
-            Фото после устранения
-        </label>
-
-        <input
-            id="resolutionPhoto"
-            type="file"
-            accept="image/*"
-            class="complete-file"
-        >
-
+        <label class="complete-label">Комментарий о выполнении</label>
+        <textarea id="resolutionComment" class="complete-textarea" placeholder="Опишите, какие работы были выполнены..."></textarea>
+        <label class="complete-label">Фото после устранения</label>
+        <input id="resolutionPhoto" type="file" accept="image/*" class="complete-file">
         <div id="resolutionPreview" class="resolution-preview"></div>
-
         <div class="complete-modal-actions">
-            <button
-                class="complete-cancel-button"
-                onclick="closeCompleteModal()">
-                Отмена
-            </button>
-
-            <button
-                class="complete-confirm-button"
-                onclick="confirmComplete()">
-                Выполнить
-            </button>
+            <button class="complete-cancel-button" onclick="closeCompleteModal()">Отмена</button>
+            <button class="complete-confirm-button" onclick="confirmComplete()">Выполнить</button>
         </div>
     </div>
 </div>
 
 <script src="js/config.js"></script>
 <script src="js/admin.js"></script>
+<script src="js/completion.js"></script>
 
 </body>
 </html>
