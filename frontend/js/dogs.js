@@ -1,15 +1,20 @@
 /* =========================================================
    БЕЗДОМНЫЕ СОБАКИ — КАРТА
+   Архитектура такая же, как у problems:
+   Vercel → Express API → PostgreSQL/PostGIS → Cloudinary
 ========================================================= */
 
 (() => {
     "use strict";
 
-    // ---------------------------------------------------------
-    // MAP
-    // ---------------------------------------------------------
     if (typeof L === "undefined") {
         console.error("Leaflet не загружен");
+        return;
+    }
+
+    const api = typeof API_URL !== "undefined" ? API_URL : "";
+    if (!api) {
+        console.error("API_URL не найден");
         return;
     }
 
@@ -30,34 +35,12 @@
         attribution: "© OpenStreetMap contributors"
     }).addTo(map);
 
-    // Leaflet иногда получает неправильный размер контейнера,
-    // если header/components меняют высоту после инициализации.
     const refreshMapSize = () => map.invalidateSize({ pan: false });
     requestAnimationFrame(refreshMapSize);
     setTimeout(refreshMapSize, 300);
     setTimeout(refreshMapSize, 1000);
     window.addEventListener("resize", refreshMapSize);
 
-    // ---------------------------------------------------------
-    // SUPABASE
-    // ---------------------------------------------------------
-    const SUPABASE_URL = "https://vllyfjyibdtbcvdmpskg.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ6WEJoYmFzZSIsImlhdCI6MTc4NzA3ODE4MiwiZXhwIjoxNzAyNjQxNDg0fQ.rcWp9OMOZMogt6dgngy6iMuTO5FnvUQZqVr1p9Zj5XJ";
-
-    let supabase = null;
-    if (window.supabase && typeof window.supabase.createClient === "function") {
-        try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch (error) {
-            console.error("Не удалось создать Supabase client:", error);
-        }
-    } else {
-        console.warn("Supabase CDN не загрузился. Карта продолжит работать, но отметки собак не будут загружены.");
-    }
-
-    // ---------------------------------------------------------
-    // STATE
-    // ---------------------------------------------------------
     let tempMarker = null;
     let selectedLocation = null;
     let selectedAddress = null;
@@ -68,9 +51,15 @@
     const viewer = document.getElementById("photoViewer");
     const viewerImage = document.getElementById("viewerImage");
 
-    // ---------------------------------------------------------
-    // HELPERS
-    // ---------------------------------------------------------
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
     function shortAddress(item) {
         const addr = item?.address;
         if (!addr) return item?.display_name || "Адрес не определён";
@@ -79,6 +68,8 @@
         if (street.startsWith("улица ")) street = street.replace("улица ", "ул. ");
         if (street.startsWith("проспект ")) street = street.replace("проспект ", "пр-т ");
         if (street.startsWith("переулок ")) street = street.replace("переулок ", "пер. ");
+        if (street.startsWith("бульвар ")) street = street.replace("бульвар ", "бул. ");
+        if (street.startsWith("площадь ")) street = street.replace("площадь ", "пл. ");
 
         if (street && addr.house_number) return `${street}, ${addr.house_number}`;
         return item.display_name || "Адрес не определён";
@@ -110,54 +101,51 @@
         );
     }
 
-    // ---------------------------------------------------------
-    // DOG SIGHTINGS
-    // ---------------------------------------------------------
     async function loadDogSightings() {
-        if (!supabase) return;
-
         try {
-            const { data, error } = await supabase
-                .from("dog_sightings")
-                .select("*")
-                .order("created_at", { ascending: false });
+            const response = await fetch(`${api}/dogs`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-            if (error) throw error;
+            const sightings = await response.json();
 
             dogMarkers.forEach(marker => {
                 if (map.hasLayer(marker)) map.removeLayer(marker);
             });
             dogMarkers = [];
 
-            (data || []).forEach(sighting => {
+            (sightings || []).forEach(sighting => {
                 if (sighting.latitude == null || sighting.longitude == null) return;
 
                 const marker = createDogMarker(sighting);
-                const photoHtml = sighting.photo_url
-                    ? `<br><div class="popup-gallery"><img src="${sighting.photo_url}" class="popup-thumb" alt="Фото собаки"></div>`
+                const photos = Array.isArray(sighting.photos) ? sighting.photos : [];
+                const gallery = photos.length
+                    ? `<br><div class="popup-gallery">${photos.map(photo =>
+                        `<img src="${escapeHtml(photo)}" class="popup-thumb" alt="Фото собаки">`
+                    ).join("")}</div>`
                     : "";
 
                 marker.bindPopup(`
                     <div class="dog-popup">
                         <div class="dog-title">🐾 Бездомная собака</div>
-                        <div class="dog-description">${sighting.description || "Описание отсутствует"}</div>
+                        <div class="dog-description">${escapeHtml(sighting.description || "Описание отсутствует")}</div>
                         <br>
                         <div>📅 <b>Дата:</b> ${sighting.created_at ? new Date(sighting.created_at).toLocaleDateString("ru-RU") : "неизвестно"}</div>
-                        ${photoHtml}
+                        <div>📍 <b>Адрес:</b> ${escapeHtml(sighting.address || "не определён")}</div>
+                        ${sighting.landmark ? `<div>🏷 <b>Ориентир:</b> ${escapeHtml(sighting.landmark)}</div>` : ""}
+                        ${gallery}
                     </div>
                 `);
 
-                if (sighting.photo_url) {
-                    marker.on("popupopen", () => {
-                        const popup = marker.getPopup()?.getElement();
-                        const image = popup?.querySelector(".popup-thumb");
-                        image?.addEventListener("click", () => {
+                marker.on("popupopen", () => {
+                    const popup = marker.getPopup()?.getElement();
+                    popup?.querySelectorAll(".popup-thumb").forEach((image, index) => {
+                        image.addEventListener("click", () => {
                             if (!viewer || !viewerImage) return;
-                            viewerImage.src = sighting.photo_url;
+                            viewerImage.src = photos[index];
                             viewer.style.display = "flex";
                         });
                     });
-                }
+                });
 
                 marker.addTo(map);
                 dogMarkers.push(marker);
@@ -167,13 +155,8 @@
         }
     }
 
-    // ---------------------------------------------------------
-    // CITY BOUNDARY
-    // ---------------------------------------------------------
     async function loadCityBoundary() {
         try {
-            // Relative to /dogs.html and therefore correct for Vercel's
-            // frontend root: /data/kaspiysk_boundary.geojson
             const response = await fetch("data/kaspiysk_boundary.geojson", {
                 cache: "no-cache"
             });
@@ -196,21 +179,33 @@
             boundary.bringToBack();
 
             const bounds = boundary.getBounds();
-            if (bounds.isValid()) {
-                map.fitBounds(bounds, { padding: [20, 20] });
-            }
+            if (bounds.isValid()) map.fitBounds(bounds, { padding: [20, 20] });
 
             refreshMapSize();
         } catch (error) {
             console.error("Ошибка загрузки границы города:", error);
-            // Граница нужна только для ограничения кликов.
-            // Карта и базовые тайлы всё равно должны работать.
         }
     }
 
-    // ---------------------------------------------------------
-    // MAP CLICK
-    // ---------------------------------------------------------
+    function setSelectedLocation(latitude, longitude, label) {
+        selectedLocation = { latitude, longitude };
+        selectedAddress = label || null;
+
+        if (tempMarker) map.removeLayer(tempMarker);
+
+        tempMarker = L.marker([latitude, longitude])
+            .addTo(map)
+            .bindTooltip("📍 " + (label || "Выбранная точка"), {
+                permanent: true,
+                direction: "top",
+                offset: [0, -10]
+            })
+            .openTooltip();
+
+        const result = document.getElementById("addressResults");
+        if (result) result.textContent = "Выбрано: 📍 " + (label || "точка на карте");
+    }
+
     map.on("click", async event => {
         if (!cityBoundary) {
             alert("Граница города ещё не загружена. Попробуйте через секунду.");
@@ -229,19 +224,7 @@
         }
 
         const { lat: latitude, lng: longitude } = event.latlng;
-        selectedLocation = { latitude, longitude };
-        selectedAddress = "Получение адреса...";
-
-        if (tempMarker) map.removeLayer(tempMarker);
-
-        tempMarker = L.marker([latitude, longitude])
-            .addTo(map)
-            .bindTooltip("📍 Получение адреса...", {
-                permanent: true,
-                direction: "top",
-                offset: [0, -10]
-            })
-            .openTooltip();
+        setSelectedLocation(latitude, longitude, "Получение адреса...");
 
         try {
             const response = await fetch(
@@ -249,26 +232,15 @@
                 { headers: { "User-Agent": "KaspiyskMap/1.0" } }
             );
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
             selectedAddress = shortAddress(await response.json());
+            setSelectedLocation(latitude, longitude, selectedAddress);
         } catch (error) {
-            console.error("Ошибка получения адреса:", error);
-            selectedAddress = "Адрес не определён";
+            console.warn("Не удалось определить адрес:", error);
+            setSelectedLocation(latitude, longitude, "Адрес не определён");
         }
-
-        tempMarker.unbindTooltip();
-        tempMarker.bindTooltip("📍 " + selectedAddress, {
-            permanent: true,
-            direction: "top",
-            offset: [0, -10]
-        }).openTooltip();
-
-        const result = document.getElementById("addressResults");
-        if (result) result.textContent = "Выбрано: 📍 " + selectedAddress;
     });
 
-    // ---------------------------------------------------------
-    // ADDRESS SEARCH
-    // ---------------------------------------------------------
     document.getElementById("findAddress")?.addEventListener("click", async () => {
         const input = document.getElementById("dogAddress");
         const container = document.getElementById("addressResults");
@@ -299,7 +271,9 @@
 
             const uniqueData = filteredData.filter((item, index, self) => {
                 const key = item.address.road + "_" + item.address.house_number;
-                return index === self.findIndex(t => t.address.road + "_" + t.address.house_number === key);
+                return index === self.findIndex(t =>
+                    t.address.road + "_" + t.address.house_number === key
+                );
             });
 
             if (!uniqueData.length) {
@@ -329,29 +303,16 @@
     function selectAddressResult(item) {
         const latitude = Number(item.lat);
         const longitude = Number(item.lon);
-        selectedLocation = { latitude, longitude };
-        selectedAddress = shortAddress(item);
 
-        if (tempMarker) map.removeLayer(tempMarker);
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+            alert("У адреса нет корректных координат");
+            return;
+        }
 
-        tempMarker = L.marker([latitude, longitude])
-            .addTo(map)
-            .bindTooltip("📍 " + selectedAddress, {
-                permanent: true,
-                direction: "top",
-                offset: [0, -10]
-            })
-            .openTooltip();
-
+        setSelectedLocation(latitude, longitude, shortAddress(item));
         map.setView([latitude, longitude], 17);
-
-        const container = document.getElementById("addressResults");
-        if (container) container.textContent = "Выбрано: 📍 " + selectedAddress;
     }
 
-    // ---------------------------------------------------------
-    // MY LOCATION
-    // ---------------------------------------------------------
     document.getElementById("myLocation")?.addEventListener("click", () => {
         if (!navigator.geolocation) {
             alert("Геолокация не поддерживается вашим браузером");
@@ -370,19 +331,8 @@
                     }
                 }
 
-                selectedLocation = { latitude, longitude };
-                selectedAddress = "Моё местоположение";
-
-                if (tempMarker) map.removeLayer(tempMarker);
-                tempMarker = L.marker([latitude, longitude])
-                    .addTo(map)
-                    .bindPopup("📍 Вы здесь")
-                    .openPopup();
-
+                setSelectedLocation(latitude, longitude, "Моё местоположение");
                 map.setView([latitude, longitude], 17);
-
-                const result = document.getElementById("addressResults");
-                if (result) result.textContent = "Выбрано: 📍 Моё местоположение";
 
                 try {
                     const response = await fetch(
@@ -390,8 +340,8 @@
                         { headers: { "User-Agent": "KaspiyskMap/1.0" } }
                     );
                     if (response.ok) {
-                        selectedAddress = shortAddress(await response.json());
-                        if (result) result.textContent = "Выбрано: 📍 " + selectedAddress;
+                        const address = shortAddress(await response.json());
+                        setSelectedLocation(latitude, longitude, address);
                     }
                 } catch (error) {
                     console.warn("Не удалось определить адрес:", error);
@@ -408,15 +358,18 @@
         );
     });
 
-    // ---------------------------------------------------------
-    // PHOTO
-    // ---------------------------------------------------------
     const photoInput = document.getElementById("dogPhoto");
     const photoPreview = document.getElementById("photoPreview");
 
     photoInput?.addEventListener("change", () => {
         const file = photoInput.files?.[0];
         if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            alert("Можно загружать только изображения");
+            photoInput.value = "";
+            return;
+        }
 
         if (file.size > 5 * 1024 * 1024) {
             alert("Размер фото не должен превышать 5 МБ");
@@ -456,18 +409,6 @@
         photoPreview.appendChild(block);
     }
 
-    function fileToBase64(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    }
-
-    // ---------------------------------------------------------
-    // SAVE
-    // ---------------------------------------------------------
     document.getElementById("saveDog")?.addEventListener("click", async () => {
         const saveButton = document.getElementById("saveDog");
         const serverNotice = document.getElementById("serverNotice");
@@ -477,40 +418,32 @@
             return;
         }
 
-        if (!supabase) {
-            alert("Сервис отправки отметок временно недоступен. Карта работает, но отправить отметку сейчас нельзя.");
-            return;
-        }
-
         const description = document.getElementById("dogDescription")?.value.trim() || "";
+        const formData = new FormData();
 
-        let photoUrl = null;
+        formData.append("latitude", String(selectedLocation.latitude));
+        formData.append("longitude", String(selectedLocation.longitude));
+        formData.append("description", description);
+
         if (selectedPhotoFile) {
-            try {
-                photoUrl = await fileToBase64(selectedPhotoFile);
-            } catch (error) {
-                console.error(error);
-                alert("Не удалось обработать фото");
-                return;
-            }
+            formData.append("photos", selectedPhotoFile);
         }
 
         saveButton.disabled = true;
         saveButton.textContent = "⏳ Отправляем...";
-
         const loadingTimer = setTimeout(() => serverNotice?.classList.remove("hidden"), 5000);
 
         try {
-            const { error } = await supabase
-                .from("dog_sightings")
-                .insert({
-                    latitude: selectedLocation.latitude,
-                    longitude: selectedLocation.longitude,
-                    description: description || null,
-                    photo_url: photoUrl
-                });
+            const response = await fetch(`${api}/dogs`, {
+                method: "POST",
+                body: formData
+            });
 
-            if (error) throw error;
+            const data = await response.json().catch(() => null);
+
+            if (!response.ok) {
+                throw new Error(data?.error || `HTTP ${response.status}`);
+            }
 
             clearTimeout(loadingTimer);
             serverNotice?.classList.add("hidden");
@@ -544,20 +477,15 @@
             clearTimeout(loadingTimer);
             serverNotice?.classList.add("hidden");
             console.error("Ошибка отправки отметки:", error);
-            alert("Не удалось отправить отметку. Попробуйте ещё раз.");
+            alert(error.message || "Не удалось отправить отметку. Попробуйте ещё раз.");
         } finally {
             saveButton.disabled = false;
             saveButton.textContent = "🚀 Отправить отметку";
         }
     });
 
-    // ---------------------------------------------------------
-    // STARTUP
-    // ---------------------------------------------------------
     Promise.allSettled([
         loadCityBoundary(),
         loadDogSightings()
-    ]).then(() => {
-        refreshMapSize();
-    });
+    ]).then(() => refreshMapSize());
 })();
