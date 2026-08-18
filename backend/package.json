@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node -r ./preload.js server.js"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +21,6 @@
     "input": "^1.0.1",
     "multer": "^2.2.0",
     "pg": "^8.22.0",
-    "telegram": "^2.26.22"
+    "telegram": "^2.26.0"
   }
 }
