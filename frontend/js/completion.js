@@ -32,14 +32,21 @@ async function confirmComplete() {
         .value
         .trim();
 
+    const photoInput = document.getElementById("resolutionPhoto");
+    const formData = new FormData();
+
+    formData.append("status", "done");
+    formData.append("resolution_comment", comment);
+
+    if (photoInput.files.length > 0) {
+        formData.append("resolution_photo", photoInput.files[0]);
+    }
+
     const result = await apiRequest(
         `/problems/${completeProblemId}`,
         {
             method: "PUT",
-            body: JSON.stringify({
-                status: "done",
-                resolution_comment: comment
-            })
+            body: formData
         }
     );
 
@@ -48,18 +55,13 @@ async function confirmComplete() {
         return;
     }
 
-    if (document.getElementById("resolutionPhoto").files.length > 0) {
-        alert("Проблема выполнена. Фото пока сохранено только в предпросмотре: backend main ещё не принимает фото выполнения.");
-    } else {
-        alert("Проблема выполнена");
-    }
-
     closeCompleteModal();
+    alert("Проблема выполнена");
     refreshProblems();
 }
 
 // В main старый admin.js вызывает finishProblem().
-// Перехватываем его и используем новое окно.
+// Используем новое окно вместо старого prompt().
 function finishProblem(id) {
     openCompleteModal(id);
 }
