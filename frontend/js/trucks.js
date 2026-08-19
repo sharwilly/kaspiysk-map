@@ -1,15 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const map = L.map("trucks-map", { zoomControl: true })
-        .setView([24.1477, 120.6736], 12);
-
+    const map = L.map("trucks-map", { zoomControl: true }).setView([25.02, 121.46], 12);
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "© OpenStreetMap contributors"
     }).addTo(map);
 
     const markers = new Map();
-    let allTrucks = [];
-    let initialFitDone = false;
-
+    let initialFit = false;
     const els = {
         status: document.getElementById("mapStatus"),
         count: document.getElementById("truckCount"),
@@ -19,45 +15,26 @@ document.addEventListener("DOMContentLoaded", () => {
         refresh: document.getElementById("refreshTrucks")
     };
 
-    function setStatus(text) {
-        els.status.textContent = text;
+    function esc(value) {
+        return String(value ?? "—").replaceAll("&", "&amp;").replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
     }
 
-    function escapeHtml(value) {
-        return String(value ?? "")
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#039;");
-    }
+    function setStatus(text) { els.status.textContent = text; }
 
     function popup(truck) {
-        const speed = Math.round(Number(truck.speed || 0) * 10) / 10;
-        const moving = speed > 2;
-        const overspeed = truck.overSpeed === true || truck.overSpeed === "1" || truck.overSpeed === 1;
-
-        return `
-            <div style="min-width:190px">
-                <strong>🚛 Мусоровоз ${escapeHtml(truck.vehicle)}</strong><br>
-                <span>Скорость: ${speed} км/ч</span><br>
-                <span>Статус: ${moving ? "🟢 движется" : "🟡 стоит"}</span><br>
-                <span>Маршрут: ${escapeHtml(truck.line)}</span><br>
-                <span>GPS: ${escapeHtml(truck.timestamp)}</span>
-                ${truck.location ? `<br><span>${escapeHtml(truck.location)}</span>` : ""}
-                ${overspeed ? "<br><b>⚠️ Превышение скорости</b>" : ""}
-            </div>
-        `;
+        return `<div style="min-width:190px">
+            <strong>🚛 Мусоровоз ${esc(truck.vehicle)}</strong><br>
+            <span>Статус: 🟢 на линии</span><br>
+            <span>Маршрут: ${esc(truck.route)}</span><br>
+            <span>${esc(truck.location)}</span><br>
+            <span>GPS: ${esc(truck.timestamp)}</span>
+        </div>`;
     }
 
     function render(trucks) {
-        allTrucks = trucks;
-        els.count.textContent = trucks.length;
-        els.moving.textContent = trucks.filter(t => Number(t.speed) > 2).length;
-        els.updated.textContent = `Обновлено: ${new Date().toLocaleTimeString("ru-RU")}`;
-
-        const bounds = [];
         const activeIds = new Set(trucks.map(t => t.id));
+        const bounds = [];
 
         for (const [id, marker] of markers) {
             if (!activeIds.has(id)) {
@@ -67,9 +44,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         for (const truck of trucks) {
-            const position = [Number(truck.latitude), Number(truck.longitude)];
+            const position = [truck.lat, truck.lng];
             bounds.push(position);
-
             let marker = markers.get(truck.id);
             if (!marker) {
                 marker = L.marker(position).addTo(map);
@@ -77,63 +53,52 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 marker.setLatLng(position);
             }
-
             marker.bindPopup(popup(truck));
         }
 
-        els.list.innerHTML = trucks
-            .slice()
-            .sort((a, b) => Number(b.speed) - Number(a.speed))
-            .map(truck => `
-                <div class="truck-item" data-truck-id="${escapeHtml(truck.id)}">
-                    <div class="truck-item-top">
-                        <span class="truck-name">🚛 ${escapeHtml(truck.vehicle)}</span>
-                        <span class="truck-speed">${Math.round(Number(truck.speed || 0))} км/ч</span>
-                    </div>
-                    <div class="truck-meta">
-                        ${Number(truck.speed) > 2 ? "В движении" : "Стоит"} · маршрут ${escapeHtml(truck.line)}
-                    </div>
+        els.count.textContent = trucks.length;
+        els.moving.textContent = trucks.length;
+        els.updated.textContent = `Данные API: ${new Date().toLocaleTimeString("ru-RU")}`;
+
+        els.list.innerHTML = trucks.map(truck => `
+            <div class="truck-item" data-id="${esc(truck.id)}">
+                <div class="truck-item-top">
+                    <span class="truck-name">🚛 ${esc(truck.vehicle)}</span>
+                    <span class="truck-speed">НА ЛИНИИ</span>
                 </div>
-            `)
-            .join("");
+                <div class="truck-meta">${esc(truck.route)} · GPS ${esc(truck.timestamp)}</div>
+            </div>`).join("");
 
         els.list.querySelectorAll(".truck-item").forEach(item => {
             item.addEventListener("click", () => {
-                const truck = allTrucks.find(t => t.id === item.dataset.truckId);
+                const truck = trucks.find(t => t.id === item.dataset.id);
                 if (!truck) return;
-                map.setView([truck.latitude, truck.longitude], 15);
+                map.setView([truck.lat, truck.lng], 15);
                 markers.get(truck.id)?.openPopup();
             });
         });
 
-        if (bounds.length && !initialFitDone) {
+        if (bounds.length && !initialFit) {
             map.fitBounds(bounds, { padding: [30, 30] });
-            initialFitDone = true;
+            initialFit = true;
         }
     }
 
     async function loadTrucks() {
-        setStatus("Получаем GPS-данные…");
         els.refresh.disabled = true;
-
+        setStatus("Получаем актуальные GPS-данные…");
         try {
             const response = await fetch("/api/trucks", { cache: "no-store" });
-            const data = await response.json();
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const payload = await response.json();
+            if (!Array.isArray(payload.trucks)) throw new Error("Некорректный ответ API");
 
-            if (!response.ok) {
-                throw new Error(data.error || `HTTP ${response.status}`);
-            }
-
-            if (!Array.isArray(data.trucks) || data.trucks.length === 0) {
-                throw new Error("Сервер не вернул ни одной машины");
-            }
-
-            render(data.trucks);
-            setStatus(`Демонстрационные данные · ${data.trucks.length} машин`);
+            render(payload.trucks.slice(0, 12));
+            setStatus(payload.trucks.length ? `Показано ${payload.trucks.length} машин` : "Сейчас машин на линии нет");
         } catch (error) {
-            console.error("Ошибка загрузки мусоровозов:", error);
-            setStatus("Не удалось получить GPS-данные. Попробуйте обновить.");
-            els.list.innerHTML = `<div class="truck-item">Ошибка загрузки GPS-данных</div>`;
+            console.error(error);
+            setStatus("Не удалось получить GPS-данные");
+            els.list.innerHTML = `<div class="truck-item">Источник временно недоступен. Попробуйте обновить.</div>`;
             els.count.textContent = "—";
             els.moving.textContent = "—";
         } finally {
@@ -143,5 +108,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
     els.refresh.addEventListener("click", loadTrucks);
     loadTrucks();
-    setInterval(loadTrucks, 10 * 60 * 1000);
+    setInterval(loadTrucks, 2 * 60 * 1000);
 });
