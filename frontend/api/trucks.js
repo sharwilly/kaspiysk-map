@@ -1,96 +1,46 @@
-const DATASET_URL = "https://data.gov.tw/api/v2/rest/dataset/83558";
+const SOURCE_URL = "https://data.ntpc.gov.tw/api/datasets/28AB4122-60E1-4065-98E5-ABCCB69AACA6/json/";
 const MAX_TRUCKS = 12;
 
-function toNumber(value) {
-    if (value === null || value === undefined || value === "") return NaN;
-    return Number(String(value).replace(",", "."));
+function value(row, keys) {
+    for (const key of keys) {
+        if (row && row[key] !== undefined && row[key] !== null && row[key] !== "") return row[key];
+    }
+    return null;
 }
 
-function collectRecords(value, result = []) {
-    if (Array.isArray(value)) {
-        for (const item of value) collectRecords(item, result);
-        return result;
-    }
-
-    if (!value || typeof value !== "object") return result;
-
-    const longitude = toNumber(value.X ?? value.x ?? value.longitude ?? value.lon);
-    const latitude = toNumber(value.Y ?? value.y ?? value.latitude ?? value.lat);
-
-    if (
-        Number.isFinite(latitude) &&
-        Number.isFinite(longitude) &&
-        Math.abs(latitude) <= 90 &&
-        Math.abs(longitude) <= 180
-    ) {
-        result.push(value);
-    }
-
-    for (const child of Object.values(value)) {
-        if (child && typeof child === "object") collectRecords(child, result);
-    }
-
-    return result;
+function rowsFrom(payload) {
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload.data)) return payload.data;
+    if (Array.isArray(payload.records)) return payload.records;
+    if (payload.result && Array.isArray(payload.result.records)) return payload.result.records;
+    if (Array.isArray(payload.result)) return payload.result;
+    return [];
 }
 
-function findUrls(value, result = []) {
-    if (!value || typeof value !== "object") return result;
+function normalize(row, index) {
+    const lat = Number(value(row, ["latitude", "lat"]));
+    const lng = Number(value(row, ["longitude", "lng", "lon"]));
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
 
-    if (Array.isArray(value)) {
-        value.forEach(item => findUrls(item, result));
-        return result;
-    }
+    const timestamp = String(value(row, ["time", "timestamp"]) || "—");
+    const gpsTime = new Date(timestamp).getTime();
 
-    for (const [key, child] of Object.entries(value)) {
-        if (
-            typeof child === "string" &&
-            child.startsWith("http") &&
-            /download|resource|json/i.test(key)
-        ) {
-            result.push(child);
-        }
+    // Не показываем явно устаревшие позиции.
+    if (Number.isFinite(gpsTime) && Date.now() - gpsTime > 20 * 60 * 1000) return null;
 
-        if (child && typeof child === "object") findUrls(child, result);
-    }
-
-    return result;
-}
-
-function normalize(record) {
-    const longitude = toNumber(record.X ?? record.x ?? record.longitude ?? record.lon);
-    const latitude = toNumber(record.Y ?? record.y ?? record.latitude ?? record.lat);
-
-    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
-    if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return null;
-
-    const car = record.car ?? record.Car ?? record.vehicle ?? record.vehicle_id;
-    if (!car) return null;
-
-    const speed = toNumber(record.SpeedValue ?? record.speed ?? record.Speed);
+    const vehicle = String(value(row, ["car", "vehicle", "vehicleId"]) || "Без номера");
 
     return {
-        id: String(car),
-        vehicle: String(car),
-        line: String(record.lineid ?? record.linid ?? record.line ?? "—"),
-        latitude,
-        longitude,
-        speed: Number.isFinite(speed) ? speed : 0,
-        timestamp: String(record.time ?? record.Time ?? record.timestamp ?? "—"),
-        overSpeed: record.OverSpeed ?? record.overspeed ?? record.over_speed ?? false,
-        location: String(record.location ?? "")
+        id: `${vehicle}-${index}`,
+        vehicle,
+        route: String(value(row, ["lineid", "lineId", "line"]) || "—"),
+        timestamp,
+        location: String(value(row, ["location", "address"]) || "Адрес не указан"),
+        city: String(value(row, ["cityname", "cityName"]) || "New Taipei City"),
+        lat,
+        lng
     };
-}
-
-async function getJson(url) {
-    const response = await fetch(url, {
-        headers: { "Accept": "application/json" }
-    });
-
-    if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-    }
-
-    return response.json();
 }
 
 module.exports = async (req, res) => {
@@ -99,54 +49,25 @@ module.exports = async (req, res) => {
         return res.status(405).json({ error: "Method not allowed" });
     }
 
-    // Vercel cache: не опрашиваем внешний источник при каждом открытии страницы.
-    res.setHeader(
-        "Cache-Control",
-        "s-maxage=120, stale-while-revalidate=300"
-    );
+    // CDN-кэш Vercel: максимум один запрос к источнику примерно раз в 2 минуты.
+    res.setHeader("Cache-Control", "s-maxage=120, stale-while-revalidate=300");
+    res.setHeader("Access-Control-Allow-Origin", "*");
 
     try {
-        const metadata = await getJson(DATASET_URL);
-        const urls = [...new Set(findUrls(metadata))];
+        const response = await fetch(SOURCE_URL, {
+            headers: { Accept: "application/json" }
+        });
 
-        if (!urls.length) {
-            throw new Error("В метаданных не найден ресурс GPS-данных");
-        }
+        if (!response.ok) throw new Error(`Источник вернул HTTP ${response.status}`);
 
-        let rawRecords = [];
-
-        for (const url of urls) {
-            try {
-                const data = await getJson(url);
-                const records = collectRecords(data);
-                if (records.length) {
-                    rawRecords = records;
-                    break;
-                }
-            } catch (error) {
-                console.warn("Не удалось получить ресурс:", url, error.message);
-            }
-        }
-
-        const unique = new Map();
-
-        for (const raw of rawRecords) {
-            const truck = normalize(raw);
-            if (!truck) continue;
-
-            // Оставляем только одну актуальную позицию каждой машины.
-            const previous = unique.get(truck.id);
-            if (!previous || truck.timestamp >= previous.timestamp) {
-                unique.set(truck.id, truck);
-            }
-        }
-
-        const trucks = [...unique.values()]
-            .sort((a, b) => a.vehicle.localeCompare(b.vehicle))
+        const payload = await response.json();
+        const trucks = rowsFrom(payload)
+            .map((row, index) => normalize(row, index))
+            .filter(Boolean)
             .slice(0, MAX_TRUCKS);
 
         return res.status(200).json({
-            source: "Taichung City Government open data",
+            source: "New Taipei City Open Data",
             demo: true,
             limit: MAX_TRUCKS,
             updatedAt: new Date().toISOString(),
