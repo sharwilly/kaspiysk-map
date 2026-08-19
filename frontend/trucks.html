@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="images/favicon.ico">
+<title>Мусоровозы — Открытый Каспийск</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="css/common.css">
+<link rel="stylesheet" href="css/trucks.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body data-page="trucks">
+<div id="header-container"></div>
+
+<main class="trucks-page">
+    <section class="trucks-head">
+        <div>
+            <span class="eyebrow">SMART CITY · GPS</span>
+            <h1>Мониторинг мусоровозов</h1>
+            <p>Демонстрационный прототип публичного отображения GPS-данных коммунальной техники.</p>
+        </div>
+        <div class="demo-badge">ДЕМО · ДАННЫЕ ТАЙЧЖУНА</div>
+    </section>
+
+    <section class="trucks-layout">
+        <div class="trucks-map-wrap">
+            <div id="trucks-map"></div>
+            <div class="map-status" id="mapStatus">Загрузка данных…</div>
+        </div>
+
+        <aside class="trucks-panel">
+            <div class="panel-title-row">
+                <div>
+                    <h2>Мусоровозы</h2>
+                    <span id="lastUpdated">—</span>
+                </div>
+                <button id="refreshTrucks" class="refresh-btn" type="button">↻</button>
+            </div>
+
+            <div class="truck-stats">
+                <div><b id="truckCount">—</b><span>машин</span></div>
+                <div><b id="movingCount">—</b><span>в движении</span></div>
+            </div>
+
+            <div id="truckList" class="truck-list"></div>
+
+            <div class="source-note">
+                <b>Источник</b>
+                <p>Открытые данные Environmental Protection Bureau, Taichung City Government. В исходном наборе есть машина, время, координаты, скорость и признак превышения скорости.</p>
+                <a href="https://data.gov.tw/en/datasets/83558" target="_blank" rel="noopener">Открытый набор данных →</a>
+            </div>
+        </aside>
+    </section>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/weather-widget.js"></script>
+<script src="js/header.js"></script>
+<script src="js/trucks.js"></script>
+</body>
+</html>
