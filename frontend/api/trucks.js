@@ -1,9 +1,6 @@
-const SOURCES = [
-    "https://data.ntpc.gov.tw/api/datasets/28AB4122-60E1-4065-98E5-ABCCB69AACA6/json/",
-    "https://data.ntpc.gov.tw/od/data/api/28AB4122-60E1-4065-98E5-ABCCB69AACA6?$format=json"
-];
-
+const SOURCE_URL = "https://data.ntpc.gov.tw/api/datasets/28ab4122-60e1-4065-98e5-abccb69aaca6/json";
 const MAX_TRUCKS = 12;
+const REQUEST_TIMEOUT_MS = 8000;
 
 function value(row, keys) {
     for (const key of keys) {
@@ -16,10 +13,10 @@ function value(row, keys) {
 
 function rowsFrom(payload) {
     if (Array.isArray(payload)) return payload;
-    if (Array.isArray(payload.data)) return payload.data;
-    if (Array.isArray(payload.records)) return payload.records;
-    if (payload.result && Array.isArray(payload.result.records)) return payload.result.records;
-    if (Array.isArray(payload.result)) return payload.result;
+    if (payload && Array.isArray(payload.data)) return payload.data;
+    if (payload && Array.isArray(payload.records)) return payload.records;
+    if (payload?.result && Array.isArray(payload.result.records)) return payload.result.records;
+    if (payload?.result && Array.isArray(payload.result)) return payload.result;
     return [];
 }
 
@@ -49,29 +46,34 @@ function normalize(row, index) {
 }
 
 async function getRows() {
-    let lastError;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-    for (const url of SOURCES) {
-        try {
-            const response = await fetch(url, {
-                headers: { Accept: "application/json" }
-            });
+    try {
+        const response = await fetch(SOURCE_URL, {
+            method: "GET",
+            headers: {
+                Accept: "application/json",
+                "User-Agent": "OpenKaspiysk-demo/1.0"
+            },
+            signal: controller.signal
+        });
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            const payload = await response.json();
-            const rows = rowsFrom(payload);
-
-            if (rows.length) return rows;
-            lastError = new Error("Источник вернул пустой набор данных");
-        } catch (error) {
-            lastError = error;
+        if (!response.ok) {
+            throw new Error(`Источник вернул HTTP ${response.status}`);
         }
-    }
 
-    throw lastError || new Error("Источник недоступен");
+        const payload = await response.json();
+        const rows = rowsFrom(payload);
+
+        if (!rows.length) {
+            throw new Error("Источник вернул пустой набор данных");
+        }
+
+        return rows;
+    } finally {
+        clearTimeout(timer);
+    }
 }
 
 module.exports = async (req, res) => {
@@ -82,6 +84,7 @@ module.exports = async (req, res) => {
 
     res.setHeader("Cache-Control", "s-maxage=120, stale-while-revalidate=300");
     res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
 
     try {
         const rows = await getRows();
@@ -102,7 +105,7 @@ module.exports = async (req, res) => {
         console.error("Demo trucks API error:", error);
         return res.status(502).json({
             error: "Не удалось получить демонстрационные GPS-данные",
-            details: process.env.NODE_ENV === "development" ? String(error.message) : undefined
+            details: error.name === "AbortError" ? "Тайм-аут источника" : String(error.message || error)
         });
     }
 };
