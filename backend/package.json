@@ -20,7 +20,6 @@
     "express-rate-limit": "^8.6.1",
     "input": "^1.0.1",
     "multer": "^2.2.0",
-    "cloudinary": "^2.10.0",
     "pg": "^8.22.0",
     "telegram": "^2.26.22"
   }
