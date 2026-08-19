@@ -22,7 +22,7 @@
             <h1>Мониторинг мусоровозов</h1>
             <p>Демонстрационный прототип публичного отображения GPS-данных коммунальной техники.</p>
         </div>
-        <div class="demo-badge">ДЕМО · ДАННЫЕ ТАЙЧЖУНА</div>
+        <div class="demo-badge">ДЕМО · НОВЫЙ ТАЙБЭЙ</div>
     </section>
 
     <section class="trucks-layout">
@@ -37,20 +37,20 @@
                     <h2>Мусоровозы</h2>
                     <span id="lastUpdated">—</span>
                 </div>
-                <button id="refreshTrucks" class="refresh-btn" type="button">↻</button>
+                <button id="refreshTrucks" class="refresh-btn" type="button" aria-label="Обновить данные">↻</button>
             </div>
 
             <div class="truck-stats">
-                <div><b id="truckCount">—</b><span>машин</span></div>
-                <div><b id="movingCount">—</b><span>в движении</span></div>
+                <div><b id="truckCount">—</b><span>на линии</span></div>
+                <div><b id="movingCount">—</b><span>актуальные GPS</span></div>
             </div>
 
             <div id="truckList" class="truck-list"></div>
 
             <div class="source-note">
                 <b>Источник</b>
-                <p>Открытые данные Environmental Protection Bureau, Taichung City Government. В исходном наборе есть машина, время, координаты, скорость и признак превышения скорости.</p>
-                <a href="https://data.gov.tw/en/datasets/83558" target="_blank" rel="noopener">Открытый набор данных →</a>
+                <p>Открытые данные Environmental Protection Department, New Taipei City Government. Источник показывает только мусоровозы, которые сейчас находятся на работе, и обновляет GPS-позиции каждые 2 минуты.</p>
+                <a href="https://data.gov.tw/en/datasets/122972" target="_blank" rel="noopener">Открытый набор данных →</a>
             </div>
         </aside>
     </section>
