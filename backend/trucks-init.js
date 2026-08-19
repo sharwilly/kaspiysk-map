@@ -1,5 +1,4 @@
-const Module = require('module');
-const originalExpress = require('express');
+const express = require('express');
 const pool = require('./db');
 
 const SOURCE_URL = 'https://data.ntpc.gov.tw/api/datasets/28ab4122-60e1-4065-98e5-abccb69aaca6/json';
@@ -14,6 +13,7 @@ function num(value) {
 
 function normalize(raw) {
     if (!raw || typeof raw !== 'object') return null;
+
     const vehicle = String(raw.car ?? raw.vehicle ?? raw.vehicle_id ?? raw.id ?? '').trim();
     const lat = num(raw.latitude ?? raw.lat ?? raw.Latitude);
     const lng = num(raw.longitude ?? raw.lng ?? raw.lon ?? raw.Longitude);
@@ -134,7 +134,7 @@ async function latestTrucks() {
         .map(row => ({
             ...row,
             fresh: Number(row.age_minutes) <= STALE_MINUTES,
-            ageMinutes: Math.round(Number(row.age_minutes) * 10) / 10
+            ageMinutes: Math.max(0, Math.round(Number(row.age_minutes) * 10) / 10)
         }));
 }
 
@@ -216,18 +216,13 @@ function installTruckRoutes(app) {
 }
 
 // server.js is started with `node -r ./trucks-init.js server.js`.
-// Wrap the Express factory so our routes are installed on the exact app
-// instance created by server.js, without rewriting the existing backend.
-function wrappedExpress(...args) {
-    const app = originalExpress(...args);
-    installTruckRoutes(app);
-    return app;
-}
+// Installing routes from Express' listen lifecycle is more reliable than
+// replacing the Express factory and works with Express 5 as well.
+const originalListen = express.application.listen;
 
-Object.setPrototypeOf(wrappedExpress, originalExpress);
-Object.assign(wrappedExpress, originalExpress);
+express.application.listen = function patchedListen(...args) {
+    installTruckRoutes(this);
+    return originalListen.apply(this, args);
+};
 
-const expressModule = require.cache[require.resolve('express')];
-if (expressModule) {
-    expressModule.exports = wrappedExpress;
-}
+console.log('🚛 Truck GPS routes prepared');
