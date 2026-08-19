@@ -1,9 +1,11 @@
+const express = require('express');
 const pool = require('./db');
 
 const SOURCE_URL = 'https://data.ntpc.gov.tw/api/datasets/28ab4122-60e1-4065-98e5-abccb69aaca6/json';
 const MAX_TRUCKS = 12;
 const STALE_MINUTES = 20;
 let tableReady = false;
+let routesRegistered = false;
 
 function num(value) { const n = Number(value); return Number.isFinite(n) ? n : null; }
 function normalize(raw) {
@@ -64,9 +66,10 @@ async function history(vehicleId, date) {
     return result.rows;
 }
 
-function installTruckRoutes(app) {
-    // Routes are registered synchronously; DB setup happens when an endpoint is called.
-    app.get('/trucks', async (req, res) => {
+function registerRoutes(app, originalGet) {
+    if (routesRegistered) return;
+    routesRegistered = true;
+    originalGet.call(app, '/trucks', async (req, res) => {
         try {
             await ensureTable(); let sourceError = null;
             try { await pollSource(); } catch (e) { sourceError = e.message; console.error('Truck GPS source error:', e.message); }
@@ -76,7 +79,7 @@ function installTruckRoutes(app) {
                 staleFallback: Boolean(sourceError || trucks.some(t => !t.fresh)) });
         } catch (e) { console.error('Truck API error:', e); res.status(500).json({ error: 'Ошибка GPS-мониторинга', details: e.message }); }
     });
-    app.get('/trucks/history/:vehicleId', async (req, res) => {
+    originalGet.call(app, '/trucks/history/:vehicleId', async (req, res) => {
         try {
             await ensureTable();
             const date = /^\d{4}-\d{2}-\d{2}$/.test(req.query.date || '') ? req.query.date : new Date().toISOString().slice(0,10);
@@ -84,4 +87,11 @@ function installTruckRoutes(app) {
         } catch (e) { console.error('Truck history error:', e); res.status(500).json({ error: 'Ошибка истории маршрута', details: e.message }); }
     });
 }
-module.exports = { installTruckRoutes };
+
+// server.js is large and should not be rewritten just to add two routes.
+// Register our routes on the first existing app.get() call, before that call proceeds.
+const originalGet = express.application.get;
+express.application.get = function patchedGet(path, ...args) {
+    registerRoutes(this, originalGet);
+    return originalGet.call(this, path, ...args);
+};
