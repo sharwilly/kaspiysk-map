@@ -42,26 +42,21 @@ document.addEventListener("DOMContentLoaded", () => {
         const y = number(value.Y ?? value.y ?? value.latitude ?? value.lat);
 
         if (Number.isFinite(x) && Number.isFinite(y)) {
-            if (Math.abs(x) <= 180 && Math.abs(y) <= 90) {
-                output.push(value);
-            }
+            if (Math.abs(x) <= 180 && Math.abs(y) <= 90) output.push(value);
         }
 
         for (const child of Object.values(value)) {
-            if (child && typeof child === "object") {
-                collectRecords(child, output);
-            }
+            if (child && typeof child === "object") collectRecords(child, output);
         }
 
         return output;
     }
 
-    function findResourceUrl(metadata) {
+    function findResourceUrls(metadata) {
         const urls = [];
 
         function walk(value) {
             if (!value || typeof value !== "object") return;
-
             if (Array.isArray(value)) {
                 value.forEach(walk);
                 return;
@@ -75,13 +70,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 ) {
                     urls.push(child);
                 }
-
                 if (child && typeof child === "object") walk(child);
             }
         }
 
         walk(metadata);
-        return urls.find(url => /http/i.test(url)) || null;
+        return [...new Set(urls)];
     }
 
     function normalizeRecord(record) {
@@ -129,11 +123,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         return `
             <div style="min-width:180px">
-                <strong>🚛 Мусоровоз ${truck.car}</strong><br>
+                <strong>🚛 Мусоровоз ${escapeHtml(truck.car)}</strong><br>
                 <span>Скорость: ${speed} км/ч</span><br>
                 <span>Статус: ${moving ? "🟢 движется" : "🟡 стоит"}</span><br>
-                <span>Маршрут: ${truck.line}</span><br>
-                <span>Время: ${truck.time}</span>
+                <span>Маршрут: ${escapeHtml(truck.line)}</span><br>
+                <span>Время: ${escapeHtml(truck.time)}</span>
                 ${overspeed ? "<br><b>⚠️ Превышение скорости</b>" : ""}
             </div>
         `;
@@ -173,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
         els.list.innerHTML = trucks
             .sort((a, b) => b.speed - a.speed)
             .map(truck => `
-                <div class="truck-item" data-truck-id="${CSS.escape(truck.id)}">
+                <div class="truck-item" data-truck-id="${escapeHtml(truck.id)}">
                     <div class="truck-item-top">
                         <span class="truck-name">🚛 ${escapeHtml(truck.car)}</span>
                         <span class="truck-speed">${Math.round(truck.speed)} км/ч</span>
@@ -215,14 +209,33 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!metadataResponse.ok) throw new Error(`Metadata HTTP ${metadataResponse.status}`);
 
             const metadata = await metadataResponse.json();
-            const resourceUrl = findResourceUrl(metadata);
-            if (!resourceUrl) throw new Error("Не найден URL ресурса в метаданных");
+            const resourceUrls = findResourceUrls(metadata);
+            if (!resourceUrls.length) throw new Error("Не найден URL ресурса в метаданных");
 
-            const dataResponse = await fetch(resourceUrl, { cache: "no-store" });
-            if (!dataResponse.ok) throw new Error(`Data HTTP ${dataResponse.status}`);
+            let records = [];
 
-            const data = await dataResponse.json();
-            const records = deduplicate(collectRecords(data));
+            for (const resourceUrl of resourceUrls) {
+                try {
+                    const response = await fetch(resourceUrl, { cache: "no-store" });
+                    if (!response.ok) continue;
+                    const contentType = response.headers.get("content-type") || "";
+                    const text = await response.text();
+
+                    let data;
+                    try {
+                        data = JSON.parse(text);
+                    } catch {
+                        continue;
+                    }
+
+                    records = deduplicate(collectRecords(data));
+                    if (records.length) break;
+
+                    if (contentType.includes("json")) continue;
+                } catch (error) {
+                    console.warn("Ресурс недоступен:", resourceUrl, error);
+                }
+            }
 
             if (!records.length) {
                 throw new Error("API вернул данные, но координаты машин не найдены");
