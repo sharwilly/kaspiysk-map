@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node -r ./trucks-init.js server.js"
+    "start": "node entrypoint.js"
   },
   "keywords": [],
   "author": "",
