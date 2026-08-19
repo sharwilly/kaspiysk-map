@@ -13,15 +13,12 @@ function num(value) {
 
 function normalize(raw) {
     if (!raw || typeof raw !== 'object') return null;
-
     const vehicle = String(raw.car ?? raw.vehicle ?? raw.vehicle_id ?? raw.id ?? '').trim();
     const lat = num(raw.latitude ?? raw.lat ?? raw.Latitude);
     const lng = num(raw.longitude ?? raw.lng ?? raw.lon ?? raw.Longitude);
     const time = new Date(raw.time ?? raw.timestamp ?? raw.recorded_at ?? Date.now());
 
-    if (!vehicle || lat === null || lng === null || Math.abs(lat) > 90 || Math.abs(lng) > 180 || Number.isNaN(time.getTime())) {
-        return null;
-    }
+    if (!vehicle || lat === null || lng === null || Math.abs(lat) > 90 || Math.abs(lng) > 180 || Number.isNaN(time.getTime())) return null;
 
     return {
         vehicle_id: vehicle,
@@ -44,7 +41,6 @@ function recordsFrom(payload) {
 
 async function ensureTable() {
     if (tableReady) return;
-
     await pool.query(`
         CREATE TABLE IF NOT EXISTS truck_gps_points (
             id BIGSERIAL PRIMARY KEY,
@@ -58,37 +54,26 @@ async function ensureTable() {
             speed DOUBLE PRECISION,
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
-        CREATE INDEX IF NOT EXISTS idx_truck_gps_vehicle_time
-            ON truck_gps_points(vehicle_id, recorded_at DESC);
-        CREATE INDEX IF NOT EXISTS idx_truck_gps_time
-            ON truck_gps_points(recorded_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_truck_gps_vehicle_time ON truck_gps_points(vehicle_id, recorded_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_truck_gps_time ON truck_gps_points(recorded_at DESC);
     `);
-
     tableReady = true;
 }
 
 async function pollSource() {
     const response = await fetch(SOURCE_URL, {
-        headers: {
-            Accept: 'application/json',
-            'User-Agent': 'OpenKaspiysk-Demo/1.0'
-        },
+        headers: { Accept: 'application/json', 'User-Agent': 'OpenKaspiysk-Demo/1.0' },
         signal: AbortSignal.timeout(8000)
     });
-
     if (!response.ok) throw new Error(`GPS source HTTP ${response.status}`);
 
     const payload = await response.json();
     const latest = new Map();
-
     for (const raw of recordsFrom(payload)) {
         const point = normalize(raw);
         if (!point) continue;
-
         const old = latest.get(point.vehicle_id);
-        if (!old || point.recorded_at > old.recorded_at) {
-            latest.set(point.vehicle_id, point);
-        }
+        if (!old || point.recorded_at > old.recorded_at) latest.set(point.vehicle_id, point);
     }
 
     for (const point of latest.values()) {
@@ -97,18 +82,9 @@ async function pollSource() {
                 (vehicle_id, recorded_at, latitude, longitude, route, location, source, speed)
             SELECT $1, $2, $3, $4, $5, $6, 'new_taipei_demo', $7
             WHERE NOT EXISTS (
-                SELECT 1 FROM truck_gps_points
-                WHERE vehicle_id = $1 AND recorded_at = $2
+                SELECT 1 FROM truck_gps_points WHERE vehicle_id = $1 AND recorded_at = $2
             )
-        `, [
-            point.vehicle_id,
-            point.recorded_at,
-            point.latitude,
-            point.longitude,
-            point.route,
-            point.location,
-            point.speed
-        ]);
+        `, [point.vehicle_id, point.recorded_at, point.latitude, point.longitude, point.route, point.location, point.speed]);
     }
 }
 
@@ -128,32 +104,22 @@ async function latestTrucks() {
         ORDER BY vehicle_id, recorded_at DESC
     `);
 
-    return result.rows
-        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-        .slice(0, MAX_TRUCKS)
-        .map(row => ({
-            ...row,
-            fresh: Number(row.age_minutes) <= STALE_MINUTES,
-            ageMinutes: Math.max(0, Math.round(Number(row.age_minutes) * 10) / 10)
-        }));
+    return result.rows.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, MAX_TRUCKS).map(row => ({
+        ...row,
+        fresh: Number(row.age_minutes) <= STALE_MINUTES,
+        ageMinutes: Math.max(0, Math.round(Number(row.age_minutes) * 10) / 10)
+    }));
 }
 
 async function history(vehicleId, date) {
     const result = await pool.query(`
-        SELECT
-            recorded_at AS timestamp,
-            latitude AS lat,
-            longitude AS lng,
-            route,
-            location,
-            speed
+        SELECT recorded_at AS timestamp, latitude AS lat, longitude AS lng, route, location, speed
         FROM truck_gps_points
         WHERE vehicle_id = $1
           AND recorded_at >= $2::date
           AND recorded_at < ($2::date + INTERVAL '1 day')
         ORDER BY recorded_at ASC
     `, [vehicleId, date]);
-
     return result.rows;
 }
 
@@ -164,65 +130,52 @@ function installTruckRoutes(app) {
     app.get('/trucks', async (req, res) => {
         try {
             await ensureTable();
-
             let sourceError = null;
-            try {
-                await pollSource();
-            } catch (error) {
+            try { await pollSource(); }
+            catch (error) {
                 sourceError = error.message;
                 console.error('Truck GPS source error:', error.message);
             }
 
             const trucks = await latestTrucks();
-
             res.set('Cache-Control', 'no-store');
             res.json({
                 trucks,
                 count: trucks.length,
+                max: MAX_TRUCKS,
                 source: 'Новый Тайбэй (демо)',
                 sourceError,
-                staleFallback: Boolean(sourceError || trucks.some(t => !t.fresh))
+                staleFallback: trucks.some(t => !t.fresh)
             });
         } catch (error) {
             console.error('Truck API error:', error);
-            res.status(500).json({
-                error: 'Ошибка GPS-мониторинга',
-                details: error.message
-            });
+            res.status(500).json({ error: 'Ошибка GPS-мониторинга', details: error.message });
         }
     });
 
     app.get('/trucks/history/:vehicleId', async (req, res) => {
         try {
             await ensureTable();
-
-            const date = /^\d{4}-\d{2}-\d{2}$/.test(req.query.date || '')
-                ? req.query.date
-                : new Date().toISOString().slice(0, 10);
-
-            res.json({
-                vehicle: req.params.vehicleId,
-                date,
-                points: await history(req.params.vehicleId, date)
-            });
+            const date = /^\d{4}-\d{2}-\d{2}$/.test(req.query.date || '') ? req.query.date : new Date().toISOString().slice(0, 10);
+            res.json({ vehicle: req.params.vehicleId, date, points: await history(req.params.vehicleId, date) });
         } catch (error) {
             console.error('Truck history error:', error);
-            res.status(500).json({
-                error: 'Ошибка истории маршрута',
-                details: error.message
-            });
+            res.status(500).json({ error: 'Ошибка истории маршрута', details: error.message });
         }
     });
 }
 
-// server.js is started with `node -r ./trucks-init.js server.js`.
-// Installing routes from Express' listen lifecycle is more reliable than
-// replacing the Express factory and works with Express 5 as well.
-const originalListen = express.application.listen;
+// Kept for compatibility with the current backend start command.
+// The real Render entrypoint also imports and calls installTruckRoutes directly.
+if (require.main !== module) {
+    const originalListen = express.application.listen;
+    if (!express.application.__kaspiyskTruckListenPatched) {
+        express.application.__kaspiyskTruckListenPatched = true;
+        express.application.listen = function patchedListen(...args) {
+            installTruckRoutes(this);
+            return originalListen.apply(this, args);
+        };
+    }
+}
 
-express.application.listen = function patchedListen(...args) {
-    installTruckRoutes(this);
-    return originalListen.apply(this, args);
-};
-
-console.log('🚛 Truck GPS routes prepared');
+module.exports = { installTruckRoutes };
