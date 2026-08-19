@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const markers = new Map();
     let allTrucks = [];
+    let initialFitDone = false;
 
     const els = {
         status: document.getElementById("mapStatus"),
@@ -105,8 +106,9 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
 
-        if (bounds.length) {
+        if (bounds.length && !initialFitDone) {
             map.fitBounds(bounds, { padding: [30, 30] });
+            initialFitDone = true;
         }
     }
 
