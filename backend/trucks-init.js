@@ -4,10 +4,11 @@ const pool = require('./db');
 const SOURCE_URL = 'https://data.ntpc.gov.tw/api/datasets/28ab4122-60e1-4065-98e5-abccb69aaca6/json';
 const MAX_TRUCKS = 12;
 const STALE_MINUTES = 20;
-const POLL_CACHE_MS = 60 * 1000;
+const POLL_INTERVAL_MS = 2 * 60 * 1000;
 
 let tableReady = false;
 let dbAvailable = null;
+let pollingStarted = false;
 let lastPollAt = 0;
 const memoryPoints = new Map();
 
@@ -22,9 +23,7 @@ function normalize(raw) {
     const lat = num(raw.latitude ?? raw.lat ?? raw.Latitude);
     const lng = num(raw.longitude ?? raw.lng ?? raw.lon ?? raw.Longitude);
     const time = new Date(raw.time ?? raw.timestamp ?? raw.recorded_at ?? Date.now());
-
     if (!vehicle || lat === null || lng === null || Math.abs(lat) > 90 || Math.abs(lng) > 180 || Number.isNaN(time.getTime())) return null;
-
     return {
         vehicle_id: vehicle,
         recorded_at: time.toISOString(),
@@ -74,9 +73,7 @@ async function ensureTable() {
 }
 
 async function pollSource() {
-    if (Date.now() - lastPollAt < POLL_CACHE_MS && memoryPoints.size) {
-        return { sourceError: null };
-    }
+    if (Date.now() - lastPollAt < POLL_INTERVAL_MS) return { sourceError: null };
 
     const response = await fetch(SOURCE_URL, {
         headers: { Accept: 'application/json', 'User-Agent': 'OpenKaspiysk-Demo/1.0' },
@@ -96,7 +93,6 @@ async function pollSource() {
     for (const point of latest.values()) {
         memoryPoints.set(`${point.vehicle_id}|${point.recorded_at}`, point);
     }
-
     lastPollAt = Date.now();
 
     const hasDb = await ensureTable();
@@ -119,17 +115,30 @@ async function pollSource() {
         }
     }
 
-    return { sourceError: null };
+    return { sourceError: null, count: latest.size };
+}
+
+function startBackgroundPolling() {
+    if (pollingStarted) return;
+    pollingStarted = true;
+    const run = async () => {
+        try {
+            const result = await pollSource();
+            console.log(`[trucks] background poll: ${result.count ?? 0} vehicles; history=${dbAvailable ? 'postgresql' : 'memory'}`);
+        } catch (error) {
+            console.error('[trucks] background poll failed:', error.message);
+        }
+    };
+    run();
+    setInterval(run, POLL_INTERVAL_MS).unref();
 }
 
 async function latestTrucks() {
     const byVehicle = new Map();
-
     for (const point of memoryPoints.values()) {
         const old = byVehicle.get(point.vehicle_id);
         if (!old || point.recorded_at > old.recorded_at) byVehicle.set(point.vehicle_id, point);
     }
-
     if (dbAvailable) {
         try {
             const result = await pool.query(`
@@ -146,7 +155,6 @@ async function latestTrucks() {
             dbAvailable = false;
         }
     }
-
     return [...byVehicle.values()]
         .sort((a, b) => new Date(b.recorded_at) - new Date(a.recorded_at))
         .slice(0, MAX_TRUCKS)
@@ -168,14 +176,6 @@ async function latestTrucks() {
 }
 
 async function history(vehicleId, date) {
-    const points = [];
-
-    for (const point of memoryPoints.values()) {
-        if (point.vehicle_id !== vehicleId) continue;
-        if (point.recorded_at.slice(0, 10) !== date) continue;
-        points.push({ timestamp: point.recorded_at, lat: point.latitude, lng: point.longitude, route: point.route, location: point.location, speed: point.speed });
-    }
-
     if (dbAvailable) {
         try {
             const result = await pool.query(`
@@ -191,13 +191,16 @@ async function history(vehicleId, date) {
             dbAvailable = false;
         }
     }
-
-    return points.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    return [...memoryPoints.values()]
+        .filter(point => point.vehicle_id === vehicleId && point.recorded_at.slice(0, 10) === date)
+        .sort((a, b) => new Date(a.recorded_at) - new Date(b.recorded_at))
+        .map(point => ({ timestamp: point.recorded_at, lat: point.latitude, lng: point.longitude, route: point.route, location: point.location, speed: point.speed }));
 }
 
 function installTruckRoutes(app) {
     if (app.__truckRoutesInstalled) return;
     app.__truckRoutesInstalled = true;
+    startBackgroundPolling();
 
     app.get('/trucks', async (req, res) => {
         try {
@@ -208,18 +211,9 @@ function installTruckRoutes(app) {
                 sourceError = error.message;
                 console.error('Truck GPS source error:', error.message);
             }
-
             const trucks = await latestTrucks();
             res.set('Cache-Control', 'no-store');
-            res.json({
-                trucks,
-                count: trucks.length,
-                max: MAX_TRUCKS,
-                source: 'Новый Тайбэй (демо)',
-                sourceError,
-                storage: dbAvailable ? 'postgresql' : 'memory',
-                staleFallback: trucks.some(t => !t.fresh)
-            });
+            res.json({ trucks, count: trucks.length, max: MAX_TRUCKS, source: 'Новый Тайбэй (демо)', sourceError, storage: dbAvailable ? 'postgresql' : 'memory', staleFallback: trucks.some(t => !t.fresh) });
         } catch (error) {
             console.error('Truck API error:', error);
             res.status(500).json({ error: 'Ошибка GPS-мониторинга', details: error.message });
