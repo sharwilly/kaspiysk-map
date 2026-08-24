@@ -59,5 +59,12 @@
 <script src="js/weather-widget.js"></script>
 <script src="js/header.js"></script>
 <script src="js/trucks.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.L && L.Control && L.Control.Attribution) {
+            L.control.attribution({ prefix: false });
+        }
+    });
+</script>
 </body>
 </html>
