@@ -6,14 +6,17 @@ const feederCount = document.getElementById("feederCount");
 const addressCount = document.getElementById("addressCount");
 const avgAddressCount = document.getElementById("avgAddressCount");
 const topFeeder = document.getElementById("topFeeder");
-const peakDay = document.getElementById("peakDay");
 const weekTrend = document.getElementById("weekTrend");
 const chart = document.getElementById("outageChart");
 const feederRanking = document.getElementById("feederRanking");
 const typeRanking = document.getElementById("typeRanking");
+const heatmapElement = document.getElementById("outageHeatmap");
+const heatmapStatus = document.getElementById("heatmapStatus");
 
 let activeOutages = [];
 let doneOutages = [];
+let outageMap = null;
+let outageHeatLayer = null;
 
 function escapeHtml(value) {
     if (value === null || value === undefined) return "";
@@ -56,6 +59,7 @@ async function loadAllData() {
 
         updateAnalytics();
         renderOutages(activeOutages, "active");
+        loadHeatmap();
     } catch (error) {
         console.error("Ошибка загрузки отключений:", error);
         if (container) container.innerHTML = "<p>Ошибка загрузки данных</p>";
@@ -102,7 +106,6 @@ function updateAnalytics() {
 function renderExtraAnalytics(data) {
     const feederCounts = new Map();
     const typeCounts = new Map();
-    const dayCounts = new Map();
 
     data.forEach(outage => {
         const feeder = outage.feeder && String(outage.feeder).trim();
@@ -110,12 +113,6 @@ function renderExtraAnalytics(data) {
 
         const type = outage.description && String(outage.description).trim();
         if (type) typeCounts.set(type, (typeCounts.get(type) || 0) + 1);
-
-        const date = validDate(outage.created_at);
-        if (date) {
-            const key = date.toISOString().slice(0, 10);
-            dayCounts.set(key, (dayCounts.get(key) || 0) + 1);
-        }
     });
 
     const sortedFeeders = [...feederCounts.entries()].sort((a, b) => b[1] - a[1]);
@@ -124,17 +121,6 @@ function renderExtraAnalytics(data) {
     if (topFeeder) {
         topFeeder.textContent = sortedFeeders.length ? sortedFeeders[0][0] : "—";
         topFeeder.title = sortedFeeders.length ? `${sortedFeeders[0][1]} отключений` : "";
-    }
-
-    if (peakDay) {
-        const peak = [...dayCounts.entries()].sort((a, b) => b[1] - a[1])[0];
-        if (peak) {
-            const date = new Date(`${peak[0]}T00:00:00`);
-            peakDay.textContent = `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}`;
-            peakDay.title = `${peak[1]} отключений`;
-        } else {
-            peakDay.textContent = "—";
-        }
     }
 
     const last7Start = new Date();
@@ -206,6 +192,69 @@ function renderChart(data) {
             </div>
         `;
     }).join("");
+}
+
+async function loadHeatmap() {
+    if (!heatmapElement || typeof L === "undefined" || typeof L.heatLayer !== "function") return;
+
+    if (!outageMap) {
+        outageMap = L.map(heatmapElement, {
+            center: [42.8913, 47.6397],
+            zoom: 13,
+            zoomControl: true
+        });
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: "© OpenStreetMap contributors"
+        }).addTo(outageMap);
+    }
+
+    if (heatmapStatus) heatmapStatus.textContent = "Загрузка координат...";
+
+    try {
+        const response = await fetch(`${API_URL}/outages/map`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const outages = await response.json();
+
+        const points = [];
+        const bounds = [];
+
+        outages.forEach(outage => {
+            if (!Array.isArray(outage.locations)) return;
+            outage.locations.forEach(location => {
+                const lat = Number(location.latitude);
+                const lon = Number(location.longitude);
+                if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+                points.push([lat, lon, 0.65]);
+                bounds.push([lat, lon]);
+            });
+        });
+
+        if (outageHeatLayer) outageMap.removeLayer(outageHeatLayer);
+        outageHeatLayer = L.heatLayer(points, {
+            radius: 30,
+            blur: 24,
+            maxZoom: 16,
+            max: 1.0,
+            minOpacity: 0.35
+        }).addTo(outageMap);
+
+        if (bounds.length) {
+            outageMap.fitBounds(bounds, { padding: [25, 25], maxZoom: 15 });
+        }
+
+        if (heatmapStatus) {
+            heatmapStatus.textContent = points.length
+                ? `${points.length} адресов с координатами`
+                : "Нет координат для активных отключений";
+        }
+
+        setTimeout(() => outageMap.invalidateSize(), 100);
+    } catch (error) {
+        console.error("Ошибка загрузки тепловой карты:", error);
+        if (heatmapStatus) heatmapStatus.textContent = "Не удалось загрузить карту";
+    }
 }
 
 async function loadOutages(type = "active") {
