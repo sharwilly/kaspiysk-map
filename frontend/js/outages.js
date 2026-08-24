@@ -12,6 +12,8 @@ const feederRanking = document.getElementById("feederRanking");
 const typeRanking = document.getElementById("typeRanking");
 const heatmapElement = document.getElementById("outageHeatmap");
 const heatmapStatus = document.getElementById("heatmapStatus");
+const heatmapPeriod = document.getElementById("heatmapPeriod");
+const heatmapDescription = document.getElementById("heatmapDescription");
 
 let activeOutages = [];
 let doneOutages = [];
@@ -194,7 +196,30 @@ function renderChart(data) {
     }).join("");
 }
 
-async function loadHeatmap() {
+function collectMonthLocations() {
+    const monthOutages = getLast30Days([...activeOutages, ...doneOutages]);
+    const locationCounts = new Map();
+
+    monthOutages.forEach(outage => {
+        if (!Array.isArray(outage.address_points)) return;
+
+        outage.address_points.forEach(point => {
+            const lat = Number(point?.latitude);
+            const lon = Number(point?.longitude);
+            if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+
+            const key = `${lat.toFixed(7)},${lon.toFixed(7)}`;
+            locationCounts.set(key, (locationCounts.get(key) || 0) + 1);
+        });
+    });
+
+    return [...locationCounts.entries()].map(([key, count]) => {
+        const [lat, lon] = key.split(",").map(Number);
+        return [lat, lon, Math.min(1, 0.35 + count * 0.25)];
+    });
+}
+
+async function loadHeatmap(period = "active") {
     if (!heatmapElement || typeof L === "undefined" || typeof L.heatLayer !== "function") return;
 
     if (!outageMap) {
@@ -213,23 +238,36 @@ async function loadHeatmap() {
     if (heatmapStatus) heatmapStatus.textContent = "Загрузка координат...";
 
     try {
-        const response = await fetch(`${API_URL}/outages/map`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const outages = await response.json();
+        let points = [];
+        let bounds = [];
 
-        const points = [];
-        const bounds = [];
+        if (period === "month") {
+            const monthPoints = collectMonthLocations();
+            points = monthPoints;
+            bounds = monthPoints.map(point => [point[0], point[1]]);
+        } else {
+            const response = await fetch(`${API_URL}/outages/map`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const outages = await response.json();
 
-        outages.forEach(outage => {
-            if (!Array.isArray(outage.locations)) return;
-            outage.locations.forEach(location => {
-                const lat = Number(location.latitude);
-                const lon = Number(location.longitude);
-                if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
-                points.push([lat, lon, 0.65]);
-                bounds.push([lat, lon]);
+            const locationCounts = new Map();
+            outages.forEach(outage => {
+                if (!Array.isArray(outage.locations)) return;
+                outage.locations.forEach(location => {
+                    const lat = Number(location.latitude);
+                    const lon = Number(location.longitude);
+                    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+                    const key = `${lat.toFixed(7)},${lon.toFixed(7)}`;
+                    locationCounts.set(key, (locationCounts.get(key) || 0) + 1);
+                });
             });
-        });
+
+            points = [...locationCounts.entries()].map(([key, count]) => {
+                const [lat, lon] = key.split(",").map(Number);
+                return [lat, lon, Math.min(1, 0.55 + count * 0.2)];
+            });
+            bounds = points.map(point => [point[0], point[1]]);
+        }
 
         if (outageHeatLayer) outageMap.removeLayer(outageHeatLayer);
         outageHeatLayer = L.heatLayer(points, {
@@ -246,8 +284,16 @@ async function loadHeatmap() {
 
         if (heatmapStatus) {
             heatmapStatus.textContent = points.length
-                ? `${points.length} адресов с координатами`
-                : "Нет координат для активных отключений";
+                ? `${points.length} адресов на карте`
+                : period === "month"
+                    ? "Нет сохранённых координат за последние 30 дней"
+                    : "Нет координат для активных отключений";
+        }
+
+        if (heatmapDescription) {
+            heatmapDescription.textContent = period === "month"
+                ? "Где отключения происходили чаще всего за последние 30 дней"
+                : "Где сейчас сосредоточены активные отключения";
         }
 
         setTimeout(() => outageMap.invalidateSize(), 100);
@@ -255,6 +301,12 @@ async function loadHeatmap() {
         console.error("Ошибка загрузки тепловой карты:", error);
         if (heatmapStatus) heatmapStatus.textContent = "Не удалось загрузить карту";
     }
+}
+
+if (heatmapPeriod) {
+    heatmapPeriod.addEventListener("change", () => {
+        loadHeatmap(heatmapPeriod.value);
+    });
 }
 
 async function loadOutages(type = "active") {
