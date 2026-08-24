@@ -38,27 +38,16 @@
 </section>
 
 <section class="analytics-panel">
-    <div class="analytics-panel-header">
-        <div><h2>Динамика отключений</h2><p>Количество зарегистрированных отключений за последние 30 дней</p></div>
-    </div>
+    <div class="analytics-panel-header"><div><h2>Динамика отключений</h2><p>Количество зарегистрированных отключений за последние 30 дней</p></div></div>
     <div id="outageChart" class="outage-chart">Загрузка...</div>
 </section>
 
 <section class="analytics-grid">
-    <div class="analytics-panel">
-        <div class="analytics-panel-header"><div><h2>Проблемные фидеры</h2><p>Количество отключений за последние 30 дней</p></div></div>
-        <div id="feederRanking" class="ranking-list">Загрузка...</div>
-    </div>
-    <div class="analytics-panel">
-        <div class="analytics-panel-header"><div><h2>Типы отключений</h2><p>Распределение зарегистрированных случаев</p></div></div>
-        <div id="typeRanking" class="ranking-list">Загрузка...</div>
-    </div>
+    <div class="analytics-panel"><div class="analytics-panel-header"><div><h2>Проблемные фидеры</h2><p>Количество отключений за последние 30 дней</p></div></div><div id="feederRanking" class="ranking-list">Загрузка...</div></div>
+    <div class="analytics-panel"><div class="analytics-panel-header"><div><h2>Типы отключений</h2><p>Распределение зарегистрированных случаев</p></div></div><div id="typeRanking" class="ranking-list">Загрузка...</div></div>
 </section>
 
-<div class="outage-tabs">
-    <button class="tab-button active" data-tab="active">Активные</button>
-    <button class="tab-button" data-tab="done">Решенные</button>
-</div>
+<div class="outage-tabs"><button class="tab-button active" data-tab="active">Активные</button><button class="tab-button" data-tab="done">Решенные</button></div>
 <div id="outagesList">Загрузка...</div>
 </main>
 
@@ -68,5 +57,12 @@
 <script src="js/weather-widget.js"></script>
 <script src="js/header.js"></script>
 <script src="js/outages.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.L && L.Control && L.Control.Attribution) {
+            L.control.attribution({ prefix: false });
+        }
+    });
+</script>
 </body>
 </html>
