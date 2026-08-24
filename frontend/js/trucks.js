@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     const BACKEND_URL = "https://kaspiysk-map.onrender.com";
-    const map = L.map("trucks-map", { zoomControl: true }).setView([25.02, 121.46], 12);
+    const map = L.map("trucks-map", { zoomControl: true, attributionControl: false }).setView([25.02, 121.46], 12);
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap contributors" }).addTo(map);
 
     const markers = new Map();
