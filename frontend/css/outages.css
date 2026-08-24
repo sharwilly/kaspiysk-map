@@ -44,6 +44,10 @@ box-shadow: 0 3px 10px rgba(0,0,0,.06);
 .outage-map-panel { overflow: hidden; }
 .outage-heatmap { height: 440px; width: 100%; border-radius: 10px; overflow: hidden; background: #eef1f4; }
 .heatmap-status { color: #777; font-size: 12px; white-space: nowrap; padding-top: 2px; }
+.heatmap-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.heatmap-controls label { color: #777; font-size: 12px; }
+.heatmap-select { border: 1px solid #d9dde3; border-radius: 8px; background: white; padding: 8px 30px 8px 10px; font-size: 13px; color: #333; cursor: pointer; outline: none; }
+.heatmap-select:focus { border-color: #3498db; }
 
 .outage-chart { height: 130px; display: flex; align-items: flex-end; gap: 5px; padding: 5px 0; overflow-x: auto; }
 .chart-day { min-width: 18px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 5px; }
@@ -96,6 +100,8 @@ box-shadow: 0 3px 10px rgba(0,0,0,.06);
 .outage-heatmap { height: 360px; }
 .analytics-panel-header { flex-direction: column; }
 .heatmap-status { padding-top: 0; }
+.heatmap-controls { width: 100%; }
+.heatmap-select { flex: 1; }
 }
 @media (max-width: 500px) {
 body { margin: 10px; }
