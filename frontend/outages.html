@@ -24,9 +24,16 @@
 
 <section class="analytics-panel outage-map-panel">
     <div class="analytics-panel-header">
-        <div><h2>Тепловая карта отключений</h2><p>Где сейчас сосредоточены активные отключения</p></div>
-        <div id="heatmapStatus" class="heatmap-status">Загрузка карты...</div>
+        <div><h2>Тепловая карта отключений</h2><p id="heatmapDescription">Где сейчас сосредоточены активные отключения</p></div>
+        <div class="heatmap-controls">
+            <label for="heatmapPeriod">Период</label>
+            <select id="heatmapPeriod" class="heatmap-select">
+                <option value="active">Активные сейчас</option>
+                <option value="month">Последние 30 дней</option>
+            </select>
+        </div>
     </div>
+    <div id="heatmapStatus" class="heatmap-status">Загрузка карты...</div>
     <div id="outageHeatmap" class="outage-heatmap"></div>
 </section>
 
