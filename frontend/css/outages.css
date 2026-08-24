@@ -1,569 +1,95 @@
 body {
-
 font-family: Arial, sans-serif;
-
 margin: 20px;
-
 background: #f5f6fa;
-
 }
 
-/* Страница */
-
-.outages-page {
-
-
-max-width: 1000px;
-
-margin: auto;
-
-}
-
-h1 {
-
- 
-text-align: center;
-
-margin-bottom: 25px;
- 
-
-}
-
-/* =========================
-АНАЛИТИКА
-========================= */
+.outages-page { max-width: 1000px; margin: auto; }
+h1 { text-align: center; margin-bottom: 25px; }
 
 .outage-analytics {
-
- 
 display: grid;
-
-grid-template-columns:
-    repeat(4, 1fr);
-
+grid-template-columns: repeat(4, 1fr);
 gap: 14px;
-
 margin-bottom: 20px;
- 
-
 }
 
 .analytics-card {
-
- 
 background: white;
-
 border-radius: 12px;
-
 padding: 18px;
-
 display: flex;
-
 align-items: center;
-
 gap: 14px;
-
-box-shadow:
-    0 3px 10px rgba(0,0,0,.06);
-
+box-shadow: 0 3px 10px rgba(0,0,0,.06);
 transition: .2s;
- 
-
+min-width: 0;
 }
-
-.analytics-card:hover {
-
- 
-transform: translateY(-2px);
-
-box-shadow:
-    0 5px 16px rgba(0,0,0,.08);
- 
-
-}
-
-.analytics-icon {
-
- 
-width: 42px;
-
-height: 42px;
-
-border-radius: 10px;
-
-background: #f5f6fa;
-
-display: flex;
-
-align-items: center;
-
-justify-content: center;
-
-font-size: 20px;
- 
-
-}
-
-.analytics-value {
-
- 
-font-size: 25px;
-
-font-weight: bold;
-
-line-height: 1.1;
- 
-
-}
-
-.analytics-label {
-
- 
-margin-top: 5px;
-
-color: #777;
-
-font-size: 13px;
- 
-
-}
-
-/* =========================
-ГРАФИК
-========================= */
+.analytics-card:hover { transform: translateY(-2px); box-shadow: 0 5px 16px rgba(0,0,0,.08); }
+.analytics-icon { width: 42px; height: 42px; flex: 0 0 42px; border-radius: 10px; background: #f5f6fa; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.analytics-value { font-size: 25px; font-weight: bold; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; }
+.analytics-label { margin-top: 5px; color: #777; font-size: 13px; }
 
 .analytics-panel {
-
- 
 background: white;
-
 padding: 18px;
-
 margin-bottom: 22px;
-
 border-radius: 12px;
-
-box-shadow:
-    0 3px 10px rgba(0,0,0,.06);
- 
-
+box-shadow: 0 3px 10px rgba(0,0,0,.06);
 }
+.analytics-panel-header h2 { margin: 0; font-size: 18px; }
+.analytics-panel-header p { margin: 5px 0 15px; color: #777; font-size: 13px; }
 
-.analytics-panel-header h2 {
+.outage-chart { height: 130px; display: flex; align-items: flex-end; gap: 5px; padding: 5px 0; overflow-x: auto; }
+.chart-day { min-width: 18px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 5px; }
+.chart-bar { width: 100%; min-height: 3px; border-radius: 4px 4px 0 0; background: #3498db; transition: .2s; }
+.chart-bar:hover { background: #2980b9; }
+.chart-label { font-size: 9px; color: #999; white-space: nowrap; }
+.chart-count { font-size: 10px; font-weight: bold; color: #555; }
 
- 
-margin: 0;
+.analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.analytics-grid .analytics-panel { margin-bottom: 22px; }
 
-font-size: 18px;
- 
+.ranking-list { display: flex; flex-direction: column; gap: 12px; }
+.ranking-item { width: 100%; }
+.ranking-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 5px; font-size: 13px; }
+.ranking-head span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ranking-head strong { white-space: nowrap; }
+.ranking-track { height: 7px; background: #edf0f3; border-radius: 5px; overflow: hidden; }
+.ranking-bar { height: 100%; background: #3498db; border-radius: 5px; transition: width .3s; }
+.ranking-empty { text-align: center; color: #777; padding: 20px 0; }
 
+.outage-tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
+.tab-button { background: none; border: none; padding: 12px 20px; font-size: 16px; font-weight: 400; cursor: pointer; color: #666; border-bottom: 3px solid transparent; transition: .2s; }
+.tab-button:hover { color: #3498db; }
+.tab-button.active { color: #3498db; font-weight: bold; border-bottom: 3px solid #3498db; }
+
+.outage-card { background: white; padding: 18px 16px; margin-bottom: 12px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,.06); border-left: 5px solid #e74c3c; transition: .2s; }
+.outage-card:hover { box-shadow: 0 5px 16px rgba(0,0,0,.08); }
+.outage-card h2 { margin: 0 0 10px 0; font-size: 20px; }
+.outage-card p { margin: 6px 0; line-height: 1.4; }
+.outage-active { color: #e74c3c; font-weight: bold; }
+.outage-done { color: #27ae60; font-weight: bold; }
+
+.outage-meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 12px 0; }
+.outage-meta-item { background: #f8f9fa; padding: 9px 10px; border-radius: 7px; font-size: 14px; }
+.outage-meta-item span { color: #777; font-size: 12px; display: block; margin-bottom: 3px; }
+.outage-meta-item strong { font-size: 14px; }
+
+.outage-card h3 { margin-top: 15px; margin-bottom: 8px; font-size: 16px; }
+.address-list { background: #f8f9fa; border-radius: 8px; padding: 10px; }
+.address-list div { padding: 5px 0; border-bottom: 1px solid #eee; }
+.address-list div:last-child { border-bottom: none; }
+.date { margin-top: 15px !important; color: #777; font-size: 14px; }
+#outagesList p { background: white; padding: 20px; border-radius: 10px; text-align: center; color: #666; }
+
+@media (max-width: 850px) {
+.outage-analytics { grid-template-columns: repeat(2, 1fr); }
+.analytics-grid { grid-template-columns: 1fr; gap: 0; }
 }
-
-.analytics-panel-header p {
-
- 
-margin: 5px 0 15px;
-
-color: #777;
-
-font-size: 13px;
- 
-
-}
-
-.outage-chart {
-
- 
-height: 130px;
-
-display: flex;
-
-align-items: flex-end;
-
-gap: 5px;
-
-padding: 5px 0;
-
-overflow-x: auto;
- 
-
-}
-
-.chart-day {
-
- 
-min-width: 18px;
-
-height: 100%;
-
-display: flex;
-
-flex-direction: column;
-
-justify-content: flex-end;
-
-align-items: center;
-
-gap: 5px;
- 
-
-}
-
-.chart-bar {
-
- 
-width: 100%;
-
-min-height: 3px;
-
-border-radius: 4px 4px 0 0;
-
-background: #3498db;
-
-transition: .2s;
- 
-
-}
-
-.chart-bar:hover {
-
- 
-background: #2980b9;
- 
-
-}
-
-.chart-label {
-
- 
-font-size: 9px;
-
-color: #999;
-
-white-space: nowrap;
- 
-
-}
-
-.chart-count {
-
- 
-font-size: 10px;
-
-font-weight: bold;
-
-color: #555;
- 
-
-}
-
-/* =========================
-ВКЛАДКИ
-========================= */
-
-.outage-tabs {
-
- 
-display: flex;
-
-margin-bottom: 20px;
-
-border-bottom: 2px solid #ddd;
- 
-
-}
-
-.tab-button {
-
- 
-background: none;
-
-border: none;
-
-padding: 12px 20px;
-
-font-size: 16px;
-
-font-weight: 400;
-
-cursor: pointer;
-
-color: #666;
-
-border-bottom: 3px solid transparent;
-
-transition: .2s;
- 
-
-}
-
-.tab-button:hover {
-
- 
-color: #3498db;
- 
-
-}
-
-.tab-button.active {
-
- 
-color: #3498db;
-
-font-weight: bold;
-
-border-bottom: 3px solid #3498db;
- 
-
-}
-
-/* =========================
-КАРТОЧКА
-========================= */
-
-.outage-card {
-
- 
-background: white;
-
-padding: 18px 16px;
-
-margin-bottom: 12px;
-
-border-radius: 10px;
-
-box-shadow:
-    0 3px 10px rgba(0,0,0,.06);
-
-border-left: 5px solid #e74c3c;
-
-transition: .2s;
- 
-
-}
-
-.outage-card:hover {
-
- 
-box-shadow:
-    0 5px 16px rgba(0,0,0,.08);
- 
-
-}
-
-.outage-card h2 {
-
- 
-margin: 0 0 10px 0;
-
-font-size: 20px;
- 
-
-}
-
-.outage-card p {
-
- 
-margin: 6px 0;
-
-line-height: 1.4;
- 
-
-}
-
-.outage-active {
-
- 
-color: #e74c3c;
-
-font-weight: bold;
- 
-
-}
-
-.outage-done {
-
- 
-color: #27ae60;
-
-font-weight: bold;
- 
-
-}
-
-/* =========================
-ИНФОРМАЦИЯ
-========================= */
-
-.outage-meta {
-
- 
-display: grid;
-
-grid-template-columns:
-    repeat(2, 1fr);
-
-gap: 8px;
-
-margin: 12px 0;
- 
-
-}
-
-.outage-meta-item {
-
- 
-background: #f8f9fa;
-
-padding: 9px 10px;
-
-border-radius: 7px;
-
-font-size: 14px;
- 
-
-}
-
-.outage-meta-item span {
-
- 
-color: #777;
-
-font-size: 12px;
-
-display: block;
-
-margin-bottom: 3px;
- 
-
-}
-
-.outage-meta-item strong {
-
- 
-font-size: 14px;
- 
-
-}
-
-/* =========================
-АДРЕСА
-========================= */
-
-.outage-card h3 {
-
- 
-margin-top: 15px;
-
-margin-bottom: 8px;
-
-font-size: 16px;
- 
-
-}
-
-.address-list {
-
- 
-background: #f8f9fa;
-
-border-radius: 8px;
-
-padding: 10px;
- 
-
-}
-
-.address-list div {
-
- 
-padding: 5px 0;
-
-border-bottom: 1px solid #eee;
- 
-
-}
-
-.address-list div:last-child {
-
- 
-border-bottom: none;
- 
-
-}
-
-/* Дата решения */
-
-.date {
-
- 
-margin-top: 15px !important;
-
-color: #777;
-
-font-size: 14px;
- 
-
-}
-
-/* Нет данных */
-
-#outagesList p {
-
- 
-background: white;
-
-padding: 20px;
-
-border-radius: 10px;
-
-text-align: center;
-
-color: #666;
- 
-
-}
-
-/* =========================
-МОБИЛЬНАЯ ВЕРСИЯ
-========================= */
-
-@media (max-width: 750px) {
-
- 
-.outage-analytics {
-
-    grid-template-columns:
-        repeat(2, 1fr);
-}
- 
-
-}
-
 @media (max-width: 500px) {
-
- 
-body {
-
-    margin: 10px;
-}
-
-
-.outage-analytics {
-
-    grid-template-columns: 1fr;
-}
-
-
-.outage-meta {
-
-    grid-template-columns: 1fr;
-}
-
-
-.outage-card {
-
-    padding: 15px 12px;
-}
-
+body { margin: 10px; }
+.outage-analytics { grid-template-columns: 1fr; }
+.outage-meta { grid-template-columns: 1fr; }
+.outage-card { padding: 15px 12px; }
 }
