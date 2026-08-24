@@ -37,8 +37,13 @@ margin-bottom: 22px;
 border-radius: 12px;
 box-shadow: 0 3px 10px rgba(0,0,0,.06);
 }
+.analytics-panel-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; }
 .analytics-panel-header h2 { margin: 0; font-size: 18px; }
 .analytics-panel-header p { margin: 5px 0 15px; color: #777; font-size: 13px; }
+
+.outage-map-panel { overflow: hidden; }
+.outage-heatmap { height: 440px; width: 100%; border-radius: 10px; overflow: hidden; background: #eef1f4; }
+.heatmap-status { color: #777; font-size: 12px; white-space: nowrap; padding-top: 2px; }
 
 .outage-chart { height: 130px; display: flex; align-items: flex-end; gap: 5px; padding: 5px 0; overflow-x: auto; }
 .chart-day { min-width: 18px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 5px; }
@@ -86,6 +91,11 @@ box-shadow: 0 3px 10px rgba(0,0,0,.06);
 @media (max-width: 850px) {
 .outage-analytics { grid-template-columns: repeat(2, 1fr); }
 .analytics-grid { grid-template-columns: 1fr; gap: 0; }
+}
+@media (max-width: 600px) {
+.outage-heatmap { height: 360px; }
+.analytics-panel-header { flex-direction: column; }
+.heatmap-status { padding-top: 0; }
 }
 @media (max-width: 500px) {
 body { margin: 10px; }
