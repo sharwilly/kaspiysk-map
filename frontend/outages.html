@@ -5,6 +5,7 @@
 <title>Отключения электроэнергии | Открытый Каспийск</title>
 <link rel="stylesheet" href="css/common.css">
 <link rel="stylesheet" href="css/outages.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body data-page="outages">
 <div id="header-container"></div>
@@ -19,6 +20,14 @@
     <div class="analytics-card"><div class="analytics-icon">📍</div><div><div class="analytics-value" id="avgAddressCount">—</div><div class="analytics-label">Среднее число затронутых адресов</div></div></div>
     <div class="analytics-card"><div class="analytics-icon">🔥</div><div><div class="analytics-value" id="topFeeder">—</div><div class="analytics-label">Самый проблемный фидер</div></div></div>
     <div class="analytics-card"><div class="analytics-icon">↗️</div><div><div class="analytics-value" id="weekTrend">—</div><div class="analytics-label">Отключений за 7 дней</div></div></div>
+</section>
+
+<section class="analytics-panel outage-map-panel">
+    <div class="analytics-panel-header">
+        <div><h2>Тепловая карта отключений</h2><p>Где сейчас сосредоточены активные отключения</p></div>
+        <div id="heatmapStatus" class="heatmap-status">Загрузка карты...</div>
+    </div>
+    <div id="outageHeatmap" class="outage-heatmap"></div>
 </section>
 
 <section class="analytics-panel">
@@ -46,6 +55,8 @@
 <div id="outagesList">Загрузка...</div>
 </main>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 <script src="js/config.js"></script>
 <script src="js/weather-widget.js"></script>
 <script src="js/header.js"></script>
