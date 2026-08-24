@@ -6,6 +6,11 @@
 <link rel="stylesheet" href="css/common.css">
 <link rel="stylesheet" href="css/outages.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+    #outageHeatmap .leaflet-control-attribution {
+        display: none !important;
+    }
+</style>
 </head>
 <body data-page="outages">
 <div id="header-container"></div>
@@ -16,7 +21,7 @@
     <div class="analytics-card"><div class="analytics-icon">🔴</div><div><div class="analytics-value" id="activeCount">—</div><div class="analytics-label">Активных сейчас</div></div></div>
     <div class="analytics-card"><div class="analytics-icon">📊</div><div><div class="analytics-value" id="monthCount">—</div><div class="analytics-label">Отключений за 30 дней</div></div></div>
     <div class="analytics-card"><div class="analytics-icon">🔌</div><div><div class="analytics-value" id="feederCount">—</div><div class="analytics-label">Фидеров затронуто</div></div></div>
-    <div class="analytics-card"><div class="analytics-icon">🏘️</div><div><div class="analytics-value" id="addressCount">—</div><div class="analytics-label">Адресов затронуто</div></div></div>
+    <div class="analytics-card"><div><div class="analytics-icon">🏘️</div><div><div class="analytics-value" id="addressCount">—</div><div class="analytics-label">Адресов затронуто</div></div></div>
     <div class="analytics-card"><div class="analytics-icon">📍</div><div><div class="analytics-value" id="avgAddressCount">—</div><div class="analytics-label">Среднее число затронутых адресов</div></div></div>
     <div class="analytics-card"><div class="analytics-icon">🔥</div><div><div class="analytics-value" id="topFeeder">—</div><div class="analytics-label">Самый проблемный фидер</div></div></div>
     <div class="analytics-card"><div class="analytics-icon">↗️</div><div><div class="analytics-value" id="weekTrend">—</div><div class="analytics-label">Отключений за 7 дней</div></div></div>
@@ -57,12 +62,5 @@
 <script src="js/weather-widget.js"></script>
 <script src="js/header.js"></script>
 <script src="js/outages.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        if (window.L && L.Control && L.Control.Attribution) {
-            L.control.attribution({ prefix: false });
-        }
-    });
-</script>
 </body>
 </html>
