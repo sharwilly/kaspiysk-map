@@ -81,5 +81,9 @@
 <script src="js/weather-widget.js"></script>
 <script src="js/header.js"></script>
 <script src="js/problems.js"></script>
+<script>
+    // Оставляем обязательную атрибуцию OpenStreetMap, но убираем префикс "Leaflet".
+    document.querySelector('.leaflet-control-attribution a[href*="leafletjs.com"]')?.remove();
+</script>
 </body>
 </html>
