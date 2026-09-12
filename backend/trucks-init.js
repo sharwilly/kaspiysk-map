@@ -26,7 +26,7 @@ function normalize(raw) {
     if (!vehicle || lat === null || lng === null || Math.abs(lat) > 90 || Math.abs(lng) > 180 || Number.isNaN(time.getTime())) return null;
     return {
         vehicle_id: vehicle,
-        recorded_at: time.toISOString(),
+        source_recorded_at: time.toISOString(),
         latitude: lat,
         longitude: lng,
         route: String(raw.lineid ?? raw.route ?? raw.line ?? '').trim() || null,
@@ -51,6 +51,7 @@ async function ensureTable() {
                 id BIGSERIAL PRIMARY KEY,
                 vehicle_id TEXT NOT NULL,
                 recorded_at TIMESTAMPTZ NOT NULL,
+                source_recorded_at TIMESTAMPTZ,
                 latitude DOUBLE PRECISION NOT NULL,
                 longitude DOUBLE PRECISION NOT NULL,
                 route TEXT,
@@ -59,6 +60,8 @@ async function ensureTable() {
                 speed DOUBLE PRECISION,
                 created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
             );
+            ALTER TABLE truck_gps_points
+                ADD COLUMN IF NOT EXISTS source_recorded_at TIMESTAMPTZ;
             CREATE INDEX IF NOT EXISTS idx_truck_gps_vehicle_time ON truck_gps_points(vehicle_id, recorded_at DESC);
             CREATE INDEX IF NOT EXISTS idx_truck_gps_time ON truck_gps_points(recorded_at DESC);
         `);
@@ -73,7 +76,7 @@ async function ensureTable() {
 }
 
 async function pollSource() {
-    if (Date.now() - lastPollAt < POLL_INTERVAL_MS) return { sourceError: null };
+    if (Date.now() - lastPollAt < POLL_INTERVAL_MS) return { sourceError: null, count: 0 };
 
     const response = await fetch(SOURCE_URL, {
         headers: { Accept: 'application/json', 'User-Agent': 'OpenKaspiysk-Demo/1.0' },
@@ -87,26 +90,33 @@ async function pollSource() {
         const point = normalize(raw);
         if (!point) continue;
         const old = latest.get(point.vehicle_id);
-        if (!old || point.recorded_at > old.recorded_at) latest.set(point.vehicle_id, point);
+        if (!old || point.source_recorded_at > old.source_recorded_at) latest.set(point.vehicle_id, point);
     }
 
-    for (const point of latest.values()) {
+    // The source timestamp identifies the GPS observation, but it may stay unchanged
+    // between polls. History needs a new observation for every successful poll, so
+    // recorded_at is the server-side receipt time and source_recorded_at preserves
+    // the original timestamp supplied by the source.
+    const polledAt = new Date().toISOString();
+    const snapshots = [...latest.values()].map(point => ({ ...point, recorded_at: polledAt }));
+
+    for (const point of snapshots) {
         memoryPoints.set(`${point.vehicle_id}|${point.recorded_at}`, point);
     }
     lastPollAt = Date.now();
 
     const hasDb = await ensureTable();
     if (hasDb) {
-        for (const point of latest.values()) {
+        for (const point of snapshots) {
             try {
                 await pool.query(`
                     INSERT INTO truck_gps_points
-                        (vehicle_id, recorded_at, latitude, longitude, route, location, source, speed)
-                    SELECT $1, $2, $3, $4, $5, $6, 'new_taipei_demo', $7
+                        (vehicle_id, recorded_at, source_recorded_at, latitude, longitude, route, location, source, speed)
+                    SELECT $1, $2, $3, $4, $5, $6, $7, 'new_taipei_demo', $8
                     WHERE NOT EXISTS (
                         SELECT 1 FROM truck_gps_points WHERE vehicle_id = $1 AND recorded_at = $2
                     )
-                `, [point.vehicle_id, point.recorded_at, point.latitude, point.longitude, point.route, point.location, point.speed]);
+                `, [point.vehicle_id, point.recorded_at, point.source_recorded_at, point.latitude, point.longitude, point.route, point.location, point.speed]);
             } catch (error) {
                 console.warn('Could not persist truck GPS point:', error.message);
                 dbAvailable = false;
@@ -115,7 +125,7 @@ async function pollSource() {
         }
     }
 
-    return { sourceError: null, count: latest.size };
+    return { sourceError: null, count: snapshots.length };
 }
 
 function startBackgroundPolling() {
