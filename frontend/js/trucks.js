@@ -44,16 +44,26 @@ document.addEventListener("DOMContentLoaded", () => {
         return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 10);
     }
 
+    function cleanVehicleId(value) {
+        return String(value ?? "").replace(/^\s*(?:🚛\s*)?(?:мусоровоз\s*)?(?:№\s*)?/i, "").trim();
+    }
+
+    function vehicleLabel(value) {
+        return `№${cleanVehicleId(value)}`;
+    }
+
     historyDateInput.value = localDateISO();
     historyDateInput.max = localDateISO();
 
     document.getElementById("closeHistory").addEventListener("click", () => historyPanel.classList.remove("open"));
     document.getElementById("loadHistory").addEventListener("click", () => {
-        if (!historyVehicleSelect.value) {
+        const vehicle = cleanVehicleId(historyVehicleSelect.value);
+        const date = historyDateInput.value || localDateISO();
+        if (!vehicle) {
             historyInfo.textContent = "Сначала выберите мусоровоз.";
             return;
         }
-        showHistory(historyVehicleSelect.value, historyDateInput.value);
+        showHistory(vehicle, date);
     });
 
     function esc(value) { return String(value ?? "—").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;"); }
@@ -62,7 +72,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function popup(truck) {
         const state = truck.fresh ? "🟢 актуальный GPS" : "🟡 последняя известная позиция";
         const speed = Number.isFinite(Number(truck.speed)) ? `${Number(truck.speed)} км/ч` : "нет данных";
-        return `<div style="min-width:210px"><strong>🚛 Мусоровоз ${esc(truck.vehicle)}</strong><br><span>Статус: ${state}</span><br><span>Скорость: ${speed}</span><br><span>Маршрут: ${esc(truck.route)}</span><br><span>${esc(truck.location)}</span><br><span>GPS: ${esc(new Date(truck.timestamp).toLocaleString("ru-RU"))}</span><br><button class="popup-history" data-vehicle="${esc(truck.vehicle)}" style="margin-top:6px">История маршрута</button></div>`;
+        const vehicle = cleanVehicleId(truck.vehicle);
+        return `<div style="min-width:210px"><strong>🚛 Мусоровоз ${esc(vehicle)}</strong><br><span>Статус: ${state}</span><br><span>Скорость: ${speed}</span><br><span>Маршрут: ${esc(truck.route)}</span><br><span>${esc(truck.location)}</span><br><span>GPS: ${esc(new Date(truck.timestamp).toLocaleString("ru-RU"))}</span><br><button class="popup-history" data-vehicle="${esc(vehicle)}" style="margin-top:6px">История маршрута</button></div>`;
     }
 
     function clearHistoryLayers() {
@@ -82,9 +93,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (latlngs.length < 2) {
             historyInfo.textContent = latlngs.length === 1
-                ? `Для №${vehicle} за ${date} сохранена только 1 GPS-точка. Для линии нужно минимум 2.`
-                : `Для №${vehicle} за ${date} GPS-точек нет.`;
-            historyTitle.textContent = `№${vehicle} · ${date}`;
+                ? `Для ${vehicleLabel(vehicle)} за ${date} сохранена только 1 GPS-точка. Для линии нужно минимум 2.`
+                : `Для ${vehicleLabel(vehicle)} за ${date} GPS-точек нет.`;
+            historyTitle.textContent = `${vehicleLabel(vehicle)} · ${date}`;
             historyPanel.classList.add("open");
             return;
         }
@@ -96,31 +107,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const firstTime = new Date(validPoints[0].timestamp);
         const lastTime = new Date(validPoints[validPoints.length - 1].timestamp);
-        historyTitle.textContent = `№${vehicle} · ${date}`;
+        historyTitle.textContent = `${vehicleLabel(vehicle)} · ${date}`;
         historyInfo.innerHTML = `<b>${latlngs.length} GPS-точек</b><br>Период: ${esc(firstTime.toLocaleTimeString("ru-RU"))} — ${esc(lastTime.toLocaleTimeString("ru-RU"))}<br>Начало отмечено точкой, конец — последней GPS-позицией.`;
         historyPanel.classList.add("open");
     }
 
     async function showHistory(vehicle, date = localDateISO()) {
+        vehicle = cleanVehicleId(vehicle);
         if (!vehicle || !date || historyLoading) return;
+
+        // Always use the canonical vehicle ID from the current API response.
+        const current = currentTrucks.find(t => cleanVehicleId(t.vehicle) === vehicle);
+        const canonicalVehicle = cleanVehicleId(current?.vehicle || vehicle);
+
         historyLoading = true;
-        historyVehicle = vehicle;
+        historyVehicle = canonicalVehicle;
         historyDate = date;
-        historyVehicleSelect.value = vehicle;
+        historyVehicleSelect.value = canonicalVehicle;
         historyDateInput.value = date;
-        historyTitle.textContent = `№${vehicle} · ${date}`;
+        historyTitle.textContent = `${vehicleLabel(canonicalVehicle)} · ${date}`;
         historyInfo.textContent = "Загрузка GPS-истории…";
         historyPanel.classList.add("open");
         try {
-            const url = `${BACKEND_URL}/trucks/history/${encodeURIComponent(vehicle)}?date=${encodeURIComponent(date)}&_=${Date.now()}`;
+            const url = `${BACKEND_URL}/trucks/history/${encodeURIComponent(canonicalVehicle)}?date=${encodeURIComponent(date)}&_=${Date.now()}`;
             const response = await fetch(url, { cache: "no-store" });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const payload = await response.json();
             if (!Array.isArray(payload.points)) throw new Error("Некорректный ответ истории");
             historyInfo.textContent = payload.points.length
                 ? `Получено ${payload.points.length} GPS-точек. Строим маршрут…`
-                : `API вернул 0 GPS-точек для №${vehicle} за ${date}.`;
-            drawHistory(payload.points, vehicle, date);
+                : `API вернул 0 GPS-точек для ${vehicleLabel(canonicalVehicle)} за ${date}.`;
+            drawHistory(payload.points, canonicalVehicle, date);
         } catch (error) {
             console.error("Truck history load failed:", error);
             historyInfo.textContent = `История маршрута временно недоступна: ${error.message}`;
@@ -130,12 +147,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updateHistoryVehicles(trucks) {
-        const previous = historyVehicleSelect.value;
-        const vehicles = [...new Map(trucks.map(t => [String(t.vehicle), t.vehicle]).entries())]
-            .map(([value, label]) => `<option value="${esc(value)}">№${esc(label)}</option>`).join("");
-        historyVehicleSelect.innerHTML = `<option value="">Выберите машину</option>${vehicles}`;
-        if (previous && trucks.some(t => String(t.vehicle) === previous)) historyVehicleSelect.value = previous;
-        else if (historyVehicle) historyVehicleSelect.value = historyVehicle;
+        const previous = cleanVehicleId(historyVehicleSelect.value);
+        const seen = new Set();
+        const options = [];
+        for (const truck of trucks) {
+            const vehicle = cleanVehicleId(truck.vehicle);
+            if (!vehicle || seen.has(vehicle)) continue;
+            seen.add(vehicle);
+            options.push(`<option value="${esc(vehicle)}">${esc(vehicleLabel(vehicle))}</option>`);
+        }
+        historyVehicleSelect.innerHTML = `<option value="">Выберите машину</option>${options.join("")}`;
+        const wanted = previous || cleanVehicleId(historyVehicle);
+        if (wanted && seen.has(wanted)) historyVehicleSelect.value = wanted;
     }
 
     function render(trucks) {
@@ -154,13 +177,13 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!marker) { marker = L.marker(position).addTo(map); markers.set(truck.id, marker); }
             else marker.setLatLng(position);
             marker.bindPopup(popup(truck));
-            marker.off("popupopen").on("popupopen", () => document.querySelector(`.popup-history[data-vehicle="${CSS.escape(String(truck.vehicle))}"]`)?.addEventListener("click", () => showHistory(truck.vehicle, localDateISO())));
+            marker.off("popupopen").on("popupopen", () => document.querySelector(`.popup-history[data-vehicle="${CSS.escape(cleanVehicleId(truck.vehicle))}"]`)?.addEventListener("click", () => showHistory(truck.vehicle, localDateISO())));
         }
         const fresh = trucks.filter(t => t.fresh).length;
         els.count.textContent = trucks.length;
         els.moving.textContent = fresh;
         els.updated.textContent = `Последняя проверка: ${new Date().toLocaleTimeString("ru-RU")}`;
-        els.list.innerHTML = trucks.map(truck => `<div class="truck-item" data-id="${esc(truck.id)}"><div class="truck-item-top"><span class="truck-name">🚛 ${esc(truck.vehicle)}</span><span class="truck-speed">${truck.fresh ? "АКТУАЛЕН" : "ПОСЛЕДНЯЯ ПОЗИЦИЯ"}</span></div><div class="truck-meta">${esc(truck.route)} · GPS ${esc(new Date(truck.timestamp).toLocaleString("ru-RU"))}</div></div>`).join("");
+        els.list.innerHTML = trucks.map(truck => `<div class="truck-item" data-id="${esc(truck.id)}"><div class="truck-item-top"><span class="truck-name">🚛 ${esc(cleanVehicleId(truck.vehicle))}</span><span class="truck-speed">${truck.fresh ? "АКТУАЛЕН" : "ПОСЛЕДНЯЯ ПОЗИЦИЯ"}</span></div><div class="truck-meta">${esc(truck.route)} · GPS ${esc(new Date(truck.timestamp).toLocaleString("ru-RU"))}</div></div>`).join("");
         els.list.querySelectorAll(".truck-item").forEach(item => item.addEventListener("click", () => {
             const truck = currentTrucks.find(t => t.id === item.dataset.id);
             if (!truck) return;
