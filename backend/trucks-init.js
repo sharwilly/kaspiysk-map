@@ -186,16 +186,20 @@ async function latestTrucks() {
 async function history(vehicleId, date) {
     if (dbAvailable) {
         try {
+            // recorded_at is stored as an absolute instant (TIMESTAMPTZ).
+            // The UI sends a calendar date, so use an explicit UTC day boundary
+            // instead of PostgreSQL's session timezone when casting $2::date.
             const result = await pool.query(`
                 SELECT recorded_at AS timestamp, latitude AS lat, longitude AS lng, route, location, speed
                 FROM truck_gps_points
                 WHERE vehicle_id = $1
-                  AND recorded_at >= $2::date
-                  AND recorded_at < ($2::date + INTERVAL '1 day')
+                  AND recorded_at >= ($2::date AT TIME ZONE 'UTC')
+                  AND recorded_at < (($2::date + INTERVAL '1 day') AT TIME ZONE 'UTC')
                 ORDER BY recorded_at ASC
             `, [vehicleId, date]);
             return result.rows;
         } catch (error) {
+            console.error('Truck history DB query failed:', error.message);
             dbAvailable = false;
         }
     }
@@ -242,7 +246,9 @@ function installTruckRoutes(app) {
     app.get('/trucks/history/:vehicleId', async (req, res) => {
         try {
             const date = /^\d{4}-\d{2}-\d{2}$/.test(req.query.date || '') ? req.query.date : new Date().toISOString().slice(0, 10);
-            res.json({ vehicle: req.params.vehicleId, date, points: await history(req.params.vehicleId, date), storage: dbAvailable ? 'postgresql' : 'memory' });
+            const points = await history(req.params.vehicleId, date);
+            res.set('Cache-Control', 'no-store');
+            res.json({ vehicle: req.params.vehicleId, date, points, count: points.length, storage: dbAvailable ? 'postgresql' : 'memory' });
         } catch (error) {
             console.error('Truck history error:', error);
             res.status(500).json({ error: 'Ошибка истории маршрута', details: error.message });
