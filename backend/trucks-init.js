@@ -43,7 +43,7 @@ function recordsFrom(payload) {
 }
 
 async function ensureTable() {
-    if (tableReady || dbAvailable === false) return false;
+    if (tableReady) return true;
     try {
         await pool.query(`
             CREATE TABLE IF NOT EXISTS truck_gps_points (
@@ -74,8 +74,10 @@ async function ensureTable() {
     }
 }
 
-async function pollSource() {
-    if (Date.now() - lastPollAt < POLL_INTERVAL_MS) return { sourceError: null, count: 0 };
+async function pollSource({ force = false } = {}) {
+    if (!force && Date.now() - lastPollAt < POLL_INTERVAL_MS) {
+        return { sourceError: null, count: 0, skipped: true };
+    }
 
     const response = await fetch(SOURCE_URL, {
         headers: { Accept: 'application/json', 'User-Agent': 'OpenKaspiysk-Demo/1.0' },
@@ -107,10 +109,7 @@ async function pollSource() {
                 await pool.query(`
                     INSERT INTO truck_gps_points
                         (vehicle_id, recorded_at, source_recorded_at, latitude, longitude, route, location, source, speed)
-                    SELECT $1, $2, $3, $4, $5, $6, $7, 'new_taipei_demo', $8
-                    WHERE NOT EXISTS (
-                        SELECT 1 FROM truck_gps_points WHERE vehicle_id = $1 AND recorded_at = $2
-                    )
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, 'new_taipei_demo', $8)
                 `, [point.vehicle_id, point.recorded_at, point.source_recorded_at, point.latitude, point.longitude, point.route, point.location, point.speed]);
             } catch (error) {
                 console.warn('Could not persist truck GPS point:', error.message);
@@ -120,10 +119,12 @@ async function pollSource() {
         }
     }
 
-    return { sourceError: null, count: snapshots.length };
+    return { sourceError: null, count: snapshots.length, skipped: false, recordedAt: polledAt };
 }
 
 function startBackgroundPolling() {
+    // Keep the web service responsive, but do not rely on its lifetime for the
+    // history collector. Render Cron calls /trucks/poll every 2 minutes.
     if (pollingStarted) return;
     pollingStarted = true;
     const run = async () => {
@@ -141,9 +142,6 @@ function startBackgroundPolling() {
 async function latestTrucks() {
     const byVehicle = new Map();
 
-    // Keep the latest known position of every vehicle ever collected.
-    // This intentionally includes stale/offline vehicles instead of only trucks
-    // currently present in the live source.
     for (const point of memoryPoints.values()) {
         const old = byVehicle.get(point.vehicle_id);
         if (!old || point.recorded_at > old.recorded_at) byVehicle.set(point.vehicle_id, point);
@@ -212,6 +210,17 @@ function installTruckRoutes(app) {
     app.__truckRoutesInstalled = true;
     startBackgroundPolling();
 
+    app.get('/trucks/poll', async (req, res) => {
+        try {
+            const result = await pollSource({ force: true });
+            res.set('Cache-Control', 'no-store');
+            res.json({ ok: true, ...result, storage: dbAvailable ? 'postgresql' : 'memory' });
+        } catch (error) {
+            console.error('Truck GPS poll error:', error.message);
+            res.status(502).json({ ok: false, error: error.message, storage: dbAvailable ? 'postgresql' : 'memory' });
+        }
+    });
+
     app.get('/trucks', async (req, res) => {
         try {
             let sourceError = null;
@@ -252,4 +261,4 @@ if (require.main !== module) {
     }
 }
 
-module.exports = { installTruckRoutes };
+module.exports = { installTruckRoutes, pollSource };
