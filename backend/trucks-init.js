@@ -2,7 +2,6 @@ const express = require('express');
 const pool = require('./db');
 
 const SOURCE_URL = 'https://data.ntpc.gov.tw/api/datasets/28ab4122-60e1-4065-98e5-abccb69aaca6/json';
-const MAX_TRUCKS = 12;
 const STALE_MINUTES = 20;
 const POLL_INTERVAL_MS = 2 * 60 * 1000;
 
@@ -93,10 +92,6 @@ async function pollSource() {
         if (!old || point.source_recorded_at > old.source_recorded_at) latest.set(point.vehicle_id, point);
     }
 
-    // The source timestamp identifies the GPS observation, but it may stay unchanged
-    // between polls. History needs a new observation for every successful poll, so
-    // recorded_at is the server-side receipt time and source_recorded_at preserves
-    // the original timestamp supplied by the source.
     const polledAt = new Date().toISOString();
     const snapshots = [...latest.values()].map(point => ({ ...point, recorded_at: polledAt }));
 
@@ -145,10 +140,15 @@ function startBackgroundPolling() {
 
 async function latestTrucks() {
     const byVehicle = new Map();
+
+    // Keep the latest known position of every vehicle ever collected.
+    // This intentionally includes stale/offline vehicles instead of only trucks
+    // currently present in the live source.
     for (const point of memoryPoints.values()) {
         const old = byVehicle.get(point.vehicle_id);
         if (!old || point.recorded_at > old.recorded_at) byVehicle.set(point.vehicle_id, point);
     }
+
     if (dbAvailable) {
         try {
             const result = await pool.query(`
@@ -165,9 +165,9 @@ async function latestTrucks() {
             dbAvailable = false;
         }
     }
+
     return [...byVehicle.values()]
         .sort((a, b) => new Date(b.recorded_at) - new Date(a.recorded_at))
-        .slice(0, MAX_TRUCKS)
         .map(row => {
             const ageMinutes = Math.max(0, (Date.now() - new Date(row.recorded_at).getTime()) / 60000);
             return {
@@ -223,7 +223,7 @@ function installTruckRoutes(app) {
             }
             const trucks = await latestTrucks();
             res.set('Cache-Control', 'no-store');
-            res.json({ trucks, count: trucks.length, max: MAX_TRUCKS, source: 'Новый Тайбэй (демо)', sourceError, storage: dbAvailable ? 'postgresql' : 'memory', staleFallback: trucks.some(t => !t.fresh) });
+            res.json({ trucks, count: trucks.length, source: 'Новый Тайбэй (демо)', sourceError, storage: dbAvailable ? 'postgresql' : 'memory', staleFallback: trucks.some(t => !t.fresh) });
         } catch (error) {
             console.error('Truck API error:', error);
             res.status(500).json({ error: 'Ошибка GPS-мониторинга', details: error.message });
