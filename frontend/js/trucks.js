@@ -125,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateHistoryVehicles(trucks) {
         const previous = historyVehicleSelect.value;
-        const vehicles = [...new Map(trucks.map(t => [String(t.vehicle), t.vehicle])).entries()]
+        const vehicles = [...new Map(trucks.map(t => [String(t.vehicle), t.vehicle]).entries())]
             .map(([value, label]) => `<option value="${esc(value)}">№${esc(label)}</option>`).join("");
         historyVehicleSelect.innerHTML = `<option value="">Выберите машину</option>${vehicles}`;
         if (previous && trucks.some(t => String(t.vehicle) === previous)) historyVehicleSelect.value = previous;
@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
         els.count.textContent = trucks.length;
         els.moving.textContent = fresh;
         els.updated.textContent = `Последняя проверка: ${new Date().toLocaleTimeString("ru-RU")}`;
-        els.list.innerHTML = trucks.map(truck => `<div class="truck-item" data-id="${esc(truck.id)}"><div class="truck-item-top"><span class="truck-name">🚛 ${esc(truck.vehicle)}</span><span class="truck-speed">${truck.fresh ? "АКТУАЛЕН" : "ИСТОРИЯ"}</span></div><div class="truck-meta">${esc(truck.route)} · GPS ${esc(new Date(truck.timestamp).toLocaleString("ru-RU"))}</div></div>`).join("");
+        els.list.innerHTML = trucks.map(truck => `<div class="truck-item" data-id="${esc(truck.id)}"><div class="truck-item-top"><span class="truck-name">🚛 ${esc(truck.vehicle)}</span><span class="truck-speed">${truck.fresh ? "АКТУАЛЕН" : "ПОСЛЕДНЯЯ ПОЗИЦИЯ"}</span></div><div class="truck-meta">${esc(truck.route)} · GPS ${esc(new Date(truck.timestamp).toLocaleString("ru-RU"))}</div></div>`).join("");
         els.list.querySelectorAll(".truck-item").forEach(item => item.addEventListener("click", () => {
             const truck = currentTrucks.find(t => t.id === item.dataset.id);
             if (!truck) return;
@@ -172,8 +172,8 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const payload = await response.json();
             if (!Array.isArray(payload.trucks)) throw new Error("Некорректный ответ API");
-            render(payload.trucks.slice(0, 12));
-            setStatus(payload.trucks.length ? `Показано ${payload.trucks.length} машин${payload.staleFallback ? " · используются последние известные позиции" : ""}` : "Истории GPS пока нет — ждём первую загрузку источника");
+            render(payload.trucks);
+            setStatus(payload.trucks.length ? `Показано ${payload.trucks.length} машин${payload.staleFallback ? " · часть позиций устарела" : ""}` : "Истории GPS пока нет — ждём первую загрузку источника");
         } catch (error) {
             console.error(error);
             setStatus("Не удалось получить GPS-данные");
