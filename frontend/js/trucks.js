@@ -76,7 +76,8 @@ document.addEventListener("DOMContentLoaded", () => {
         clearHistoryLayers();
         const validPoints = points
             .map(p => ({ ...p, lat: Number(p.lat), lng: Number(p.lng) }))
-            .filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+            .filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lng))
+            .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
         const latlngs = validPoints.map(p => [p.lat, p.lng]);
 
         if (latlngs.length < 2) {
@@ -111,13 +112,18 @@ document.addEventListener("DOMContentLoaded", () => {
         historyInfo.textContent = "Загрузка GPS-истории…";
         historyPanel.classList.add("open");
         try {
-            const response = await fetch(`${BACKEND_URL}/trucks/history/${encodeURIComponent(vehicle)}?date=${encodeURIComponent(date)}`, { cache: "no-store" });
+            const url = `${BACKEND_URL}/trucks/history/${encodeURIComponent(vehicle)}?date=${encodeURIComponent(date)}&_=${Date.now()}`;
+            const response = await fetch(url, { cache: "no-store" });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const payload = await response.json();
-            drawHistory(payload.points || [], vehicle, date);
+            if (!Array.isArray(payload.points)) throw new Error("Некорректный ответ истории");
+            historyInfo.textContent = payload.points.length
+                ? `Получено ${payload.points.length} GPS-точек. Строим маршрут…`
+                : `API вернул 0 GPS-точек для №${vehicle} за ${date}.`;
+            drawHistory(payload.points, vehicle, date);
         } catch (error) {
-            console.error(error);
-            historyInfo.textContent = "История маршрута временно недоступна.";
+            console.error("Truck history load failed:", error);
+            historyInfo.textContent = `История маршрута временно недоступна: ${error.message}`;
         } finally {
             historyLoading = false;
         }
