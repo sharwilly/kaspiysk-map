@@ -52,6 +52,41 @@ document.addEventListener("DOMContentLoaded", () => {
         return `№${cleanVehicleId(value)}`;
     }
 
+    // Haversine distance between two GPS coordinates, in kilometres.
+    function distanceKm(a, b) {
+        const R = 6371;
+        const toRad = degrees => degrees * Math.PI / 180;
+        const dLat = toRad(b.lat - a.lat);
+        const dLng = toRad(b.lng - a.lng);
+        const lat1 = toRad(a.lat);
+        const lat2 = toRad(b.lat);
+        const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+        return 2 * R * Math.asin(Math.sqrt(Math.min(1, h)));
+    }
+
+    // GPS is sampled every ~2 minutes. Ignore impossible jumps rather than
+    // turning a short GPS error into several kilometres of fake mileage.
+    function calculateRouteDistance(points) {
+        let totalKm = 0;
+        let acceptedSegments = 0;
+        for (let i = 1; i < points.length; i++) {
+            const previous = points[i - 1];
+            const current = points[i];
+            const distance = distanceKm(previous, current);
+            const elapsedHours = (new Date(current.timestamp) - new Date(previous.timestamp)) / 3600000;
+            if (!Number.isFinite(distance) || distance <= 0 || !Number.isFinite(elapsedHours) || elapsedHours <= 0) continue;
+
+            // Allow a generous 120 km/h ceiling for urban municipal vehicles.
+            // This is a guard against GPS jumps, not an estimate of speed.
+            const impliedSpeed = distance / elapsedHours;
+            if (impliedSpeed > 120 || distance > 5) continue;
+
+            totalKm += distance;
+            acceptedSegments++;
+        }
+        return { totalKm, acceptedSegments };
+    }
+
     historyDateInput.value = localDateISO();
     historyDateInput.max = localDateISO();
 
@@ -107,8 +142,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const firstTime = new Date(validPoints[0].timestamp);
         const lastTime = new Date(validPoints[validPoints.length - 1].timestamp);
+        const distance = calculateRouteDistance(validPoints);
+        const distanceText = distance.acceptedSegments
+            ? `${distance.totalKm.toFixed(1).replace(".", ",")} км по GPS-треку`
+            : "недостаточно корректных интервалов для оценки расстояния";
+
         historyTitle.textContent = `${vehicleLabel(vehicle)} · ${date}`;
-        historyInfo.innerHTML = `<b>${latlngs.length} GPS-точек</b><br>Период: ${esc(firstTime.toLocaleTimeString("ru-RU"))} — ${esc(lastTime.toLocaleTimeString("ru-RU"))}<br>Начало отмечено точкой, конец — последней GPS-позицией.`;
+        historyInfo.innerHTML = `<b>${latlngs.length} GPS-точек</b><br>Период: ${esc(firstTime.toLocaleTimeString("ru-RU"))} — ${esc(lastTime.toLocaleTimeString("ru-RU"))}<br><b>Пройдено: ${esc(distanceText)}</b><br><span class="history-distance-note">Расстояние рассчитано между последовательными GPS-точками; редкие подозрительные скачки отфильтрованы.</span>`;
         historyPanel.classList.add("open");
     }
 
