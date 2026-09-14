@@ -3,6 +3,7 @@
 
     const originalMarkerAddTo = L.Marker.prototype.addTo;
     const originalMarkerSetOpacity = L.Marker.prototype.setOpacity;
+    const originalMarkerOpenPopup = L.Marker.prototype.openPopup;
     const originalMapRemoveLayer = L.Map.prototype.removeLayer;
     const groups = new WeakMap();
 
@@ -54,8 +55,8 @@
         return group;
     }
 
-    // This file is loaded before trucks.js. Patch immediately, not on
-    // DOMContentLoaded, otherwise trucks.js creates ordinary map markers first.
+    // trucks.html loads this file before trucks.js. It must patch immediately;
+    // waiting for DOMContentLoaded would let trucks.js create plain markers.
     L.Marker.prototype.addTo = function (map) {
         if (!isTruckMap(map)) return originalMarkerAddTo.call(this, map);
 
@@ -67,8 +68,8 @@
     };
 
     // Route mode in trucks.js hides non-selected vehicles with setOpacity(0).
-    // Remove hidden vehicles from the cluster completely so they cannot keep
-    // the selected truck inside a cluster or inflate the cluster count.
+    // Hidden vehicles must leave the cluster, otherwise they still contribute
+    // to cluster counts and can prevent the selected vehicle from appearing.
     L.Marker.prototype.setOpacity = function (opacity) {
         if (!this.__truckClusterManaged) {
             return originalMarkerSetOpacity.call(this, opacity);
@@ -89,6 +90,21 @@
         this.options.opacity = next;
         if (!group.hasLayer(this)) group.addLayer(this);
         return this;
+    };
+
+    // Selecting a truck from the side list calls marker.openPopup(). If the
+    // marker is still inside a cluster, first ask MarkerCluster to reveal it.
+    L.Marker.prototype.openPopup = function () {
+        if (!this.__truckClusterManaged) {
+            return originalMarkerOpenPopup.apply(this, arguments);
+        }
+
+        const group = this.__truckClusterGroup;
+        if (group?.hasLayer(this)) {
+            group.zoomToShowLayer(this, () => originalMarkerOpenPopup.call(this));
+            return this;
+        }
+        return originalMarkerOpenPopup.apply(this, arguments);
     };
 
     L.Map.prototype.removeLayer = function (layer) {
