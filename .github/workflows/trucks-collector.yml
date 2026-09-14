@@ -5,6 +5,10 @@ on:
     - cron: '*/5 * * * *'
   workflow_dispatch:
 
+concurrency:
+  group: garbage-truck-gps-collector
+  cancel-in-progress: false
+
 jobs:
   collect:
     runs-on: ubuntu-latest
