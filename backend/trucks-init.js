@@ -4,6 +4,12 @@ const pool = require('./db');
 const SOURCE_URL = 'https://data.ntpc.gov.tw/api/datasets/28ab4122-60e1-4065-98e5-abccb69aaca6/json';
 const STALE_MINUTES = 20;
 const POLL_INTERVAL_MS = 2 * 60 * 1000;
+const MOSCOW_TIME_ZONE = 'Europe/Moscow';
+
+// History is collected by GitHub Actions. The web process may still perform a
+// throttled fallback poll when /trucks is requested, but it no longer starts a
+// second permanent timer that competes with the collector.
+const WEB_BACKGROUND_POLLING = process.env.TRUCKS_BACKGROUND_POLLING === 'true';
 
 let tableReady = false;
 let dbAvailable = null;
@@ -63,6 +69,7 @@ async function ensureTable() {
                 ADD COLUMN IF NOT EXISTS source_recorded_at TIMESTAMPTZ;
             CREATE INDEX IF NOT EXISTS idx_truck_gps_vehicle_time ON truck_gps_points(vehicle_id, recorded_at DESC);
             CREATE INDEX IF NOT EXISTS idx_truck_gps_time ON truck_gps_points(recorded_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_truck_gps_vehicle_source_time ON truck_gps_points(vehicle_id, source_recorded_at DESC);
         `);
         tableReady = true;
         dbAvailable = true;
@@ -72,6 +79,25 @@ async function ensureTable() {
         console.warn('Truck history DB unavailable; using in-memory GPS history:', error.message);
         return false;
     }
+}
+
+async function persistPoint(point) {
+    // The source refreshes every ~2 minutes. Render and GitHub Actions can
+    // legitimately poll the same snapshot, so deduplicate identical source
+    // observations instead of creating duplicate history points.
+    await pool.query(`
+        INSERT INTO truck_gps_points
+            (vehicle_id, recorded_at, source_recorded_at, latitude, longitude, route, location, source, speed)
+        SELECT $1, $2, $3, $4, $5, $6, $7, 'new_taipei_demo', $8
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM truck_gps_points
+            WHERE vehicle_id = $1
+              AND source_recorded_at = $3
+              AND latitude = $4
+              AND longitude = $5
+        )
+    `, [point.vehicle_id, point.recorded_at, point.source_recorded_at, point.latitude, point.longitude, point.route, point.location, point.speed]);
 }
 
 async function pollSource({ force = false } = {}) {
@@ -98,7 +124,7 @@ async function pollSource({ force = false } = {}) {
     const snapshots = [...latest.values()].map(point => ({ ...point, recorded_at: polledAt }));
 
     for (const point of snapshots) {
-        memoryPoints.set(`${point.vehicle_id}|${point.recorded_at}`, point);
+        memoryPoints.set(`${point.vehicle_id}|${point.source_recorded_at}|${point.latitude}|${point.longitude}`, point);
     }
     lastPollAt = Date.now();
 
@@ -106,11 +132,7 @@ async function pollSource({ force = false } = {}) {
     if (hasDb) {
         for (const point of snapshots) {
             try {
-                await pool.query(`
-                    INSERT INTO truck_gps_points
-                        (vehicle_id, recorded_at, source_recorded_at, latitude, longitude, route, location, source, speed)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, 'new_taipei_demo', $8)
-                `, [point.vehicle_id, point.recorded_at, point.source_recorded_at, point.latitude, point.longitude, point.route, point.location, point.speed]);
+                await persistPoint(point);
             } catch (error) {
                 console.warn('Could not persist truck GPS point:', error.message);
                 dbAvailable = false;
@@ -123,9 +145,7 @@ async function pollSource({ force = false } = {}) {
 }
 
 function startBackgroundPolling() {
-    // Keep the web service responsive, but do not rely on its lifetime for the
-    // history collector. Render Cron calls /trucks/poll every 2 minutes.
-    if (pollingStarted) return;
+    if (!WEB_BACKGROUND_POLLING || pollingStarted) return;
     pollingStarted = true;
     const run = async () => {
         try {
@@ -186,15 +206,14 @@ async function latestTrucks() {
 async function history(vehicleId, date) {
     if (dbAvailable) {
         try {
-            // recorded_at is stored as an absolute instant (TIMESTAMPTZ).
-            // The UI sends a calendar date, so use an explicit UTC day boundary
-            // instead of PostgreSQL's session timezone when casting $2::date.
+            // The UI sends a Kaspiysk calendar date. Use the project's local
+            // timezone rather than UTC so points around 00:00 are not shown on
+            // the wrong day.
             const result = await pool.query(`
                 SELECT recorded_at AS timestamp, latitude AS lat, longitude AS lng, route, location, speed
                 FROM truck_gps_points
                 WHERE vehicle_id = $1
-                  AND recorded_at >= ($2::date AT TIME ZONE 'UTC')
-                  AND recorded_at < (($2::date + INTERVAL '1 day') AT TIME ZONE 'UTC')
+                  AND (recorded_at AT TIME ZONE '${MOSCOW_TIME_ZONE}')::date = $2::date
                 ORDER BY recorded_at ASC
             `, [vehicleId, date]);
             return result.rows;
@@ -204,7 +223,7 @@ async function history(vehicleId, date) {
         }
     }
     return [...memoryPoints.values()]
-        .filter(point => point.vehicle_id === vehicleId && point.recorded_at.slice(0, 10) === date)
+        .filter(point => point.vehicle_id === vehicleId && new Intl.DateTimeFormat('en-CA', { timeZone: MOSCOW_TIME_ZONE }).format(new Date(point.recorded_at)) === date)
         .sort((a, b) => new Date(a.recorded_at) - new Date(b.recorded_at))
         .map(point => ({ timestamp: point.recorded_at, lat: point.latitude, lng: point.longitude, route: point.route, location: point.location, speed: point.speed }));
 }
