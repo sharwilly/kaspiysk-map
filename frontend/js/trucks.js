@@ -12,12 +12,60 @@ document.addEventListener("DOMContentLoaded", () => {
     let historyVehicle = null;
     let historyDate = null;
     let historyLoading = false;
+    let routeFocusVehicle = null;
 
     const els = {
         status: document.getElementById("mapStatus"), count: document.getElementById("truckCount"),
         moving: document.getElementById("movingCount"), updated: document.getElementById("lastUpdated"),
         list: document.getElementById("truckList"), refresh: document.getElementById("refreshTrucks")
     };
+
+    const mapWrap = document.querySelector(".trucks-map-wrap");
+    const fullscreenButton = document.createElement("button");
+    fullscreenButton.type = "button";
+    fullscreenButton.className = "truck-map-fullscreen";
+    fullscreenButton.setAttribute("aria-label", "Открыть карту на весь экран");
+    fullscreenButton.title = "На весь экран";
+    fullscreenButton.innerHTML = "<span aria-hidden=\"true\">⛶</span>";
+    mapWrap?.appendChild(fullscreenButton);
+
+    function setMarkerVisibility() {
+        for (const truck of currentTrucks) {
+            const marker = markers.get(truck.id);
+            if (!marker) continue;
+            const vehicle = cleanVehicleId(truck.vehicle);
+            marker.setOpacity(routeFocusVehicle && vehicle !== routeFocusVehicle ? 0 : 1);
+        }
+    }
+
+    function clearRouteFocus() {
+        routeFocusVehicle = null;
+        setMarkerVisibility();
+        mapWrap?.classList.remove("route-focus");
+    }
+
+    function enterFullscreen() {
+        if (!mapWrap) return;
+        if (document.fullscreenElement) {
+            document.exitFullscreen?.();
+            return;
+        }
+        const request = mapWrap.requestFullscreen?.();
+        if (request?.catch) request.catch(() => mapWrap.classList.toggle("map-fullscreen-fallback"));
+    }
+
+    function updateFullscreenButton() {
+        const active = document.fullscreenElement === mapWrap || mapWrap?.classList.contains("map-fullscreen-fallback");
+        if (fullscreenButton) {
+            fullscreenButton.innerHTML = active ? "<span aria-hidden=\"true\">×</span>" : "<span aria-hidden=\"true\">⛶</span>";
+            fullscreenButton.setAttribute("aria-label", active ? "Выйти из полноэкранного режима" : "Открыть карту на весь экран");
+            fullscreenButton.title = active ? "Выйти из полноэкранного режима" : "На весь экран";
+        }
+        setTimeout(() => map.invalidateSize(), 80);
+    }
+
+    fullscreenButton.addEventListener("click", enterFullscreen);
+    document.addEventListener("fullscreenchange", updateFullscreenButton);
 
     const historyPanel = document.createElement("div");
     historyPanel.className = "truck-history-panel";
@@ -52,7 +100,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return `№${cleanVehicleId(value)}`;
     }
 
-    // Haversine distance between two GPS coordinates, in kilometres.
     function distanceKm(a, b) {
         const R = 6371;
         const toRad = degrees => degrees * Math.PI / 180;
@@ -64,8 +111,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return 2 * R * Math.asin(Math.sqrt(Math.min(1, h)));
     }
 
-    // GPS is sampled every ~2 minutes. Ignore impossible jumps rather than
-    // turning a short GPS error into several kilometres of fake mileage.
     function calculateRouteDistance(points) {
         let totalKm = 0;
         let acceptedSegments = 0;
@@ -75,12 +120,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const distance = distanceKm(previous, current);
             const elapsedHours = (new Date(current.timestamp) - new Date(previous.timestamp)) / 3600000;
             if (!Number.isFinite(distance) || distance <= 0 || !Number.isFinite(elapsedHours) || elapsedHours <= 0) continue;
-
-            // Allow a generous 120 km/h ceiling for urban municipal vehicles.
-            // This is a guard against GPS jumps, not an estimate of speed.
             const impliedSpeed = distance / elapsedHours;
             if (impliedSpeed > 120 || distance > 5) continue;
-
             totalKm += distance;
             acceptedSegments++;
         }
@@ -90,7 +131,11 @@ document.addEventListener("DOMContentLoaded", () => {
     historyDateInput.value = localDateISO();
     historyDateInput.max = localDateISO();
 
-    document.getElementById("closeHistory").addEventListener("click", () => historyPanel.classList.remove("open"));
+    document.getElementById("closeHistory").addEventListener("click", () => {
+        historyPanel.classList.remove("open");
+        clearHistoryLayers();
+        clearRouteFocus();
+    });
     document.getElementById("loadHistory").addEventListener("click", () => {
         const vehicle = cleanVehicleId(historyVehicleSelect.value);
         const date = historyDateInput.value || localDateISO();
@@ -135,6 +180,10 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        routeFocusVehicle = cleanVehicleId(vehicle);
+        setMarkerVisibility();
+        mapWrap?.classList.add("route-focus");
+
         historyLine = L.polyline(latlngs, { weight: 5, opacity: 0.8 }).addTo(map);
         historyStart = L.circleMarker(latlngs[0], { radius: 7 }).addTo(map).bindTooltip("Начало маршрута");
         historyEnd = L.circleMarker(latlngs[latlngs.length - 1], { radius: 7 }).addTo(map).bindTooltip("Последняя точка");
@@ -156,7 +205,6 @@ document.addEventListener("DOMContentLoaded", () => {
         vehicle = cleanVehicleId(vehicle);
         if (!vehicle || !date || historyLoading) return;
 
-        // Always use the canonical vehicle ID from the current API response.
         const current = currentTrucks.find(t => cleanVehicleId(t.vehicle) === vehicle);
         const canonicalVehicle = cleanVehicleId(current?.vehicle || vehicle);
 
@@ -219,6 +267,7 @@ document.addEventListener("DOMContentLoaded", () => {
             marker.bindPopup(popup(truck));
             marker.off("popupopen").on("popupopen", () => document.querySelector(`.popup-history[data-vehicle="${CSS.escape(cleanVehicleId(truck.vehicle))}"]`)?.addEventListener("click", () => showHistory(truck.vehicle, localDateISO())));
         }
+        setMarkerVisibility();
         const fresh = trucks.filter(t => t.fresh).length;
         els.count.textContent = trucks.length;
         els.moving.textContent = fresh;
@@ -230,7 +279,7 @@ document.addEventListener("DOMContentLoaded", () => {
             map.setView([truck.lat, truck.lng], 15);
             markers.get(truck.id)?.openPopup();
         }));
-        if (bounds.length && !initialFit) { map.fitBounds(bounds, { padding: [30, 30] }); initialFit = true; }
+        if (bounds.length && !initialFit && !routeFocusVehicle) { map.fitBounds(bounds, { padding: [30, 30] }); initialFit = true; }
     }
 
     async function loadTrucks() {
