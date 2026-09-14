@@ -29,6 +29,30 @@ document.addEventListener("DOMContentLoaded", () => {
     fullscreenButton.innerHTML = "<span aria-hidden=\"true\">⛶</span>";
     mapWrap?.appendChild(fullscreenButton);
 
+    const fullscreenStyle = document.createElement("style");
+    fullscreenStyle.textContent = `
+        .truck-map-fullscreen {
+            position:absolute; z-index:600; top:18px; right:18px;
+            width:40px; height:40px; display:grid; place-items:center;
+            border:1px solid rgba(15,23,42,.10); border-radius:12px;
+            background:rgba(255,255,255,.92); color:#334155;
+            box-shadow:0 8px 24px rgba(15,23,42,.12);
+            backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+            cursor:pointer; font-size:22px; line-height:1;
+            transition:transform .18s ease, color .18s ease, background .18s ease;
+        }
+        .truck-map-fullscreen:hover { background:#fff; color:#2563eb; transform:scale(1.04); }
+        .truck-map-fullscreen:active { transform:scale(.96); }
+        .trucks-map-wrap:fullscreen { width:100vw; height:100vh; min-height:100vh; background:#e8eef5; }
+        .trucks-map-wrap:fullscreen #trucks-map { width:100%; height:100%; min-height:100vh; }
+        .trucks-map-wrap:fullscreen .map-status { bottom:18px; left:18px; }
+        .trucks-map-wrap:fullscreen .truck-map-fullscreen { top:18px; right:18px; }
+        @media (max-width:520px) {
+            .truck-map-fullscreen { top:12px; right:12px; width:38px; height:38px; }
+        }
+    `;
+    document.head.appendChild(fullscreenStyle);
+
     function setMarkerVisibility() {
         for (const truck of currentTrucks) {
             const marker = markers.get(truck.id);
@@ -41,31 +65,29 @@ document.addEventListener("DOMContentLoaded", () => {
     function clearRouteFocus() {
         routeFocusVehicle = null;
         setMarkerVisibility();
-        mapWrap?.classList.remove("route-focus");
     }
 
     function enterFullscreen() {
         if (!mapWrap) return;
-        if (document.fullscreenElement) {
+        if (document.fullscreenElement === mapWrap) {
             document.exitFullscreen?.();
             return;
         }
-        const request = mapWrap.requestFullscreen?.();
-        if (request?.catch) request.catch(() => mapWrap.classList.toggle("map-fullscreen-fallback"));
+        const request = mapWrap.requestFullscreen?.() || mapWrap.webkitRequestFullscreen?.();
+        if (request?.catch) request.catch(error => console.warn("Fullscreen unavailable:", error));
     }
 
     function updateFullscreenButton() {
-        const active = document.fullscreenElement === mapWrap || mapWrap?.classList.contains("map-fullscreen-fallback");
-        if (fullscreenButton) {
-            fullscreenButton.innerHTML = active ? "<span aria-hidden=\"true\">×</span>" : "<span aria-hidden=\"true\">⛶</span>";
-            fullscreenButton.setAttribute("aria-label", active ? "Выйти из полноэкранного режима" : "Открыть карту на весь экран");
-            fullscreenButton.title = active ? "Выйти из полноэкранного режима" : "На весь экран";
-        }
-        setTimeout(() => map.invalidateSize(), 80);
+        const active = document.fullscreenElement === mapWrap;
+        fullscreenButton.innerHTML = active ? "<span aria-hidden=\"true\">×</span>" : "<span aria-hidden=\"true\">⛶</span>";
+        fullscreenButton.setAttribute("aria-label", active ? "Выйти из полноэкранного режима" : "Открыть карту на весь экран");
+        fullscreenButton.title = active ? "Выйти из полноэкранного режима" : "На весь экран";
+        setTimeout(() => map.invalidateSize(), 100);
     }
 
     fullscreenButton.addEventListener("click", enterFullscreen);
     document.addEventListener("fullscreenchange", updateFullscreenButton);
+    document.addEventListener("webkitfullscreenchange", updateFullscreenButton);
 
     const historyPanel = document.createElement("div");
     historyPanel.className = "truck-history-panel";
@@ -136,6 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
         clearHistoryLayers();
         clearRouteFocus();
     });
+
     document.getElementById("loadHistory").addEventListener("click", () => {
         const vehicle = cleanVehicleId(historyVehicleSelect.value);
         const date = historyDateInput.value || localDateISO();
@@ -165,6 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function drawHistory(points, vehicle, date) {
         clearHistoryLayers();
+        clearRouteFocus();
         const validPoints = points
             .map(p => ({ ...p, lat: Number(p.lat), lng: Number(p.lng) }))
             .filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lng))
@@ -182,7 +206,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         routeFocusVehicle = cleanVehicleId(vehicle);
         setMarkerVisibility();
-        mapWrap?.classList.add("route-focus");
 
         historyLine = L.polyline(latlngs, { weight: 5, opacity: 0.8 }).addTo(map);
         historyStart = L.circleMarker(latlngs[0], { radius: 7 }).addTo(map).bindTooltip("Начало маршрута");
