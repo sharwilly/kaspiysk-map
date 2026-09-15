@@ -1,0 +1,33 @@
+name: Restore server.js
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    if: ${{ !contains(github.event.head_commit.message, 'Restore full server.js') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore working server and register truck routes
+        shell: bash
+        run: |
+          git checkout d8abdc9f932d82c54bd8f6bb658e5da25c318ff5 -- backend/server.js
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('backend/server.js')
+          s = p.read_text()
+          s = s.replace('const pool = require("./db");\n\nconst app = express();', 'const pool = require("./db");\nconst { installTruckRoutes } = require("./trucks-init");\n\nconst app = express();\n\ninstallTruckRoutes(app);', 1)
+          p.write_text(s)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend/server.js
+          git commit -m "Restore full server.js"
+          git push origin HEAD:main
