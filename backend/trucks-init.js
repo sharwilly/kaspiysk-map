@@ -160,6 +160,7 @@ function startBackgroundPolling() {
 }
 
 async function latestTrucks() {
+    if (!dbAvailable) await ensureTable();
     const byVehicle = new Map();
 
     for (const point of memoryPoints.values()) {
@@ -246,13 +247,7 @@ function installTruckRoutes(app) {
 
     app.get('/trucks', async (req, res) => {
         try {
-            let sourceError = null;
-            try {
-                ({ sourceError } = await pollSource());
-            } catch (error) {
-                sourceError = error.message;
-                console.error('Truck GPS source error:', error.message);
-            }
+            const sourceError = null;
             const trucks = await latestTrucks();
             res.set('Cache-Control', 'no-store');
             res.json({ trucks, count: trucks.length, source: 'Новый Тайбэй (демо)', sourceError, storage: dbAvailable ? 'postgresql' : 'memory', staleFallback: trucks.some(t => !t.fresh) });
