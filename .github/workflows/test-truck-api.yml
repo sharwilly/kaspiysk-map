@@ -14,6 +14,7 @@ jobs:
     steps:
       - name: Query production truck API
         run: |
+          echo "Testing current production deployment"
           curl -fsS --max-time 30 -D /tmp/headers.txt https://kaspiysk-map-1.onrender.com/trucks -o /tmp/body.json
           cat /tmp/headers.txt
           python - <<'PY'
@@ -21,4 +22,5 @@ jobs:
           p=json.load(open('/tmp/body.json'))
           print(json.dumps(p, ensure_ascii=False, indent=2))
           assert isinstance(p.get('trucks'), list), p
+          assert p.get('count', 0) > 0, p
           PY
