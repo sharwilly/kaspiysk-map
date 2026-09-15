@@ -159,6 +159,17 @@ function startBackgroundPolling() {
     setInterval(run, POLL_INTERVAL_MS).unref();
 }
 
+async function publishedTruckSnapshot() {
+    const response = await fetch('https://raw.githubusercontent.com/sharwilly/kaspiysk-map/gps-data/trucks-latest.json', {
+        headers: { Accept: 'application/json', 'User-Agent': 'OpenKaspiysk-Demo/1.0' },
+        signal: AbortSignal.timeout(8000)
+    });
+    if (!response.ok) throw new Error(`GPS snapshot HTTP ${response.status}`);
+    const payload = await response.json();
+    if (!Array.isArray(payload.trucks)) throw new Error('Invalid GPS snapshot');
+    return payload.trucks;
+}
+
 async function latestTrucks() {
     if (!dbAvailable) await ensureTable();
     const byVehicle = new Map();
@@ -247,8 +258,14 @@ function installTruckRoutes(app) {
 
     app.get('/trucks', async (req, res) => {
         try {
-            const sourceError = null;
-            const trucks = await latestTrucks();
+            let sourceError = null;
+  let trucks;
+  try {
+      trucks = await publishedTruckSnapshot();
+  } catch (error) {
+      sourceError = error.message;
+      trucks = await latestTrucks();
+  }
             res.set('Cache-Control', 'no-store');
             res.json({ trucks, count: trucks.length, source: 'Новый Тайбэй (демо)', sourceError, storage: dbAvailable ? 'postgresql' : 'memory', staleFallback: trucks.some(t => !t.fresh) });
         } catch (error) {
