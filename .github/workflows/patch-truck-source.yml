@@ -20,6 +20,7 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
           p=Path('backend/trucks-init.js')
           s=p.read_text()
           marker='async function latestTrucks() {'
@@ -37,9 +38,8 @@ jobs:
           """
           if 'async function publishedTruckSnapshot()' not in s:
               s=s.replace(marker, fn+marker, 1)
-          old='''            const sourceError = null;
-            const trucks = await latestTrucks();'''
-          new='''            let sourceError = null;
+          pattern=re.compile(r"const sourceError = null;\s*const trucks = await latestTrucks\(\);", re.M)
+          new='''let sourceError = null;
             let trucks;
             try {
                 trucks = await publishedTruckSnapshot();
@@ -47,8 +47,8 @@ jobs:
                 sourceError = error.message;
                 trucks = await latestTrucks();
             }'''
-          if old not in s: raise SystemExit('route marker not found')
-          s=s.replace(old,new,1)
+          s,n=pattern.subn(new,s,count=1)
+          if n != 1: raise SystemExit(f'route marker replacements: {n}')
           p.write_text(s)
           PY
           git config user.name "github-actions[bot]"
