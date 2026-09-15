@@ -1,0 +1,57 @@
+name: Verify live truck map
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-save playwright@1.55.0
+      - run: npx playwright install --with-deps chromium
+      - name: Verify production truck map
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          const fs = require('fs');
+          (async () => {
+            const browser = await chromium.launch({headless:true});
+            const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+            const errors = [];
+            page.on('console', msg => { if (msg.type() === 'error') errors.push('console: ' + msg.text()); });
+            page.on('pageerror', err => errors.push('pageerror: ' + err.message));
+            const responses = [];
+            page.on('response', r => { if (r.url().includes('/trucks')) responses.push({url:r.url(), status:r.status()}); });
+            await page.goto('https://kaspiysk-map.vercel.app/trucks.html', {waitUntil:'networkidle', timeout:60000});
+            await page.waitForTimeout(5000);
+            const result = await page.evaluate(() => ({
+              status: document.querySelector('#mapStatus')?.textContent?.trim(),
+              count: document.querySelector('#truckCount')?.textContent?.trim(),
+              moving: document.querySelector('#movingCount')?.textContent?.trim(),
+              listItems: document.querySelectorAll('.truck-item').length,
+              leafletMarkers: document.querySelectorAll('.leaflet-marker-icon').length,
+              clusterScripts: [...document.scripts].filter(s => /markercluster|trucks-cluster/i.test(s.src)).map(s => s.src)
+            }));
+            const report = { result, responses, errors, passed: result.listItems > 0 && result.leafletMarkers > 0 && !result.status?.includes('Не удалось') && errors.length === 0 };
+            fs.writeFileSync('truck-map-test-result.json', JSON.stringify(report, null, 2));
+            console.log(JSON.stringify(report, null, 2));
+            await browser.close();
+            if (!report.passed) process.exitCode = 1;
+          })().catch(err => { fs.writeFileSync('truck-map-test-result.json', JSON.stringify({error:String(err),passed:false},null,2)); console.error(err); process.exitCode=1; });
+          NODE
+      - if: always()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm -f .github/workflows/verify-truck-map.yml
+          git add truck-map-test-result.json .github/workflows/verify-truck-map.yml
+          git commit -m 'Record browser verification result' || true
+          git push origin HEAD:main || true
