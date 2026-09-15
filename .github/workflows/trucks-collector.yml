@@ -18,30 +18,24 @@ jobs:
   collect:
     runs-on: ubuntu-latest
     timeout-minutes: 3
-
     defaults:
       run:
         working-directory: backend
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: backend/package.json
-
       - name: Install backend dependencies
         run: npm install --omit=dev
-
       - name: Collect GPS snapshot
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: node trucks-cron.js
-
       - name: Publish latest GPS snapshot to gps-data branch
         working-directory: .
         env:
@@ -49,35 +43,19 @@ jobs:
         run: |
           node - <<'NODE'
           const fs = require('fs');
-          const { Client } = require('pg');
+          const { Client } = require('./backend/node_modules/pg');
           const client = new Client({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
           (async () => {
             await client.connect();
-            const result = await client.query(`
-              SELECT DISTINCT ON (vehicle_id)
-                vehicle_id, recorded_at, latitude, longitude, route, location, speed
-              FROM truck_gps_points
-              ORDER BY vehicle_id, recorded_at DESC
-            `);
+            const result = await client.query(`SELECT DISTINCT ON (vehicle_id) vehicle_id, recorded_at, latitude, longitude, route, location, speed FROM truck_gps_points ORDER BY vehicle_id, recorded_at DESC`);
             await client.end();
             const now = Date.now();
             const trucks = result.rows.map(r => {
               const timestamp = new Date(r.recorded_at).toISOString();
               const ageMinutes = Math.max(0, (now - new Date(timestamp).getTime()) / 60000);
-              return {
-                id: r.vehicle_id,
-                vehicle: r.vehicle_id,
-                timestamp,
-                lat: Number(r.latitude),
-                lng: Number(r.longitude),
-                route: r.route || null,
-                location: r.location || null,
-                speed: r.speed == null ? null : Number(r.speed),
-                fresh: ageMinutes <= 20,
-                ageMinutes: Math.round(ageMinutes * 10) / 10
-              };
+              return { id:r.vehicle_id, vehicle:r.vehicle_id, timestamp, lat:Number(r.latitude), lng:Number(r.longitude), route:r.route||null, location:r.location||null, speed:r.speed==null?null:Number(r.speed), fresh:ageMinutes<=20, ageMinutes:Math.round(ageMinutes*10)/10 };
             });
-            fs.writeFileSync('trucks-latest.json', JSON.stringify({ recordedAt: new Date().toISOString(), trucks }, null, 2));
+            fs.writeFileSync('trucks-latest.json', JSON.stringify({ recordedAt:new Date().toISOString(), trucks }, null, 2));
             console.log(`Published ${trucks.length} vehicles`);
           })().catch(err => { console.error(err); process.exit(1); });
           NODE
