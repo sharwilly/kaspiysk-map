@@ -1,0 +1,23 @@
+name: Verify live trucks
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    if: ${{ !contains(github.event.head_commit.message, 'Remove live truck verification') }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -fsS --max-time 30 https://kaspiysk-map-1.onrender.com/trucks -o /tmp/trucks.json
+          python - <<'PY'
+          import json
+          p=json.load(open('/tmp/trucks.json'))
+          fresh=[x for x in p.get('trucks',[]) if x.get('fresh')]
+          print('count=',p.get('count'),'fresh=',len(fresh),'sourceError=',p.get('sourceError'),'storage=',p.get('storage'))
+          assert len(fresh) > 0, p
+          PY
