@@ -58,6 +58,23 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="js/weather-widget.js"></script>
 <script src="js/header.js"></script>
+<script>
+    // The restored pre-cluster trucks.js points to the former Render hostname.
+    // Keep the restored page intact while routing its API requests to the current backend.
+    (() => {
+        const currentFetch = window.fetch.bind(window);
+        const oldApi = "https://kaspiysk-map.onrender.com";
+        const currentApi = "https://kaspiysk-map-1.onrender.com";
+        window.fetch = (input, init) => {
+            if (typeof input === "string" && input.startsWith(oldApi)) {
+                input = currentApi + input.slice(oldApi.length);
+            } else if (input instanceof Request && input.url.startsWith(oldApi)) {
+                input = new Request(currentApi + input.url.slice(oldApi.length), input);
+            }
+            return currentFetch(input, init);
+        };
+    })();
+</script>
 <script src="js/trucks.js"></script>
 <script src="js/trucks-fullscreen.js"></script>
 <script>
