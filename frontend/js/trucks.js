@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const BACKEND_URL = "https://kaspiysk-map-1.onrender.com";
+    const BACKEND_URL = "https://kaspiysk-map.onrender.com";
     const map = L.map("trucks-map", { zoomControl: true, attributionControl: false }).setView([25.02, 121.46], 12);
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap contributors" }).addTo(map);
 
