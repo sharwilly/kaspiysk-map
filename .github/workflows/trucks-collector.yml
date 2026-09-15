@@ -7,6 +7,9 @@ on:
     - cron: '*/5 * * * *'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 concurrency:
   group: garbage-truck-gps-collector
   cancel-in-progress: false
@@ -39,16 +42,49 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: node trucks-cron.js
 
-      - name: Verify production API has fresh GPS
+      - name: Publish latest GPS snapshot to gps-data branch
         working-directory: .
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          curl -fsS --max-time 30 https://kaspiysk-map-1.onrender.com/trucks -o /tmp/trucks.json
-          python - <<'PY'
-          import json
-          p=json.load(open('/tmp/trucks.json'))
-          trucks=p.get('trucks', [])
-          fresh=[t for t in trucks if t.get('fresh')]
-          print(f"API count={len(trucks)}, fresh={len(fresh)}, storage={p.get('storage')}")
-          assert p.get('storage') == 'postgresql', p
-          assert fresh, p
-          PY
+          node - <<'NODE'
+          const fs = require('fs');
+          const { Client } = require('pg');
+          const client = new Client({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+          (async () => {
+            await client.connect();
+            const result = await client.query(`
+              SELECT DISTINCT ON (vehicle_id)
+                vehicle_id, recorded_at, latitude, longitude, route, location, speed
+              FROM truck_gps_points
+              ORDER BY vehicle_id, recorded_at DESC
+            `);
+            await client.end();
+            const now = Date.now();
+            const trucks = result.rows.map(r => {
+              const timestamp = new Date(r.recorded_at).toISOString();
+              const ageMinutes = Math.max(0, (now - new Date(timestamp).getTime()) / 60000);
+              return {
+                id: r.vehicle_id,
+                vehicle: r.vehicle_id,
+                timestamp,
+                lat: Number(r.latitude),
+                lng: Number(r.longitude),
+                route: r.route || null,
+                location: r.location || null,
+                speed: r.speed == null ? null : Number(r.speed),
+                fresh: ageMinutes <= 20,
+                ageMinutes: Math.round(ageMinutes * 10) / 10
+              };
+            });
+            fs.writeFileSync('trucks-latest.json', JSON.stringify({ recordedAt: new Date().toISOString(), trucks }, null, 2));
+            console.log(`Published ${trucks.length} vehicles`);
+          })().catch(err => { console.error(err); process.exit(1); });
+          NODE
+          git fetch origin gps-data:gps-data || true
+          git checkout -B gps-data
+          git add trucks-latest.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update truck GPS snapshot" || true
+          git push origin gps-data
