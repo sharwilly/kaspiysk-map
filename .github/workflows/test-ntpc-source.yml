@@ -1,0 +1,24 @@
+name: Test NTPC GPS source
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query NTPC GPS source
+        run: |
+          curl -fsS --max-time 30 -A 'OpenKaspiysk-Demo/1.0' -D /tmp/headers.txt 'https://data.ntpc.gov.tw/api/datasets/28ab4122-60e1-4065-98e5-abccb69aaca6/json' -o /tmp/body.json
+          cat /tmp/headers.txt
+          python - <<'PY'
+          import json
+          p=json.load(open('/tmp/body.json'))
+          print('type:', type(p).__name__)
+          print('records:', len(p if isinstance(p,list) else p.get('data',p.get('records',[]))))
+          print(json.dumps((p if isinstance(p,list) else p)[:2] if isinstance(p,list) else p, ensure_ascii=False)[:4000])
+          PY
