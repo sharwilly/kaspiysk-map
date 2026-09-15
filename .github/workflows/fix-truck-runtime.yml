@@ -9,39 +9,31 @@ permissions:
 
 jobs:
   fix:
-    if: ${{ !contains(github.event.head_commit.message, 'Fix truck runtime and collector') }}
+    if: ${{ !contains(github.event.head_commit.message, 'Fix truck runtime') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Make web API DB-backed and collector deploy-aware
+      - name: Make web API DB-backed
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
           import re
-
           p = Path('backend/trucks-init.js')
           s = p.read_text()
           old = 'async function latestTrucks() {\n    const byVehicle = new Map();'
           new = 'async function latestTrucks() {\n    if (!dbAvailable) await ensureTable();\n    const byVehicle = new Map();'
-          if old not in s:
-              raise SystemExit('latestTrucks marker not found')
+          if old not in s: raise SystemExit('latestTrucks marker not found')
           s = s.replace(old, new, 1)
           pattern = re.compile(r"let sourceError = null;\n\s*try \{\n\s*\(\{ sourceError \} = await pollSource\(\)\);\n\s*\} catch \(error\) \{\n\s*sourceError = error\.message;\n\s*console\.error\('Truck GPS source error:', error\.message\);\n\s*\}\n\s*const trucks = await latestTrucks\(\);", re.M)
           s, n = pattern.subn('const sourceError = null;\n            const trucks = await latestTrucks();', s, count=1)
-          if n != 1:
-              raise SystemExit(f'/trucks polling block replacements: {n}')
-          p.write_text(s)
-
-          p = Path('.github/workflows/trucks-collector.yml')
-          s = p.read_text()
-          s = s.replace("on:\n  schedule:\n", "on:\n  push:\n    branches: [main]\n  schedule:\n", 1)
+          if n != 1: raise SystemExit(f'/trucks polling block replacements: {n}')
           p.write_text(s)
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add backend/trucks-init.js .github/workflows/trucks-collector.yml
-          git commit -m "Fix truck runtime and collector"
+          git add backend/trucks-init.js
+          git commit -m "Fix truck runtime"
           git push origin HEAD:main
