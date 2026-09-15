@@ -1,0 +1,59 @@
+name: Verify live truck map
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Playwright
+        run: npm install --no-save playwright@1.55.0
+      - name: Verify truck page
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({headless:true});
+            const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+            const errors = [];
+            page.on('console', msg => { if (msg.type() === 'error') errors.push('console: ' + msg.text()); });
+            page.on('pageerror', err => errors.push('pageerror: ' + err.message));
+            await page.goto('https://kaspiysk-map.vercel.app/trucks.html', {waitUntil:'networkidle', timeout:60000});
+            await page.waitForTimeout(5000);
+            const result = await page.evaluate(() => ({
+              title: document.title,
+              status: document.querySelector('#mapStatus')?.textContent?.trim(),
+              count: document.querySelector('#truckCount')?.textContent?.trim(),
+              moving: document.querySelector('#movingCount')?.textContent?.trim(),
+              listItems: document.querySelectorAll('.truck-item').length,
+              leafletMarkers: document.querySelectorAll('.leaflet-marker-icon').length,
+              clusterScripts: [...document.scripts].filter(s => (s.src || '').includes('markercluster') || (s.src || '').includes('trucks-cluster')).map(s => s.src),
+              apiUrl: 'https://kaspiysk-map-1.onrender.com/trucks'
+            }));
+            console.log(JSON.stringify(result, null, 2));
+            console.log('ERRORS=' + JSON.stringify(errors));
+            await page.screenshot({path:'/tmp/trucks.png', fullPage:true});
+            if (!result.listItems || !result.leafletMarkers || result.status?.includes('Не удалось') || errors.length) process.exitCode = 1;
+            await browser.close();
+          })().catch(err => { console.error(err); process.exitCode = 1; });
+          NODE
+      - name: Cleanup temporary workflow
+        if: always()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm -f .github/workflows/verify-truck-map.yml
+          git add .github/workflows/verify-truck-map.yml
+          git commit -m 'Remove temporary truck map verification workflow' || true
+          git push origin HEAD:main || true
