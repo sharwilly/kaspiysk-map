@@ -153,23 +153,36 @@ app.get("/problems", async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT 
-                id,
-                type,
-                description,
-                status,
-                priority,
-                address,
-                landmark,
-                ST_X(location) AS longitude,
-                ST_Y(location) AS latitude,
-                created_at,
-                resolved_at,
-                resolution_comment
-            FROM public.problems
+                p.id,
+                p.type,
+                p.description,
+                p.status,
+                p.priority,
+                p.address,
+                p.landmark,
+                ST_X(p.location) AS longitude,
+                ST_Y(p.location) AS latitude,
+                p.created_at,
+                p.resolved_at,
+                p.resolution_comment,
+
+                COALESCE(
+                    json_agg(ph.photo_path)
+                    FILTER (
+                        WHERE ph.id IS NOT NULL
+                    ),
+                    '[]'
+                ) AS photos
+
+            FROM public.problems p
+
+            LEFT JOIN public.problem_photos ph
+            ON p.id = ph.problem_id
+
+            GROUP BY p.id
         `);
 
         res.json(result.rows);
-
     } catch (error) {
         console.error(error);
         res.status(500).send("Ошибка получения проблем");
@@ -261,36 +274,46 @@ app.get("/problems/active", async (req, res) => {
 // Архив проблем
 app.get("/problems/archive", async (req, res) => {
     try {
-
         const result = await pool.query(`
             SELECT 
-                id,
-                type,
-                description,
-                status,
-                priority,
-                address,
-                landmark,
-                ST_X(location) AS longitude,
-                ST_Y(location) AS latitude,
-                created_at,
-                resolved_at,
-                resolution_comment
-            FROM public.problems
-            WHERE status = 'done'
-            ORDER BY resolved_at DESC
+                p.id,
+                p.type,
+                p.description,
+                p.status,
+                p.priority,
+                p.address,
+                p.landmark,
+                ST_X(p.location) AS longitude,
+                ST_Y(p.location) AS latitude,
+                p.created_at,
+                p.resolved_at,
+                p.resolution_comment,
+
+                COALESCE(
+                    json_agg(ph.photo_path)
+                    FILTER (
+                        WHERE ph.id IS NOT NULL
+                    ),
+                    '[]'
+                ) AS photos
+
+            FROM public.problems p
+
+            LEFT JOIN public.problem_photos ph
+            ON p.id = ph.problem_id
+
+            WHERE p.status = 'done'
+
+            GROUP BY p.id
+
+            ORDER BY p.resolved_at DESC
             LIMIT 50
         `);
 
-
         res.json(result.rows);
-
-
     } catch (error) {
-
         console.error(error);
         res.status(500).send("Ошибка получения архива");
-
     }
 });
 
