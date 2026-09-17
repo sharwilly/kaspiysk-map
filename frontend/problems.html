@@ -93,8 +93,6 @@
 <script src="js/problems.js"></script>
 
 <script>
-    // Периодический фильтр обращений. При выборе заново загружаем полный набор,
-    // поэтому фильтр не зависит от того, успел ли problems.js загрузить active-обращения.
     let currentProblemDateFilter = "all";
 
     function problemMatchesDateFilter(problem) {
@@ -131,7 +129,6 @@
                 problemMarkers.push({ marker, type: problem.type, problem });
             });
 
-            // Отключения управляются существующим фильтром типа.
             outageMarkers.forEach(marker => {
                 const visible = activeType === "all" || activeType === "outage";
                 if (visible) {
@@ -150,7 +147,6 @@
         reloadProblemsWithDateFilter();
     });
 
-    // После первичной загрузки problems.js приводим карту к состоянию «Все обращения».
     setTimeout(reloadProblemsWithDateFilter, 800);
 </script>
 
