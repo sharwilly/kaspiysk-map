@@ -92,7 +92,6 @@
 
 <script>
     // Фильтр периода обращений.
-    // Основной JS карты уже загружен выше, поэтому здесь расширяем его без изменения логики типов.
     let currentProblemDateFilter = "all";
 
     function problemMatchesDateFilter(problem) {
@@ -119,7 +118,6 @@
             }
         });
 
-        // Отключения пока не ограничиваем периодом — они остаются отдельным типом карты.
         outageMarkers.forEach(marker => {
             const visible = currentMapFilter === "all" || currentMapFilter === "outage";
             if (visible) {
@@ -130,7 +128,7 @@
         });
     }
 
-    // Заменяем функцию применения фильтра, которую вызывает существующий problems.js.
+    // Подменяем функцию фильтра карты, которую использует problems.js.
     applyMapFilter = applyProblemFilters;
 
     async function loadProblemsForDateFilter() {
@@ -150,11 +148,7 @@
 
                 const marker = createProblemMarker(problem);
                 marker.bindPopup(buildProblemPopup(problem));
-                problemMarkers.push({
-                    marker,
-                    type: problem.type,
-                    problem
-                });
+                problemMarkers.push({ marker, type: problem.type, problem });
             });
 
             applyProblemFilters();
@@ -164,12 +158,14 @@
     }
 
     document.querySelectorAll(".date-filter").forEach(button => {
-        button.addEventListener("click", async function () {
+        button.addEventListener("click", function () {
             document.querySelectorAll(".date-filter").forEach(btn => btn.classList.remove("active"));
             this.classList.add("active");
             currentProblemDateFilter = this.dataset.dateFilter;
 
-            // Данные уже загружены полностью, поэтому переключение происходит мгновенно.
+            // Возвращаем текущий фильтр типа после обработчика problems.js.
+            const activeTypeButton = document.querySelector(".type-filter.active");
+            currentMapFilter = activeTypeButton?.dataset.filter || "all";
             applyProblemFilters();
         });
     });
