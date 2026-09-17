@@ -59,6 +59,74 @@
 <script src="js/weather-widget.js"></script>
 <script src="js/header.js"></script>
 <script src="js/trucks.js?v=20260917-2"></script>
+<script>
+(function () {
+    const BACKEND_URL = "https://kaspiysk-map-1.onrender.com";
+    const init = () => {
+        const count = document.getElementById("truckCount");
+        const list = document.getElementById("truckList");
+        const status = document.getElementById("mapStatus");
+        const moving = document.getElementById("movingCount");
+        const updated = document.getElementById("lastUpdated");
+        const mapEl = document.getElementById("trucks-map");
+        if (!count || !list || !status || !mapEl) return;
+
+        window.setTimeout(async () => {
+            if (count.textContent !== "—" || list.children.length > 0) return;
+            try {
+                status.textContent = "Получаем GPS-данные…";
+                const response = await fetch(`${BACKEND_URL}/trucks?_=${Date.now()}`, { cache: "no-store" });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const payload = await response.json();
+                if (!Array.isArray(payload.trucks)) throw new Error("Некорректный ответ API");
+
+                const trucks = payload.trucks;
+                const escapeHtml = value => String(value ?? "—")
+                    .replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;")
+                    .replaceAll('"', "&quot;")
+                    .replaceAll("'", "&#039;");
+
+                count.textContent = trucks.length;
+                moving.textContent = trucks.filter(item => item.fresh).length;
+                updated.textContent = `Последняя проверка: ${new Date().toLocaleTimeString("ru-RU")}`;
+                list.innerHTML = trucks.map(truck => `
+                    <div class="truck-item">
+                        <div class="truck-item-top">
+                            <span class="truck-name">🚛 ${escapeHtml(truck.vehicle)}</span>
+                            <span class="truck-speed">${truck.fresh ? "АКТУАЛЕН" : "ПОСЛЕДНЯЯ ПОЗИЦИЯ"}</span>
+                        </div>
+                        <div class="truck-meta">${escapeHtml(truck.route)} · GPS ${escapeHtml(new Date(truck.timestamp).toLocaleString("ru-RU"))}</div>
+                    </div>`).join("");
+
+                if (window.L && !mapEl._leaflet_id) {
+                    const map = L.map(mapEl, { zoomControl: true, attributionControl: false }).setView([25.02, 121.46], 12);
+                    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap contributors" }).addTo(map);
+                    const bounds = [];
+                    for (const truck of trucks) {
+                        const lat = Number(truck.lat);
+                        const lng = Number(truck.lng);
+                        if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+                        bounds.push([lat, lng]);
+                        L.marker([lat, lng]).addTo(map).bindPopup(`<strong>🚛 ${escapeHtml(truck.vehicle)}</strong><br>Маршрут: ${escapeHtml(truck.route)}<br>${escapeHtml(truck.location)}<br>GPS: ${escapeHtml(new Date(truck.timestamp).toLocaleString("ru-RU"))}`);
+                    }
+                    if (bounds.length) map.fitBounds(bounds, { padding: [30, 30] });
+                    setTimeout(() => map.invalidateSize(), 100);
+                }
+
+                status.textContent = `Показано ${trucks.length} машин${payload.staleFallback ? " · часть позиций устарела" : ""}`;
+            } catch (error) {
+                console.error("Truck fallback error:", error);
+                status.textContent = `Ошибка загрузки GPS: ${error.message}`;
+            }
+        }, 2000);
+    };
+
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+    else init();
+})();
+</script>
 <script src="js/trucks-fullscreen.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
