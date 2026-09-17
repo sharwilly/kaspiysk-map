@@ -18,8 +18,10 @@
 
         <div id="mapFilters">
             <div class="map-filter-group" aria-label="Период обращений">
-                <button type="button" class="map-filter date-filter active" data-date-filter="all">Все обращения</button>
-                <button type="button" class="map-filter date-filter" data-date-filter="30days">За 30 дней</button>
+                <select id="problemDateFilter" class="problem-date-select" aria-label="Период обращений">
+                    <option value="all">Все обращения</option>
+                    <option value="30days">За последние 30 дней</option>
+                </select>
             </div>
 
             <div class="map-filter-group" aria-label="Тип обращения">
@@ -91,52 +93,27 @@
 <script src="js/problems.js"></script>
 
 <script>
-    // Фильтр периода обращений.
+    // Периодический фильтр обращений. При выборе заново загружаем полный набор,
+    // поэтому фильтр не зависит от того, успел ли problems.js загрузить active-обращения.
     let currentProblemDateFilter = "all";
 
     function problemMatchesDateFilter(problem) {
         if (currentProblemDateFilter === "all") return true;
         if (!problem.created_at) return false;
 
-        const createdAt = new Date(problem.created_at);
-        if (Number.isNaN(createdAt.getTime())) return false;
+        const createdAt = new Date(problem.created_at).getTime();
+        if (!Number.isFinite(createdAt)) return false;
 
-        const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-        return createdAt.getTime() >= cutoff;
+        return createdAt >= Date.now() - 30 * 24 * 60 * 60 * 1000;
     }
 
-    function applyProblemFilters() {
-        problemMarkers.forEach(item => {
-            const visibleByType = currentMapFilter === "all" || currentMapFilter === item.type;
-            const visibleByDate = item.problem ? problemMatchesDateFilter(item.problem) : true;
-            const visible = visibleByType && visibleByDate;
-
-            if (visible) {
-                if (!map.hasLayer(item.marker)) item.marker.addTo(map);
-            } else if (map.hasLayer(item.marker)) {
-                map.removeLayer(item.marker);
-            }
-        });
-
-        outageMarkers.forEach(marker => {
-            const visible = currentMapFilter === "all" || currentMapFilter === "outage";
-            if (visible) {
-                if (!map.hasLayer(marker)) marker.addTo(map);
-            } else if (map.hasLayer(marker)) {
-                map.removeLayer(marker);
-            }
-        });
-    }
-
-    // Подменяем функцию фильтра карты, которую использует problems.js.
-    applyMapFilter = applyProblemFilters;
-
-    async function loadProblemsForDateFilter() {
+    async function reloadProblemsWithDateFilter() {
         try {
             const response = await fetch(`${problemsApi}/problems`);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             const problems = await response.json();
+            const activeType = document.querySelector(".type-filter.active")?.dataset.filter || "all";
 
             problemMarkers.forEach(item => {
                 if (map.hasLayer(item.marker)) map.removeLayer(item.marker);
@@ -145,37 +122,39 @@
 
             problems.forEach(problem => {
                 if (problem.latitude == null || problem.longitude == null) return;
+                if (!problemMatchesDateFilter(problem)) return;
+                if (activeType !== "all" && activeType !== problem.type) return;
 
                 const marker = createProblemMarker(problem);
                 marker.bindPopup(buildProblemPopup(problem));
+                marker.addTo(map);
                 problemMarkers.push({ marker, type: problem.type, problem });
             });
 
-            applyProblemFilters();
+            // Отключения управляются существующим фильтром типа.
+            outageMarkers.forEach(marker => {
+                const visible = activeType === "all" || activeType === "outage";
+                if (visible) {
+                    if (!map.hasLayer(marker)) marker.addTo(map);
+                } else if (map.hasLayer(marker)) {
+                    map.removeLayer(marker);
+                }
+            });
         } catch (error) {
-            console.error("❌ Ошибка загрузки всех обращений:", error);
+            console.error("❌ Ошибка фильтрации обращений:", error);
         }
     }
 
-    document.querySelectorAll(".date-filter").forEach(button => {
-        button.addEventListener("click", function () {
-            document.querySelectorAll(".date-filter").forEach(btn => btn.classList.remove("active"));
-            this.classList.add("active");
-            currentProblemDateFilter = this.dataset.dateFilter;
-
-            // Возвращаем текущий фильтр типа после обработчика problems.js.
-            const activeTypeButton = document.querySelector(".type-filter.active");
-            currentMapFilter = activeTypeButton?.dataset.filter || "all";
-            applyProblemFilters();
-        });
+    document.getElementById("problemDateFilter")?.addEventListener("change", function () {
+        currentProblemDateFilter = this.value;
+        reloadProblemsWithDateFilter();
     });
 
-    // Загружаем все обращения вместо прежнего набора только активных.
-    loadProblemsForDateFilter();
+    // После первичной загрузки problems.js приводим карту к состоянию «Все обращения».
+    setTimeout(reloadProblemsWithDateFilter, 800);
 </script>
 
 <script>
-    // Оставляем обязательную атрибуцию OpenStreetMap, но убираем префикс "Leaflet".
     document.querySelector('.leaflet-control-attribution a[href*="leafletjs.com"]')?.remove();
 </script>
 </body>
