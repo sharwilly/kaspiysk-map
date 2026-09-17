@@ -22,6 +22,7 @@
                     <option value="all">Все обращения</option>
                     <option value="30days">За последние 30 дней</option>
                 </select>
+                <button type="button" class="map-filter archive-filter" data-filter="archive" aria-pressed="false">🗂 Архив решённых</button>
             </div>
 
             <div class="map-filter-group" aria-label="Тип обращения">
@@ -94,6 +95,7 @@
 
 <script>
     let currentProblemDateFilter = "all";
+    let currentProblemArchiveFilter = false;
 
     function problemMatchesDateFilter(problem) {
         if (currentProblemDateFilter === "all") return true;
@@ -103,6 +105,13 @@
         if (!Number.isFinite(createdAt)) return false;
 
         return createdAt >= Date.now() - 30 * 24 * 60 * 60 * 1000;
+    }
+
+    function problemMatchesStatusFilter(problem) {
+        if (currentProblemArchiveFilter) {
+            return problem.status === "done" || problem.status === "archive";
+        }
+        return problem.status !== "done" && problem.status !== "archive";
     }
 
     async function reloadProblemsWithDateFilter() {
@@ -120,6 +129,7 @@
 
             problems.forEach(problem => {
                 if (problem.latitude == null || problem.longitude == null) return;
+                if (!problemMatchesStatusFilter(problem)) return;
                 if (!problemMatchesDateFilter(problem)) return;
                 if (activeType !== "all" && activeType !== problem.type) return;
 
@@ -145,6 +155,27 @@
     document.getElementById("problemDateFilter")?.addEventListener("change", function () {
         currentProblemDateFilter = this.value;
         reloadProblemsWithDateFilter();
+    });
+
+    document.querySelector(".archive-filter")?.addEventListener("click", function () {
+        currentProblemArchiveFilter = !currentProblemArchiveFilter;
+        this.classList.toggle("active", currentProblemArchiveFilter);
+        this.setAttribute("aria-pressed", String(currentProblemArchiveFilter));
+
+        if (!currentProblemArchiveFilter) {
+            document.querySelectorAll(".type-filter").forEach(btn => btn.classList.remove("active"));
+            document.querySelector('.type-filter[data-filter="all"]')?.classList.add("active");
+        }
+
+        reloadProblemsWithDateFilter();
+    });
+
+    document.querySelectorAll(".type-filter").forEach(button => {
+        button.addEventListener("click", function () {
+            if (currentProblemArchiveFilter) {
+                document.querySelector(".archive-filter")?.classList.add("active");
+            }
+        });
     });
 
     setTimeout(reloadProblemsWithDateFilter, 800);
