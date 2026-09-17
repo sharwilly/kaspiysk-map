@@ -8,7 +8,8 @@ const problemsApi = typeof API_URL !== "undefined" ? API_URL : "";
 const mapElement = document.getElementById("map");
 if (!mapElement) throw new Error("Элемент #map отсутствует в HTML");
 
-const map = L.map("map", { maxZoom: 18, minZoom: 12, zoomControl: true }).setView([42.8913, 47.6397], 13);
+const map = L.map("map", { maxZoom: 18, minZoom: 12, zoomControl: false }).setView([42.8913, 47.6397], 13);
+L.control.zoom({ position: "topright" }).addTo(map);
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap contributors" }).addTo(map);
 map.attributionControl.remove();
 
