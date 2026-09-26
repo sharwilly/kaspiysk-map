@@ -1,0 +1,33 @@
+.weekly-activity { margin:14px 0 16px; padding:15px; border:1px solid rgba(15,23,42,.07); border-radius:17px; background:rgba(248,250,252,.68); }
+.weekly-activity-head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+.weekly-activity-title strong { display:block; color:#0f172a; font-size:13px; letter-spacing:-.01em; }
+.weekly-activity-title span { display:block; margin-top:3px; color:#94a3b8; font-size:9px; }
+.weekly-activity-actions { display:flex; align-items:center; gap:6px; }
+.weekly-activity select,.weekly-activity-refresh { height:30px; border:1px solid rgba(15,23,42,.08); border-radius:9px; background:rgba(255,255,255,.92); color:#475569; font:inherit; font-size:9px; font-weight:600; }
+.weekly-activity select { padding:0 7px; }
+.weekly-activity-refresh { width:30px; cursor:pointer; }
+.weekly-activity-refresh:hover { color:#2563eb; }
+.weekly-activity-refresh.is-loading { opacity:.5; cursor:wait; }
+.weekly-activity-stats { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin:10px 0; }
+.weekly-activity-stat { padding:9px 10px; border-radius:11px; background:rgba(255,255,255,.72); }
+.weekly-activity-stat b { display:block; color:#0f172a; font-size:17px; line-height:1; }
+.weekly-activity-stat span { display:block; margin-top:4px; color:#94a3b8; font-size:8px; font-weight:600; }
+.weekly-activity-stat:nth-child(2) { background:rgba(240,253,250,.72); }
+.weekly-activity-stat:nth-child(2) b { color:#0f766e; }
+.weekly-activity-status { margin-bottom:8px; color:#94a3b8; font-size:8px; }
+.weekly-activity-list { display:flex; flex-direction:column; gap:5px; max-height:330px; overflow:auto; padding-right:3px; scrollbar-width:thin; }
+.weekly-truck { padding:8px 9px; border:1px solid rgba(15,23,42,.05); border-radius:11px; background:rgba(255,255,255,.72); transition:opacity .18s ease,border-color .18s ease,background .18s ease; }
+.weekly-truck.is-enough { border-color:rgba(20,184,166,.18); background:rgba(240,253,250,.66); }
+.weekly-truck.is-dimmed { opacity:.42; }
+.weekly-truck-main { display:grid; grid-template-columns:20px minmax(0,1fr) auto; align-items:center; gap:7px; }
+.weekly-rank { color:#94a3b8; font-size:8px; font-weight:700; text-align:center; }
+.weekly-truck-name { min-width:0; }
+.weekly-truck-name strong { display:block; overflow:hidden; color:#334155; font-size:10px; text-overflow:ellipsis; white-space:nowrap; }
+.weekly-truck-name span { display:block; margin-top:2px; overflow:hidden; color:#94a3b8; font-size:7px; text-overflow:ellipsis; white-space:nowrap; }
+.weekly-km { color:#0f172a; font-size:10px; white-space:nowrap; }
+.weekly-truck.is-enough .weekly-km { color:#0f766e; }
+.weekly-days { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin-top:6px; }
+.weekly-days span { min-width:0; padding:3px 0; border-radius:5px; background:rgba(148,163,184,.10); color:#cbd5e1; font-size:7px; font-weight:700; text-align:center; }
+.weekly-days span.has-km { background:rgba(37,99,235,.09); color:#2563eb; }
+.weekly-empty { padding:14px 5px; color:#94a3b8; font-size:9px; line-height:1.5; text-align:center; }
+@media (max-width:520px) { .weekly-activity-head { flex-direction:column; } .weekly-activity-actions { width:100%; } .weekly-activity select { flex:1; } }
