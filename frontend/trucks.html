@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="css/common.css">
 <link rel="stylesheet" href="css/trucks.css">
 <link rel="stylesheet" href="css/truck-filter.css">
+<link rel="stylesheet" href="css/truck-weekly-activity.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -45,6 +46,28 @@
                 <div><b id="movingCount">—</b><span>актуальные GPS</span></div>
             </div>
 
+            <section class="weekly-activity" id="truckWeeklyActivity">
+                <div class="weekly-activity-head">
+                    <div class="weekly-activity-title">
+                        <strong>Активность за неделю</strong>
+                        <span id="weeklyActivityStatus">Загрузка истории…</span>
+                    </div>
+                    <div class="weekly-activity-actions">
+                        <select id="weeklyActivityThreshold" aria-label="Порог достаточной активности">
+                            <option value="20">≥ 20 км</option>
+                            <option value="50" selected>≥ 50 км</option>
+                            <option value="100">≥ 100 км</option>
+                        </select>
+                        <button class="weekly-activity-refresh" id="weeklyActivityRefresh" type="button" aria-label="Обновить активность">↻</button>
+                    </div>
+                </div>
+                <div class="weekly-activity-stats">
+                    <div class="weekly-activity-stat"><b id="weeklyActivityTotal">—</b><span>машин с историей</span></div>
+                    <div class="weekly-activity-stat"><b id="weeklyActivityEnough">—</b><span>проехали достаточно</span></div>
+                </div>
+                <div id="weeklyActivityList" class="weekly-activity-list"></div>
+            </section>
+
             <div id="truckList" class="truck-list"></div>
 
             <div class="source-note">
@@ -62,6 +85,7 @@
 <script src="js/truck-filter.js?v=20260917-1"></script>
 <script src="js/trucks.js?v=20260917-2"></script>
 <script src="js/trucks-distance.js?v=20260917-1"></script>
+<script src="js/truck-weekly-activity.js?v=20260926-1"></script>
 <script>
 (function () {
     const BACKEND_URL = "https://kaspiysk-map-1.onrender.com";
