@@ -243,6 +243,84 @@ function installTruckRoutes(app) {
         }
     });
 
+    app.get('/trucks/activity', async (req, res) => {
+        try {
+            const days = Math.min(30, Math.max(1, Number.parseInt(req.query.days || '7', 10) || 7));
+            const result = await pool.query(`
+                SELECT vehicle_id, recorded_at, latitude, longitude
+                FROM truck_gps_points
+                WHERE recorded_at >= NOW() - ($1::int * INTERVAL '1 day')
+                ORDER BY vehicle_id, recorded_at ASC
+            `, [days]);
+
+            const groups = new Map();
+            for (const row of result.rows) {
+                if (!groups.has(row.vehicle_id)) groups.set(row.vehicle_id, []);
+                groups.get(row.vehicle_id).push({
+                    timestamp: row.recorded_at,
+                    lat: Number(row.latitude),
+                    lng: Number(row.longitude)
+                });
+            }
+
+            const toRad = value => value * Math.PI / 180;
+            const distanceKm = (a, b) => {
+                const R = 6371;
+                const dLat = toRad(b.lat - a.lat);
+                const dLng = toRad(b.lng - a.lng);
+                const lat1 = toRad(a.lat);
+                const lat2 = toRad(b.lat);
+                const h = Math.sin(dLat / 2) ** 2 +
+                    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+                return 2 * R * Math.asin(Math.sqrt(Math.min(1, h)));
+            };
+
+            const dayKey = timestamp => new Date(timestamp).toISOString().slice(0, 10);
+            const activity = [];
+
+            for (const [vehicle, points] of groups) {
+                const daily = new Map();
+                let totalKm = 0;
+                let acceptedSegments = 0;
+
+                for (let i = 1; i < points.length; i++) {
+                    const previous = points[i - 1];
+                    const current = points[i];
+                    const distance = distanceKm(previous, current);
+                    const elapsedHours = (new Date(current.timestamp) - new Date(previous.timestamp)) / 3600000;
+                    if (!Number.isFinite(distance) || distance <= 0 || !Number.isFinite(elapsedHours) || elapsedHours <= 0) continue;
+                    const impliedSpeed = distance / elapsedHours;
+                    if (impliedSpeed > 120 || distance > 5) continue;
+
+                    const day = dayKey(current.timestamp);
+                    daily.set(day, (daily.get(day) || 0) + distance);
+                    totalKm += distance;
+                    acceptedSegments++;
+                }
+
+                const dailyKm = [...daily.entries()]
+                    .map(([date, km]) => ({ date, km: Math.round(km * 10) / 10 }))
+                    .sort((a, b) => a.date.localeCompare(b.date));
+
+                activity.push({
+                    vehicle,
+                    totalKm: Math.round(totalKm * 10) / 10,
+                    activeDays: dailyKm.filter(item => item.km >= 1).length,
+                    dailyKm,
+                    points: points.length,
+                    acceptedSegments
+                });
+            }
+
+            activity.sort((a, b) => b.totalKm - a.totalKm);
+            res.set('Cache-Control', 'no-store');
+            res.json({ days, from: new Date(Date.now() - days * 86400000).toISOString(), to: new Date().toISOString(), activity, count: activity.length, storage: dbAvailable ? 'postgresql' : 'memory' });
+        } catch (error) {
+            console.error('Truck activity error:', error);
+            res.status(500).json({ error: 'Ошибка недельной активности', details: error.message });
+        }
+    });
+
     app.get('/trucks/history/:vehicleId', async (req, res) => {
         try {
             const date = /^\d{4}-\d{2}-\d{2}$/.test(req.query.date || '') ? req.query.date : new Date().toISOString().slice(0, 10);
