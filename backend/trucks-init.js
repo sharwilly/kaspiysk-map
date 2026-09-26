@@ -2,6 +2,9 @@ const express = require('express');
 const pool = require('./db');
 
 const SOURCE_URL = 'https://data.ntpc.gov.tw/api/datasets/28ab4122-60e1-4065-98e5-abccb69aaca6/json';
+const SOURCE_PAGE_SIZE = 1000;
+const SOURCE_FETCH_TIMEOUT_MS = 15000;
+const SOURCE_FETCH_RETRIES = 3;
 const STALE_MINUTES = 20;
 const POLL_INTERVAL_MS = 2 * 60 * 1000;
 
@@ -74,18 +77,35 @@ async function ensureTable() {
     }
 }
 
+async function fetchSourcePayload() {
+    const url = SOURCE_URL + '?page=0&size=' + SOURCE_PAGE_SIZE;
+    let lastError = null;
+    for (let attempt = 1; attempt <= SOURCE_FETCH_RETRIES; attempt++) {
+        try {
+            const response = await fetch(url, {
+                headers: { Accept: 'application/json', 'User-Agent': 'OpenKaspiysk-Demo/1.0' },
+                signal: AbortSignal.timeout(SOURCE_FETCH_TIMEOUT_MS)
+            });
+            if (!response.ok) throw new Error('GPS source HTTP ' + response.status);
+            const payload = await response.json();
+            const records = recordsFrom(payload);
+            console.log('[trucks] source fetch attempt ' + attempt + '/' + SOURCE_FETCH_RETRIES + ': ' + records.length + ' records');
+            return payload;
+        } catch (error) {
+            lastError = error;
+            console.warn('[trucks] source fetch attempt ' + attempt + '/' + SOURCE_FETCH_RETRIES + ' failed: ' + error.message);
+            if (attempt < SOURCE_FETCH_RETRIES) await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+    }
+    throw lastError || new Error('GPS source request failed');
+}
+
 async function pollSource({ force = false } = {}) {
     if (!force && Date.now() - lastPollAt < POLL_INTERVAL_MS) {
         return { sourceError: null, count: 0, skipped: true };
     }
 
-    const response = await fetch(SOURCE_URL, {
-        headers: { Accept: 'application/json', 'User-Agent': 'OpenKaspiysk-Demo/1.0' },
-        signal: AbortSignal.timeout(8000)
-    });
-    if (!response.ok) throw new Error(`GPS source HTTP ${response.status}`);
-
-    const payload = await response.json();
+    const payload = await fetchSourcePayload();
     const latest = new Map();
     for (const raw of recordsFrom(payload)) {
         const point = normalize(raw);
@@ -97,9 +117,7 @@ async function pollSource({ force = false } = {}) {
     const polledAt = new Date().toISOString();
     const snapshots = [...latest.values()].map(point => ({ ...point, recorded_at: polledAt }));
 
-    for (const point of snapshots) {
-        memoryPoints.set(`${point.vehicle_id}|${point.recorded_at}`, point);
-    }
+    for (const point of snapshots) memoryPoints.set(point.vehicle_id + '|' + point.recorded_at, point);
     lastPollAt = Date.now();
 
     const hasDb = await ensureTable();
