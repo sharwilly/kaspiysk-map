@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
         enough.textContent = sorted.filter(item => item.totalKm >= minKm).length;
 
         if (!sorted.length) {
-            list.innerHTML = "<div class="weekly-empty">За последние 7 дней GPS-история пока не накоплена.</div>";
+            list.innerHTML = '<div class="weekly-empty">За последние 7 дней GPS-история пока не накоплена.</div>';
             return;
         }
 
@@ -32,10 +32,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 date.setDate(date.getDate() - i);
                 const key = date.toISOString().slice(0, 10);
                 const km = dailyMap.get(key) || 0;
-                dayLabels.push("<span title="" + key + ": " + formatKm(km) + "" class="" + (km > 0 ? "has-km" : "") + "">" + (km > 0 ? Math.round(km) : "·") + "</span>");
+                dayLabels.push('<span title="' + key + ': ' + formatKm(km) + '" class="' + (km > 0 ? "has-km" : "") + '">' + (km > 0 ? Math.round(km) : "·") + "</span>");
             }
             const enoughClass = item.totalKm >= minKm ? " is-enough" : "";
-            return "<div class="weekly-truck" + enoughClass + "" data-total-km="" + item.totalKm + ""><div class="weekly-truck-main"><span class="weekly-rank">" + (index + 1) + "</span><div class="weekly-truck-name"><strong>🚛 " + esc(item.vehicle) + "</strong><span>" + item.activeDays + " дн. с движением · " + item.points + " GPS-точек</span></div><strong class="weekly-km">" + formatKm(item.totalKm) + "</strong></div><div class="weekly-days">" + dayLabels.join("") + "</div></div>";
+            return '<div class="weekly-truck' + enoughClass + '" data-total-km="' + item.totalKm + '"><div class="weekly-truck-main"><span class="weekly-rank">' + (index + 1) + '</span><div class="weekly-truck-name"><strong>🚛 ' + esc(item.vehicle) + '</strong><span>' + item.activeDays + ' дн. с движением · ' + item.points + ' GPS-точек</span></div><strong class="weekly-km">' + formatKm(item.totalKm) + '</strong></div><div class="weekly-days">' + dayLabels.join("") + '</div></div>';
         }).join("");
     }
 
@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             console.error("Weekly truck activity error:", error);
             status.textContent = "История за неделю пока недоступна";
-            list.innerHTML = "<div class="weekly-empty">Не удалось загрузить недельную активность: " + esc(error.message) + "</div>";
+            list.innerHTML = '<div class="weekly-empty">Не удалось загрузить недельную активность: ' + esc(error.message) + "</div>";
             total.textContent = "—";
             enough.textContent = "—";
         } finally {
