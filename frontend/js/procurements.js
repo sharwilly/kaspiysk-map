@@ -33,6 +33,7 @@
     const notice = document.getElementById("procurementNotice");
     const modeLabel = document.getElementById("mapModeLabel");
     const statTotal = document.getElementById("statTotal");
+    const statCategories = document.getElementById("statCategories");
     const statCaption = document.getElementById("statCaption");
     let allItems = [];
     let loadingFailed = false;
@@ -161,7 +162,8 @@
 
         resultsCount.textContent=filtered.length+" "+(DEMO_MODE ? "демонстрационных " : "")+pluralize(filtered.length,["запись","записи","записей"]);
         statTotal.textContent=allItems.length;
-        statCaption.textContent=DEMO_MODE ? "вымышленные примеры" : "в проверенном реестре";
+        statCategories.textContent=new Set(allItems.map(item=>item.category).filter(Boolean)).size;
+        statCaption.textContent=DEMO_MODE ? "вымышленные примеры" : "записей в текущем реестре";
 
         cardsRoot.querySelectorAll(".procurement-card").forEach(card=>{
             const activate=()=>selectCard(card.dataset.id);
