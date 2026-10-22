@@ -1777,6 +1777,7 @@ app.get("/procurements", (req, res) => {
                 statusLabel: item.statusLabel || "Статус не подтверждён",
                 address: item.address || "Адрес не указан",
                 customer: item.customer || null,
+                purchaseNumber: item.purchaseNumber || null,
                 contractNumber: item.contractNumber || null,
                 price: Number.isFinite(Number(item.price)) && item.price !== null && item.price !== ""
                     ? Number(item.price)
@@ -1788,6 +1789,10 @@ app.get("/procurements", (req, res) => {
                 locationVerified: hasCoordinates && item.locationVerified === true,
                 sourceName: item.sourceName || "ЕИС «Закупки»",
                 sourceUrl: item.sourceUrl,
+                locationSourceName: item.locationSourceName || null,
+                locationSourceUrl: typeof item.locationSourceUrl === "string" && /^https:\/\//i.test(item.locationSourceUrl)
+                    ? item.locationSourceUrl
+                    : null,
                 updatedAt: item.updatedAt || null,
                 notes: item.notes || null
             };
