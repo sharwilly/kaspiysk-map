@@ -1765,6 +1765,8 @@ app.get("/procurements", (req, res) => {
             const latitude = Number(item.latitude);
             const longitude = Number(item.longitude);
             const hasCoordinates =
+                item.latitude !== null && item.latitude !== undefined && item.latitude !== "" &&
+                item.longitude !== null && item.longitude !== undefined && item.longitude !== "" &&
                 Number.isFinite(latitude) && latitude >= -90 && latitude <= 90 &&
                 Number.isFinite(longitude) && longitude >= -180 && longitude <= 180;
 
