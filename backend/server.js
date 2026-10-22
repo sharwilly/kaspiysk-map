@@ -1743,6 +1743,76 @@ const addresses =
 
 });
 
+
+/*
+ * Публичный реестр закупок для карты.
+ * Источник — только записи, вручную проверенные по первичным документам.
+ * Не требует новой таблицы БД и не меняет существующие API.
+ */
+app.get("/procurements", (req, res) => {
+    try {
+        const registryPath = path.join(__dirname, "data", "procurements.json");
+        const registry = JSON.parse(fs.readFileSync(registryPath, "utf8"));
+        const items = Array.isArray(registry.items) ? registry.items : [];
+
+        const publishedItems = items.filter(item => {
+            if (!item || item.published !== true) return false;
+            if (typeof item.id !== "string" || !item.id.trim()) return false;
+            if (typeof item.title !== "string" || !item.title.trim()) return false;
+            if (typeof item.sourceUrl !== "string" || !/^https:\/\//i.test(item.sourceUrl)) return false;
+            return true;
+        }).map(item => {
+            const latitude = Number(item.latitude);
+            const longitude = Number(item.longitude);
+            const hasCoordinates =
+                item.latitude !== null && item.latitude !== undefined && item.latitude !== "" &&
+                item.longitude !== null && item.longitude !== undefined && item.longitude !== "" &&
+                Number.isFinite(latitude) && latitude >= -90 && latitude <= 90 &&
+                Number.isFinite(longitude) && longitude >= -180 && longitude <= 180;
+
+            return {
+                id: item.id,
+                title: item.title,
+                category: item.category || "other",
+                categoryLabel: item.categoryLabel || "Другое",
+                status: item.status || "unknown",
+                statusLabel: item.statusLabel || "Статус не подтверждён",
+                address: item.address || "Адрес не указан",
+                customer: item.customer || null,
+                purchaseNumber: item.purchaseNumber || null,
+                contractNumber: item.contractNumber || null,
+                price: Number.isFinite(Number(item.price)) && item.price !== null && item.price !== ""
+                    ? Number(item.price)
+                    : null,
+                startDate: item.startDate || null,
+                endDate: item.endDate || null,
+                latitude: hasCoordinates ? latitude : null,
+                longitude: hasCoordinates ? longitude : null,
+                locationVerified: hasCoordinates && item.locationVerified === true,
+                sourceName: item.sourceName || "ЕИС «Закупки»",
+                sourceUrl: item.sourceUrl,
+                locationSourceName: item.locationSourceName || null,
+                locationSourceUrl: typeof item.locationSourceUrl === "string" && /^https:\/\//i.test(item.locationSourceUrl)
+                    ? item.locationSourceUrl
+                    : null,
+                updatedAt: item.updatedAt || null,
+                notes: item.notes || null
+            };
+        });
+
+        res.set("Cache-Control", "public, max-age=60");
+        res.json({
+            source: "verified-registry",
+            updatedAt: registry.updatedAt || null,
+            count: publishedItems.length,
+            items: publishedItems
+        });
+    } catch (error) {
+        console.error("Ошибка загрузки реестра закупок:", error);
+        res.status(500).json({ error: "Не удалось загрузить реестр закупок" });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Сервер запущен на порту ${PORT}`);
 });
