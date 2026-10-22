@@ -42,8 +42,8 @@
         notice.innerHTML = '<span class="demo-notice-icon">!</span><div><strong>Демо-режим включён.</strong> Все записи и точки на карте вымышлены и не являются реальными закупками. Уберите <code>?demo=1</code> из адреса, чтобы открыть рабочий режим.</div>';
         modeLabel.textContent = "Демо-режим";
     } else {
-        notice.innerHTML = '<span class="demo-notice-icon">i</span><div><strong>Показываем только проверенные записи.</strong> В реестре появятся закупки со ссылкой на первичный документ. Адрес и координаты отображаются отдельно от факта закупки и требуют подтверждения.</div>';
-        modeLabel.textContent = "Проверенный реестр";
+        notice.innerHTML = '<span class="demo-notice-icon">i</span><div><strong>Расширенный реестр закупок.</strong> Здесь собраны найденные закупки, планы и несостоявшиеся процедуры с первичными ссылками. Это пока не полная автоматическая выгрузка ЕИС; адрес и координаты могут требовать проверки.</div>';
+        modeLabel.textContent = "Расширенный реестр";
     }
 
     function escapeHtml(value) {
