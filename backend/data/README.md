@@ -17,6 +17,7 @@
   "statusLabel": "Исполнение",
   "address": "Подтверждённый адрес объекта",
   "customer": "Заказчик по ЕИС",
+  "purchaseNumber": "Номер извещения/закупки",
   "contractNumber": "Реестровый номер контракта",
   "price": 1234567,
   "startDate": "2026-01-01",
@@ -26,6 +27,8 @@
   "locationVerified": false,
   "sourceName": "ЕИС «Закупки»",
   "sourceUrl": "https://zakupki.gov.ru/",
+  "locationSourceName": "Картографический источник",
+  "locationSourceUrl": "https://example.org/map-reference",
   "updatedAt": "2026-10-22",
   "notes": "При необходимости поясните ограничение данных."
 }
