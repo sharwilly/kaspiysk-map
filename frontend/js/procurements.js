@@ -118,6 +118,14 @@
         marker.openPopup();
     }
 
+    function updateEisSearchLink() {
+        const link = document.getElementById("eisSearchLink");
+        if (!link) return;
+        const term = searchInput.value.trim();
+        const query = term ? "Каспийск " + term : "Каспийск";
+        link.href = "https://zakupki.gov.ru/epz/order/extendedsearch/results.html?searchString=" + encodeURIComponent(query);
+    }
+
     function pluralize(n,forms) {
         const mod10=n%10,mod100=n%100;
         if(mod10===1&&mod100!==11)return forms[0];
@@ -211,10 +219,13 @@
         control.addEventListener("input",render);
         control.addEventListener("change",render);
     });
+    searchInput.addEventListener("input",updateEisSearchLink);
+    updateEisSearchLink();
     document.getElementById("resetFilters").addEventListener("click",()=>{
         searchInput.value="";
         categoryFilter.value="all";
         statusFilter.value="all";
+        updateEisSearchLink();
         render();
     });
 
