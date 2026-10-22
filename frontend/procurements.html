@@ -23,20 +23,20 @@
             </div>
             <a class="source-link" href="https://zakupki.gov.ru/" target="_blank" rel="noopener noreferrer"><span class="source-link-icon">↗</span>ЕИС «Закупки»</a>
         </section>
-        <div class="demo-notice" role="status"><span class="demo-notice-icon">i</span><div><strong>Предварительная версия раздела.</strong> На карте показаны демонстрационные точки для проверки интерфейса — это не реальные закупки. Подключение данных ЕИС и проверенных координат будет отдельным этапом.</div></div>
+        <div class="demo-notice" id="procurementNotice" role="status"><span class="demo-notice-icon">i</span><div><strong>Показываем только проверенные записи.</strong> Реестр загружается с API. Демонстрационные точки доступны отдельно и явно помечены.</div></div>
         <section class="procurement-stats" aria-label="Сводка">
-            <article class="stat-card"><span class="stat-label">В примере</span><strong id="statTotal">3</strong><span class="stat-caption">демонстрационные карточки</span></article>
+            <article class="stat-card"><span class="stat-label">В реестре</span><strong id="statTotal">0</strong><span class="stat-caption" id="statCaption">проверенные записи</span></article>
             <article class="stat-card"><span class="stat-label">Категории</span><strong>4</strong><span class="stat-caption">работы и услуги города</span></article>
             <article class="stat-card"><span class="stat-label">Источник</span><strong class="stat-word">ЕИС</strong><span class="stat-caption">официальные документы закупок</span></article>
         </section>
         <section class="procurement-workspace" aria-label="Карта и список закупок">
             <div class="procurement-map-panel">
-                <div class="map-heading"><div><h2>Объекты на карте</h2><p>Нажмите на маркер, чтобы посмотреть пример карточки</p></div><span class="map-live-label"><span></span> Демо-режим</span></div>
+                <div class="map-heading"><div><h2>Объекты на карте</h2><p>Нажмите на маркер, чтобы открыть карточку объекта</p></div><span class="map-live-label"><span></span><span id="mapModeLabel">Проверенный реестр</span></span></div>
                 <div id="procurementMap" aria-label="Демонстрационная карта Каспийска"></div>
                 <div class="map-legend"><span><i class="legend-dot legend-building"></i> Строительство</span><span><i class="legend-dot legend-utilities"></i> ЖКХ</span><span><i class="legend-dot legend-design"></i> Проектирование</span></div>
             </div>
             <aside class="procurement-list-panel">
-                <div class="list-heading"><div><h2>Проекты и контракты</h2><p id="resultsCount">3 демонстрационных примера</p></div></div>
+                <div class="list-heading"><div><h2>Проекты и контракты</h2><p id="resultsCount">Загрузка реестра…</p></div></div>
                 <label class="search-field"><span aria-hidden="true">⌕</span><input id="procurementSearch" type="search" placeholder="Название, заказчик, адрес…" autocomplete="off"></label>
                 <div class="filter-row"><label class="filter-label" for="categoryFilter">Категория</label><select id="categoryFilter"><option value="all">Все категории</option><option value="building">Строительство и ремонт</option><option value="utilities">Городское хозяйство</option><option value="infrastructure">Коммунальная инфраструктура</option><option value="design">Проектирование</option></select></div>
                 <div class="filter-row"><label class="filter-label" for="statusFilter">Стадия</label><select id="statusFilter"><option value="all">Все стадии</option><option value="planning">Планирование</option><option value="procurement">Закупка</option><option value="execution">Исполнение</option><option value="completed">Завершено</option></select></div>
