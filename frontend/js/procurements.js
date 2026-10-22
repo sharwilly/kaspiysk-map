@@ -98,13 +98,15 @@
             ? (item.locationVerified ? "Координаты подтверждены" : "Координаты требуют проверки")
             : "Точное место не определено";
         const customer = item.customer ? '<div class="card-meta">Заказчик: '+escapeHtml(item.customer)+'</div>' : "";
-        const contract = item.contractNumber ? '<div class="card-meta">№ '+escapeHtml(item.contractNumber)+'</div>' : "";
+        const purchase = item.purchaseNumber ? '<div class="card-meta">Номер закупки: '+escapeHtml(item.purchaseNumber)+'</div>' : "";
+        const contract = item.contractNumber ? '<div class="card-meta">Номер контракта: '+escapeHtml(item.contractNumber)+'</div>' : "";
+        const locationSource = item.locationSourceUrl ? '<div class="card-meta"><a class="card-location-source" href="'+escapeHtml(item.locationSourceUrl)+'" target="_blank" rel="noopener noreferrer">Источник координат: '+escapeHtml(item.locationSourceName || "картографический справочник")+' ↗</a></div>' : "";
         const notes = item.notes ? '<p class="card-notes">'+escapeHtml(item.notes)+'</p>' : "";
         return '<article class="procurement-card" data-id="'+escapeHtml(item.id)+'" tabindex="0" role="button" aria-label="Показать на карте: '+escapeHtml(item.title)+'">'+
             '<div class="card-topline"><span class="category-tag '+categoryClass+'">'+escapeHtml(item.categoryLabel || "Другое")+'</span><span class="stage-tag">'+escapeHtml(item.statusLabel || "Статус не подтверждён")+'</span></div>'+
             '<h3>'+escapeHtml(item.title)+'</h3>'+
             '<div class="card-address"><span>⌖</span><span>'+escapeHtml(item.address || "Адрес не указан")+'</span></div>'+
-            '<div class="card-meta">'+escapeHtml(coordinatesText)+'</div>'+customer+contract+notes+
+            '<div class="card-meta">'+escapeHtml(coordinatesText)+'</div>'+locationSource+customer+purchase+contract+notes+
             '<div class="card-bottom"><span class="card-price">'+escapeHtml(formatPrice(item.price))+'</span><a class="card-source" href="'+escapeHtml(item.sourceUrl)+'" target="_blank" rel="noopener noreferrer">Первичный источник ↗</a></div>'+
             (DEMO_MODE ? '<span class="card-demo">Демо-пример · не реальная закупка</span>' : '')+
             '</article>';
