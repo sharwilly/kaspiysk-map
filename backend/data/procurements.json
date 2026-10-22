@@ -1,0 +1,30 @@
+{
+  "updatedAt": "2026-10-22",
+  "items": [
+    {
+      "id": "eis-0803600029326000015",
+      "published": true,
+      "title": "Благоустройство — текущий ремонт городского фонтана в парке имени Халилова",
+      "category": "building",
+      "categoryLabel": "Строительство и ремонт",
+      "status": "execution",
+      "statusLabel": "Исполнение контракта",
+      "address": "Городской фонтан, парк имени Халилова, Каспийск",
+      "customer": "МКУ «Управление жилищно-коммунального хозяйства г. Каспийска»",
+      "purchaseNumber": "0803600029326000015",
+      "contractNumber": null,
+      "price": 6157150,
+      "startDate": "2026-06-08",
+      "endDate": "2026-12-31",
+      "latitude": 42.889065,
+      "longitude": 47.645422,
+      "locationVerified": true,
+      "sourceName": "ЕИС «Закупки»",
+      "sourceUrl": "https://zakupki.gov.ru/epz/order/extendedsearch/results.html?searchString=0803600029326000015",
+      "locationSourceName": "2ГИС",
+      "locationSourceUrl": "https://2gis.ru/makhachkala/geo/15904031968854019",
+      "updatedAt": "2026-10-22",
+      "notes": "Координаты относятся к фонтану по картографическому справочнику; это отдельный источник, не часть реестра ЕИС."
+    }
+  ]
+}
