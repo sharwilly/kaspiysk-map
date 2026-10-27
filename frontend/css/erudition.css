@@ -40,3 +40,4 @@
 .data-note{font-size:11px;line-height:1.6;color:#8a95a7;margin:18px 4px 0}
 @media(max-width:900px){.quiz-layout{grid-template-columns:1fr}.quiz-card{min-height:0}.geo-page{padding:20px 16px 34px}#dagestan-map{height:440px}}
 @media(max-width:480px){.geo-page{padding:12px 12px 28px}.map-topline{padding:0 14px}.quiz-card{padding:21px}.quiz-card h2{font-size:22px}#dagestan-map{height:370px}.map-status{font-size:10px}}
+.quiz-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.quiz-meta .question-number{margin-bottom:0}.lives-label{font-size:13px;font-weight:800;letter-spacing:.04em;color:#dc2626;white-space:nowrap}.lives-label.no-lives{color:#b91c1c}
