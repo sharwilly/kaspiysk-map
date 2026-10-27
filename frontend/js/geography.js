@@ -129,48 +129,41 @@
   async function locateAdministrativeCenter(centerName) {
     if (centerCoordinatesCache.has(centerName)) return centerCoordinatesCache.get(centerName);
 
-    // A long comma-separated query can be over-restrictive for small Dagestani villages.
-    // Try the village name first and use a Dagestan bounding box + location bias.
-    const queries = [
-      centerName,
-      centerName + ', Dagestan',
-      centerName + ', Russia'
-    ];
+    // Use Nominatim's structured search rather than Photon: the previous Photon
+    // filtering rejected valid results for many small settlements.
+    const queries = [centerName, centerName + ', Дагестан'];
     let lastError = null;
 
     for (const term of queries) {
       try {
         const params = new URLSearchParams({
           q: term,
+          format: 'jsonv2',
           limit: '10',
-          lang: 'ru',
-          bbox: '45.0,40.9,49.2,44.9',
-          lon: '47.2',
-          lat: '42.45',
-          zoom: '7',
-          location_bias_scale: '0.2'
+          countrycodes: 'ru',
+          viewbox: '45.0,44.9,49.2,40.9',
+          bounded: '1',
+          addressdetails: '1'
         });
-        const response = await fetch('https://photon.komoot.io/api/?' + params.toString());
-        if (!response.ok) throw new Error('Photon HTTP ' + response.status);
+        const response = await fetch('https://nominatim.openstreetmap.org/search?' + params.toString(), {
+          headers: { 'Accept-Language': 'ru' }
+        });
+        if (!response.ok) throw new Error('Nominatim HTTP ' + response.status);
         const data = await response.json();
-        const candidates = (data.features || []).filter(feature => {
-          const coordinates = feature.geometry && feature.geometry.coordinates;
-          const props = feature.properties || {};
-          return Array.isArray(coordinates) && coordinates.length >= 2 &&
-            Number.isFinite(coordinates[0]) && Number.isFinite(coordinates[1]) &&
-            coordinates[1] >= 40.9 && coordinates[1] <= 44.9 &&
-            coordinates[0] >= 45.0 && coordinates[0] <= 49.2 &&
-            (!props.countrycode || String(props.countrycode).toLowerCase() === 'ru');
+        const candidates = (Array.isArray(data) ? data : []).filter(item => {
+          const lat = Number(item.lat), lon = Number(item.lon);
+          return Number.isFinite(lat) && Number.isFinite(lon) &&
+            lat >= 40.9 && lat <= 44.9 && lon >= 45.0 && lon <= 49.2;
         });
         if (!candidates.length) continue;
 
-        const exact = candidates.find(feature => {
-          const props = feature.properties || {};
-          return normalizeDistrictName(props.name) === normalizeDistrictName(centerName);
+        const normalizedCenter = normalizeDistrictName(centerName);
+        const exact = candidates.find(item => {
+          const name = item.name || (item.namedetails && item.namedetails.name) || '';
+          return normalizeDistrictName(name) === normalizedCenter;
         });
         const chosen = exact || candidates[0];
-        const coords = chosen.geometry.coordinates;
-        const result = { lat: coords[1], lon: coords[0] };
+        const result = { lat: Number(chosen.lat), lon: Number(chosen.lon) };
         centerCoordinatesCache.set(centerName, result);
         return result;
       } catch (error) {
@@ -179,7 +172,7 @@
       }
     }
 
-    throw lastError || new Error('Геокодер не вернул результаты для «' + centerName + '» в пределах Дагестана');
+    throw lastError || new Error('Nominatim не вернул координаты «' + centerName + '» в пределах Дагестана');
   }
 
   const styleBase = { color: '#64748b', weight: 1.35, opacity: .98, fillColor: '#dce8f2', fillOpacity: .58 };
