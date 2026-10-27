@@ -66,7 +66,7 @@
   async function loadDistricts() {
     try {
       statusEl.textContent = 'Получаем границы…';
-      const query = '[out:json][timeout:35];area["name"="Республика Дагестан"]["boundary"="administrative"]->.dagestan;(relation["boundary"="administrative"]["admin_level"~"6|7"](area.dagestan););out body;>;out skel qt;';
+      const query = '[out:json][timeout:35];area["name"~"Дагестан"]["boundary"="administrative"]["admin_level"="4"]->.dagestan;(relation["boundary"="administrative"]["admin_level"~"6|7"](area.dagestan););out body;>;out skel qt;';
       const response = await fetch('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query));
       if (!response.ok) throw new Error('Overpass HTTP ' + response.status);
       const osm = await response.json();
