@@ -219,11 +219,15 @@
           onEachFeature: (feature, featureLayer) => {
             featureLayer.on('click', event => {
               if (mode !== 'training') return;
+              const popupContent = document.createElement('div');
+              popupContent.append('Район: ');
+              const districtName = document.createElement('strong');
+              districtName.textContent = district.name;
+              popupContent.appendChild(districtName);
               L.popup({ closeButton: true, autoPan: true, className: 'district-name-popup' })
                 .setLatLng(event.latlng)
-                .setContent('Район: <strong></strong>')
-                .openOn(map)
-                .getElement()?.querySelector('strong') && (map._container.querySelector('.district-name-popup strong').textContent = district.name);
+                .setContent(popupContent)
+                .openOn(map);
             });
           }
         }).addTo(map);
