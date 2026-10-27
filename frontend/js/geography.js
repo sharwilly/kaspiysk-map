@@ -92,24 +92,20 @@
     try {
       statusEl.textContent = 'Загружаем границы…';
 
-      // Try the simplified geoBoundaries dataset first; use the OSM GeoJSON as fallback.
+      // Use the Dagestan-specific municipal GeoJSON, not Russia-wide ADM2 data.
+      // Keep a CDN mirror as fallback in case raw.githubusercontent.com is unavailable.
       let geojson = null;
       const sources = [
         async () => {
-          const metaResponse = await fetch('https://www.geoboundaries.org/api/current/gbOpen/RUS/ADM2/');
-          if (!metaResponse.ok) throw new Error('geoBoundaries API HTTP ' + metaResponse.status);
-          let metadata = await metaResponse.json();
-          if (Array.isArray(metadata)) metadata = metadata[0];
-          const geometryUrl = metadata && (metadata.simplifiedGeometryGeoJSON || metadata.gjDownloadURL);
-          if (!geometryUrl) throw new Error('geoBoundaries не вернул ссылку на GeoJSON');
-          const geometryResponse = await fetch(geometryUrl);
-          if (!geometryResponse.ok) throw new Error('geoBoundaries GeoJSON HTTP ' + geometryResponse.status);
-          return geometryResponse.json();
-        },
-        async () => {
-          const url = "https://raw.githubusercontent.com/timurkanaz/Russia_geojson_OSM/master/GeoJson's/Regions/SKFO/Республика%20Дагестан_Dagestan%20Republic.geojson";
+          const url = "https://raw.githubusercontent.com/timurkanaz/Russia_geojson_OSM/master/GeoJson%27s/Regions/SKFO/%D0%A0%D0%B5%D1%81%D0%BF%D1%83%D0%B1%D0%BB%D0%B8%D0%BA%D0%B0%20%D0%94%D0%B0%D0%B3%D0%B5%D1%81%D1%82%D0%B0%D0%BD_Dagestan%20Republic.geojson";
           const response = await fetch(url);
           if (!response.ok) throw new Error('OSM GeoJSON HTTP ' + response.status);
+          return response.json();
+        },
+        async () => {
+          const url = "https://cdn.jsdelivr.net/gh/timurkanaz/Russia_geojson_OSM@master/GeoJson%27s/Regions/SKFO/%D0%A0%D0%B5%D1%81%D0%BF%D1%83%D0%B1%D0%BB%D0%B8%D0%BA%D0%B0%20%D0%94%D0%B0%D0%B3%D0%B5%D1%81%D1%82%D0%B0%D0%BD_Dagestan%20Republic.geojson";
+          const response = await fetch(url);
+          if (!response.ok) throw new Error('GeoJSON CDN HTTP ' + response.status);
           return response.json();
         }
       ];
