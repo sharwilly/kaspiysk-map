@@ -1,5 +1,5 @@
 (() => {
-  const map = L.map('dagestan-map', { zoomControl: true, scrollWheelZoom: false, attributionControl: false }).setView([42.45, 47.2], 7);
+  const dagestanBounds = L.latLngBounds([[40.9, 45.0], [44.9, 49.2]]);\n  const map = L.map('dagestan-map', { zoomControl: true, scrollWheelZoom: false, attributionControl: false, maxBounds: dagestanBounds, maxBoundsViscosity: 1.0, minZoom: 6, maxZoom: 10 }).setView([42.45, 47.2], 7);\n  map.setMaxBounds(dagestanBounds);
   L.control.attribution({ prefix: false }).addTo(map);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 12, attribution: '&copy; OpenStreetMap contributors'
@@ -19,7 +19,7 @@
       p.shapeName || p.NAME_2 || p.NAME_1 || p.NAME || p.name_ru ||
       p['name:en'] || p.NAME_EN || '';
   };
-  const styleBase = { color: '#91a0b5', weight: 1.1, opacity: .95, fillColor: '#dce8f2', fillOpacity: .58 };
+  const styleBase = { color: '#64748b', weight: 1.35, opacity: .98, fillColor: '#dce8f2', fillOpacity: .58 };\n  const regionOutlineStyle = { color: '#173b63', weight: 4, opacity: 1, fill: false, interactive: false };
   const highlightStyle = { color: '#c2410c', weight: 2.6, opacity: 1, fillColor: '#f97316', fillOpacity: .88 };
 
   function shuffle(items) {
@@ -167,7 +167,7 @@
     } catch (error) {
       console.error('Не удалось загрузить границы районов Дагестана:', error);
       statusEl.textContent = 'Ошибка загрузки';
-      optionsEl.innerHTML = '<div class="loading-option">Не удалось загрузить геоданные. Попробуй обновить страницу позже.</div>';
+      optionsEl.innerHTML = '<div class="loading-option">Не удалось загрузить геоданные. Причина: ' + String(error && error.message || 'неизвестная ошибка').replace(/[<>&\"']/g, '') + '</div>';
     }
   }
   loadDistricts();
