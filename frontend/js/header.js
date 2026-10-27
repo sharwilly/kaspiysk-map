@@ -22,7 +22,7 @@ fetch("components/header.html")
 
 
     const activeLink = document.querySelector(
-        `.menu a[data-page="${currentPage}"]`
+        `.main-nav a[data-page="${currentPage}"]`
     );
 
 
