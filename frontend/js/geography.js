@@ -68,6 +68,89 @@
       p.shapeName || p.NAME_2 || p.NAME_1 || p.NAME || p.name_ru ||
       p['name:en'] || p.NAME_EN || '';
   };
+  // Administrative centers from the Dagestan municipal-district reference list.
+  // Coordinates are resolved from OpenStreetMap's geocoder on demand and cached.
+  const administrativeCenters = {
+    'Агульский район': 'Тпиг',
+    'Акушинский район': 'Акуша',
+    'Ахвахский район': 'Карата',
+    'Ахтынский район': 'Ахты',
+    'Бабаюртовский район': 'Бабаюрт',
+    'Ботлихский район': 'Ботлих',
+    'Буйнакский район': 'Буйнакск',
+    'Гергебильский район': 'Гергебиль',
+    'Гумбетовский район': 'Мехельта',
+    'Гунибский район': 'Гуниб',
+    'Дахадаевский район': 'Уркарах',
+    'Дербентский район': 'Дербент',
+    'Докузпаринский район': 'Усухчай',
+    'Казбековский район': 'Дылым',
+    'Кайтагский район': 'Маджалис',
+    'Карабудахкентский район': 'Карабудахкент',
+    'Каякентский район': 'Новокаякент',
+    'Кизилюртовский район': 'Кизилюрт',
+    'Кизлярский район': 'Кизляр',
+    'Кулинский район': 'Вачи',
+    'Кумторкалинский район': 'Коркмаскала',
+    'Курахский район': 'Курах',
+    'Лакский район': 'Кумух',
+    'Левашинский район': 'Леваши',
+    'Магарамкентский район': 'Магарамкент',
+    'Новолакский район': 'Новолакское',
+    'Ногайский район': 'Терекли-Мектеб',
+    'Рутульский район': 'Рутул',
+    'Сергокалинский район': 'Сергокала',
+    'Сулейман-Стальский район': 'Касумкент',
+    'Табасаранский район': 'Хучни',
+    'Тарумовский район': 'Тарумовка',
+    'Тляратинский район': 'Тлярата',
+    'Унцукульский район': 'Унцукуль',
+    'Хасавюртовский район': 'Хасавюрт',
+    'Хивский район': 'Хив',
+    'Хунзахский район': 'Хунзах',
+    'Цумадинский район': 'Агвали',
+    'Цунтинский район': 'Кидеро',
+    'Чародинский район': 'Цуриб',
+    'Шамильский район': 'Хебда',
+    'Бежтинский участок': 'Бежта'
+  };
+  const centerCoordinatesCache = new Map();
+  let centerMarker = null;
+
+  function normalizeDistrictName(value) {
+    return String(value || '').toLocaleLowerCase('ru')
+      .replace(/ё/g, 'е')
+      .replace(/^муниципальное образование\\s+/i, '')
+      .replace(/\\s*\\((?:муниципальный район|район)\\)$/i, '')
+      .replace(/\\s+(?:муниципальный район|муниципального района|район)$/i, '')
+      .trim();
+  }
+
+  async function locateAdministrativeCenter(centerName) {
+    if (centerCoordinatesCache.has(centerName)) return centerCoordinatesCache.get(centerName);
+    const query = encodeURIComponent(centerName + ', Республика Дагестан, Россия');
+    const response = await fetch('https://photon.komoot.io/api/?q=' + query + '&limit=8&lang=ru');
+    if (!response.ok) throw new Error('Не удалось найти координаты центра (HTTP ' + response.status + ')');
+    const data = await response.json();
+    const candidates = (data.features || []).filter(feature => {
+      const coordinates = feature.geometry && feature.geometry.coordinates;
+      return Array.isArray(coordinates) && coordinates.length >= 2 &&
+        Number.isFinite(coordinates[0]) && Number.isFinite(coordinates[1]) &&
+        coordinates[1] >= 40.9 && coordinates[1] <= 44.9 &&
+        coordinates[0] >= 45.0 && coordinates[0] <= 49.2;
+    });
+    if (!candidates.length) throw new Error('Координаты населённого пункта «' + centerName + '» не найдены');
+    const exact = candidates.find(feature => {
+      const props = feature.properties || {};
+      return normalizeDistrictName(props.name) === normalizeDistrictName(centerName);
+    });
+    const chosen = exact || candidates[0];
+    const coords = chosen.geometry.coordinates;
+    const result = { lat: coords[1], lon: coords[0] };
+    centerCoordinatesCache.set(centerName, result);
+    return result;
+  }
+
   const styleBase = { color: '#64748b', weight: 1.35, opacity: .98, fillColor: '#dce8f2', fillOpacity: .58 };
   const regionOutlineStyle = { color: '#173b63', weight: 4, opacity: 1, fill: false, interactive: false };
   const highlightStyle = { color: '#c2410c', weight: 2.6, opacity: 1, fillColor: '#f97316', fillOpacity: .88 };
@@ -219,15 +302,48 @@
           onEachFeature: (feature, featureLayer) => {
             featureLayer.on('click', event => {
               if (mode !== 'training') return;
+              const centerName = administrativeCenters[normalizeDistrictName(district.name)] ||
+                administrativeCenters[district.name] ||
+                Object.entries(administrativeCenters).find(([districtName]) =>
+                  normalizeDistrictName(districtName) === normalizeDistrictName(district.name)
+                )?.[1];
               const popupContent = document.createElement('div');
-              popupContent.append('Район: ');
+              const districtLine = document.createElement('div');
+              districtLine.append('Район: ');
               const districtName = document.createElement('strong');
               districtName.textContent = district.name;
-              popupContent.appendChild(districtName);
-              L.popup({ closeButton: true, autoPan: true, className: 'district-name-popup' })
+              districtLine.appendChild(districtName);
+              popupContent.appendChild(districtLine);
+              const centerLine = document.createElement('div');
+              centerLine.style.marginTop = '4px';
+              centerLine.append('Административный центр: ');
+              const centerLabel = document.createElement('strong');
+              centerLabel.textContent = centerName || 'не указан в справочнике';
+              centerLine.appendChild(centerLabel);
+              popupContent.appendChild(centerLine);
+              const popup = L.popup({ closeButton: true, autoPan: true, className: 'district-name-popup' })
                 .setLatLng(event.latlng)
                 .setContent(popupContent)
                 .openOn(map);
+
+              if (centerMarker) map.removeLayer(centerMarker);
+              if (centerName) {
+                centerLabel.textContent = centerName + ' (ищем на карте…)';
+                locateAdministrativeCenter(centerName).then(coords => {
+                  if (!map.hasLayer(popup)) return;
+                  centerMarker = L.marker([coords.lat, coords.lon], {
+                    title: 'Административный центр: ' + centerName,
+                    alt: 'Административный центр ' + centerName
+                  }).addTo(map);
+                  centerMarker.bindPopup('Административный центр: <strong>' +
+                    centerName.replace(/[&<>"']/g, '') + '</strong>');
+                  centerLabel.textContent = centerName;
+                  map.panTo([coords.lat, coords.lon], { animate: true });
+                }).catch(error => {
+                  console.warn('Не удалось отметить административный центр:', error);
+                  centerLabel.textContent = centerName + ' (координаты не найдены)';
+                });
+              }
             });
           }
         }).addTo(map);
