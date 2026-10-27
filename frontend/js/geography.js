@@ -1,5 +1,6 @@
 (() => {
-  const dagestanBounds = L.latLngBounds([[40.9, 45.0], [44.9, 49.2]]);\n  const map = L.map('dagestan-map', { zoomControl: true, scrollWheelZoom: false, attributionControl: false, maxBounds: dagestanBounds, maxBoundsViscosity: 1.0, minZoom: 6, maxZoom: 10 }).setView([42.45, 47.2], 7);\n  map.setMaxBounds(dagestanBounds);
+  const dagestanBounds = L.latLngBounds([[40.9, 45.0], [44.9, 49.2]]);
+  const map = L.map('dagestan-map', { zoomControl: true, scrollWheelZoom: false, attributionControl: false, maxBounds: dagestanBounds, maxBoundsViscosity: 1.0, minZoom: 6, maxZoom: 10 }).setView([42.45, 47.2], 7);\n  map.setMaxBounds(dagestanBounds);
   L.control.attribution({ prefix: false }).addTo(map);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 12, attribution: '&copy; OpenStreetMap contributors'
@@ -19,7 +20,8 @@
       p.shapeName || p.NAME_2 || p.NAME_1 || p.NAME || p.name_ru ||
       p['name:en'] || p.NAME_EN || '';
   };
-  const styleBase = { color: '#64748b', weight: 1.35, opacity: .98, fillColor: '#dce8f2', fillOpacity: .58 };\n  const regionOutlineStyle = { color: '#173b63', weight: 4, opacity: 1, fill: false, interactive: false };
+  const styleBase = { color: '#64748b', weight: 1.35, opacity: .98, fillColor: '#dce8f2', fillOpacity: .58 };
+  const regionOutlineStyle = { color: '#173b63', weight: 4, opacity: 1, fill: false, interactive: false };
   const highlightStyle = { color: '#c2410c', weight: 2.6, opacity: 1, fillColor: '#f97316', fillOpacity: .88 };
 
   function shuffle(items) {
@@ -157,7 +159,30 @@
         layersByName.set(district.name, layer);
         group.addLayer(layer);
       });
-      map.fitBounds(group.getBounds(), { padding: [18, 18] });
+      map.fitBounds(group.getBounds(), { padding: [18, 18], maxZoom: 7 });
+
+      // Load the federal-subject outline separately from district boundaries.
+      try {
+        const metaResponse = await fetch('https://www.geoboundaries.org/api/current/gbOpen/RUS/ADM1/');
+        if (!metaResponse.ok) throw new Error('ADM1 metadata HTTP ' + metaResponse.status);
+        let metadata = await metaResponse.json();
+        if (Array.isArray(metadata)) metadata = metadata[0];
+        const outlineUrl = metadata && (metadata.simplifiedGeometryGeoJSON || metadata.gjDownloadURL);
+        if (!outlineUrl) throw new Error('ADM1 GeoJSON URL missing');
+        const outlineResponse = await fetch(outlineUrl);
+        if (!outlineResponse.ok) throw new Error('ADM1 GeoJSON HTTP ' + outlineResponse.status);
+        const outlineData = await outlineResponse.json();
+        const outlineFeature = (outlineData.features || []).find(feature =>
+          /дагестан|dagestan/i.test(JSON.stringify(feature.properties || {}))
+        );
+        if (outlineFeature) {
+          L.geoJSON(outlineFeature, { style: regionOutlineStyle, interactive: false }).addTo(map);
+        } else {
+          console.warn('Не найден контур Дагестана в ADM1 GeoJSON');
+        }
+      } catch (outlineError) {
+        console.warn('Не удалось загрузить отдельный контур региона:', outlineError);
+      }
       statusEl.textContent = districts.length + ' районов загружено';
       beginQuestion();
     } catch (error) {
