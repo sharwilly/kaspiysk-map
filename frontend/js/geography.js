@@ -17,7 +17,7 @@
 
   const nameOf = f => {
     const p = f.properties || {};
-    return p['name:ru'] || p.name || p['official_name:ru'] || p.official_name ||
+    return p.district || p['name:ru'] || p.name || p['official_name:ru'] || p.official_name ||
       p.shapeName || p.NAME_2 || p.NAME_1 || p.NAME || p.name_ru ||
       p['name:en'] || p.NAME_EN || '';
   };
