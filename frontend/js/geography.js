@@ -352,18 +352,15 @@
                   centerMarker = null;
                 }
               };
-              // Anchor the popup just above the administrative-center marker's screen position.
-              const popupLatLng = centerMarker
-                ? map.containerPointToLatLng(
-                    map.latLngToContainerPoint(centerMarker.getLatLng()).subtract([0, 12])
-                  )
-                : event.latlng;
+              // Initially show the popup at the clicked district; once the center is found,
+              // move it directly above that marker with a small screen-space offset.
               const popup = L.popup({
                 closeButton: true,
                 autoPan: true,
-                className: 'district-name-popup'
+                className: 'district-name-popup',
+                offset: L.point(0, -24)
               })
-                .setLatLng(popupLatLng)
+                .setLatLng(event.latlng)
                 .setContent(popupContent);
 
               popup.on('remove', removeCenterMarker);
@@ -381,6 +378,7 @@
                   centerMarker.bindPopup('Административный центр: <strong>' +
                     centerName.replace(/[&<>"']/g, '') + '</strong>');
                   centerLabel.textContent = centerName;
+                  popup.setLatLng([coords.lat, coords.lon]);
                   map.panTo([coords.lat, coords.lon], { animate: true });
                 }).catch(error => {
                   console.warn('Не удалось отметить административный центр:', error);
