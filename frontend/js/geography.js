@@ -14,12 +14,52 @@
   const scoreLabel = document.getElementById('scoreLabel');
   const questionNumber = document.getElementById('questionNumber');
   const livesLabel = document.getElementById('livesLabel');
+  const timerLabel = document.getElementById('timerLabel');
+  const modeButtons = [...document.querySelectorAll('.mode-button')];
   let districts = [], layersByName = new Map(), target = null, answered = false, question = 0, score = 0, lives = 3, gameOver = false;
+  let mode = 'training', timeLeft = 60, timerId = null, mistakes = 0;
 
   function updateLives() {
+    if (mode === 'training') {
+      livesLabel.textContent = 'Без ограничений';
+      livesLabel.setAttribute('aria-label', 'Режим обучения без ограничения жизней');
+      livesLabel.classList.remove('no-lives');
+      return;
+    }
     livesLabel.textContent = 'Жизни: ' + '♥ '.repeat(lives) + '♡ '.repeat(3 - lives);
     livesLabel.setAttribute('aria-label', 'Осталось жизней: ' + lives + ' из 3');
     livesLabel.classList.toggle('no-lives', lives === 1);
+  }
+
+  function stopTimer() { if (timerId !== null) clearInterval(timerId); timerId = null; }
+  function updateTimer() {
+    timerLabel.textContent = String(Math.floor(timeLeft / 60)).padStart(2, '0') + ':' + String(timeLeft % 60).padStart(2, '0');
+    timerLabel.classList.toggle('urgent', timeLeft <= 10);
+  }
+  function finishTimedGame(reason) {
+    if (gameOver) return;
+    gameOver = true; answered = true; stopTimer();
+    [...optionsEl.querySelectorAll('button')].forEach(button => button.disabled = true);
+    feedbackEl.textContent = reason + ' Итог: ' + score + ' верных ответов из ' + question + ', ошибок: ' + mistakes + '.';
+    feedbackEl.className = 'feedback ' + (reason.startsWith('Время') ? 'bad' : 'neutral');
+    nextBtn.disabled = false;
+    nextBtn.innerHTML = 'Играть ещё раз <span aria-hidden="true">↻</span>';
+  }
+  function startTimer() {
+    stopTimer(); timeLeft = 60; updateTimer();
+    timerId = setInterval(() => { timeLeft--; updateTimer(); if (timeLeft <= 0) finishTimedGame('Время вышло!'); }, 1000);
+  }
+  function setMode(nextMode) {
+    mode = nextMode;
+    modeButtons.forEach(button => { const active = button.dataset.mode === mode; button.classList.toggle('active', active); button.setAttribute('aria-pressed', String(active)); });
+    timerLabel.hidden = mode !== 'timed';
+    resetGame();
+  }
+  function resetGame() {
+    stopTimer(); question = 0; score = 0; lives = 3; mistakes = 0; gameOver = false; answered = false;
+    scoreLabel.textContent = 'Верных ответов: 0'; updateLives();
+    if (mode === 'timed') startTimer();
+    beginQuestion();
   }
 
   const nameOf = f => {
@@ -86,39 +126,27 @@
       feedbackEl.textContent = 'Верно! Это ' + target.name + '.';
       feedbackEl.className = 'feedback good';
     } else {
-      lives--;
-      updateLives();
+      mistakes++;
+      if (mode === 'timed') { lives--; updateLives(); }
       button.classList.add('incorrect');
       [...optionsEl.children].forEach(b => {
         if (b.lastElementChild.textContent === target.name) b.classList.add('correct');
       });
-      if (lives > 0) {
+      if (mode === 'training') {
+        feedbackEl.textContent = 'Запомни: правильный ответ — ' + target.name + '. В обучении можно ошибаться без ограничений.';
+        feedbackEl.className = 'feedback neutral';
+      } else if (lives > 0) {
         feedbackEl.textContent = 'Не совсем. Правильный ответ: ' + target.name + '. Осталось жизней: ' + lives + '.';
         feedbackEl.className = 'feedback bad';
-      } else {
-        gameOver = true;
-        feedbackEl.textContent = 'Жизни закончились! Игра начнётся заново. Твой результат: ' + score + ' верных ответов.';
-        feedbackEl.className = 'feedback bad';
-        nextBtn.innerHTML = 'Начать заново <span aria-hidden="true">↻</span>';
-      }
+      } else { finishTimedGame('Жизни закончились!'); }
     }
     [...optionsEl.children].forEach(b => b.disabled = true);
-    scoreLabel.textContent = 'Верных ответов: ' + score + ' из ' + question;
-    nextBtn.disabled = false;
+    scoreLabel.textContent = 'Верных ответов: ' + score + ' из ' + question + (mode === 'training' ? ' · Ошибок: ' + mistakes : '');
+    if (!gameOver) nextBtn.disabled = false;
   }
 
-  nextBtn.addEventListener('click', () => {
-    if (gameOver) {
-      question = 0;
-      score = 0;
-      lives = 3;
-      updateLives();
-      scoreLabel.textContent = 'Верных ответов: 0';
-      beginQuestion();
-      return;
-    }
-    beginQuestion();
-  });
+  nextBtn.addEventListener('click', () => { if (gameOver) { resetGame(); return; } beginQuestion(); });
+  modeButtons.forEach(button => button.addEventListener('click', () => { if (button.dataset.mode !== mode) setMode(button.dataset.mode); }));
 
   async function loadDistricts() {
     try {
