@@ -352,12 +352,19 @@
                   centerMarker = null;
                 }
               };
-              const popup = L.popup({ closeButton: true, autoPan: true, className: 'district-name-popup' })
+              const popup = L.popup({
+                closeButton: true,
+                autoPan: true,
+                className: 'district-name-popup',
+                zIndexOffset: 1000
+              })
                 .setLatLng(event.latlng)
                 .setContent(popupContent);
 
               popup.on('remove', removeCenterMarker);
               popup.openOn(map);
+              // Keep Leaflet's popup pane above marker icons so they never overlap visually.
+              popup.getElement()?.style.setProperty('z-index', '1000');
 
               removeCenterMarker();
               if (centerName) {
