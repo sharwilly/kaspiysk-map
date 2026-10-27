@@ -1,6 +1,7 @@
 (() => {
   const dagestanBounds = L.latLngBounds([[40.9, 45.0], [44.9, 49.2]]);
-  const map = L.map('dagestan-map', { zoomControl: true, scrollWheelZoom: false, attributionControl: false, maxBounds: dagestanBounds, maxBoundsViscosity: 1.0, minZoom: 6, maxZoom: 10 }).setView([42.45, 47.2], 7);\n  map.setMaxBounds(dagestanBounds);
+  const map = L.map('dagestan-map', { zoomControl: true, scrollWheelZoom: false, attributionControl: false, maxBounds: dagestanBounds, maxBoundsViscosity: 1.0, minZoom: 6, maxZoom: 10 }).setView([42.45, 47.2], 7);
+  map.setMaxBounds(dagestanBounds);
   L.control.attribution({ prefix: false }).addTo(map);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 12, attribution: '&copy; OpenStreetMap contributors'
