@@ -15,7 +15,9 @@
 
   const nameOf = f => {
     const p = f.properties || {};
-    return p['name:ru'] || p.name || p['official_name:ru'] || p.official_name || p['name:en'] || '';
+    return p['name:ru'] || p.name || p['official_name:ru'] || p.official_name ||
+      p.shapeName || p.NAME_2 || p.NAME_1 || p.NAME || p.name_ru ||
+      p['name:en'] || p.NAME_EN || '';
   };
   const styleBase = { color: '#91a0b5', weight: 1.1, opacity: .95, fillColor: '#dce8f2', fillOpacity: .58 };
   const highlightStyle = { color: '#c2410c', weight: 2.6, opacity: 1, fillColor: '#f97316', fillOpacity: .88 };
@@ -89,31 +91,69 @@
   async function loadDistricts() {
     try {
       statusEl.textContent = 'Загружаем границы…';
-      // Static GeoJSON avoids Overpass API rate limits and timeouts.
-      const source = 'https://raw.githubusercontent.com/timurkanaz/Russia_geojson_OSM/master/GeoJson%27s/Regions/SKFO/%D0%A0%D0%B5%D1%81%D0%BF%D1%83%D0%B1%D0%BB%D0%B8%D0%BA%D0%B0%20%D0%94%D0%B0%D0%B3%D0%B5%D1%81%D1%82%D0%B0%D0%BD_Dagestan%20Republic.geojson';
-      const response = await fetch(source);
-      if (!response.ok) throw new Error('GeoJSON HTTP ' + response.status);
-      const geojson = await response.json();
-      if (!geojson || !Array.isArray(geojson.features)) throw new Error('Некорректный GeoJSON');
+
+      // Try the simplified geoBoundaries dataset first; use the OSM GeoJSON as fallback.
+      let geojson = null;
+      const sources = [
+        async () => {
+          const metaResponse = await fetch('https://www.geoboundaries.org/api/current/gbOpen/RUS/ADM2/');
+          if (!metaResponse.ok) throw new Error('geoBoundaries API HTTP ' + metaResponse.status);
+          let metadata = await metaResponse.json();
+          if (Array.isArray(metadata)) metadata = metadata[0];
+          const geometryUrl = metadata && (metadata.simplifiedGeometryGeoJSON || metadata.gjDownloadURL);
+          if (!geometryUrl) throw new Error('geoBoundaries не вернул ссылку на GeoJSON');
+          const geometryResponse = await fetch(geometryUrl);
+          if (!geometryResponse.ok) throw new Error('geoBoundaries GeoJSON HTTP ' + geometryResponse.status);
+          return geometryResponse.json();
+        },
+        async () => {
+          const url = "https://raw.githubusercontent.com/timurkanaz/Russia_geojson_OSM/master/GeoJson's/Regions/SKFO/Республика%20Дагестан_Dagestan%20Republic.geojson";
+          const response = await fetch(url);
+          if (!response.ok) throw new Error('OSM GeoJSON HTTP ' + response.status);
+          return response.json();
+        }
+      ];
+
+      let lastError;
+      for (const getSource of sources) {
+        try {
+          const candidate = await getSource();
+          if (candidate && Array.isArray(candidate.features) && candidate.features.length) {
+            geojson = candidate;
+            break;
+          }
+          throw new Error('В источнике нет массива features');
+        } catch (error) {
+          lastError = error;
+          console.warn('Источник границ не сработал:', error);
+        }
+      }
+      if (!geojson) throw lastError || new Error('Не удалось получить GeoJSON');
 
       const unique = new Map();
       geojson.features.forEach(feature => {
         if (!feature.geometry || !/Polygon|MultiPolygon/.test(feature.geometry.type)) return;
-        const rawName = nameOf(feature).trim();
+        const rawName = String(nameOf(feature) || '').trim();
         if (!rawName) return;
-        // Only keep district-level polygons, not settlements or city districts.
+
+        const p = feature.properties || {};
+        const adminLevel = String(p.admin_level || p.adminLevel || p.shapeType || '');
         if (/городской округ|сельское поселение|городское поселение|внутригородской район/i.test(rawName)) return;
+        if (adminLevel && /^\d+$/.test(adminLevel) && !['4', '5', '6'].includes(adminLevel)) return;
+
         let name = rawName
           .replace(/^муниципальное образование\s+/i, '')
           .replace(/\s*\((?:муниципальный район|район)\)$/i, '')
           .replace(/\s+(?:муниципальный район|муниципального района|район)$/i, '')
           .trim();
-        if (!name || /дагестан/i.test(name)) return;
+        if (!name || /дагестан/i.test(name) || /republic|dagestan/i.test(name)) return;
         if (!unique.has(name)) unique.set(name, { name, feature });
       });
 
       districts = [...unique.values()];
-      if (districts.length < 4) throw new Error('В GeoJSON найдено менее четырёх районов');
+      if (districts.length < 4) {
+        throw new Error('После обработки найдено только ' + districts.length + ' районов');
+      }
 
       const group = L.featureGroup();
       districts.forEach(district => {
@@ -130,6 +170,5 @@
       optionsEl.innerHTML = '<div class="loading-option">Не удалось загрузить геоданные. Попробуй обновить страницу позже.</div>';
     }
   }
-
   loadDistricts();
 })();
