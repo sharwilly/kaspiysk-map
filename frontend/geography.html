@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>География Дагестана — Открытый Каспийск</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="css/common.css">
+<link rel="stylesheet" href="css/erudition.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body data-page="erudition">
+<div id="header-container"></div>
+<main class="geo-page">
+  <div class="geo-heading">
+    <div class="geo-eyebrow">ЭРУДИЦИЯ · ГЕОГРАФИЯ</div>
+    <h1>География Дагестана</h1>
+    <p>Узнай район по его границам. На карте выделена территория — выбери её название из четырёх вариантов.</p>
+  </div>
+  <nav class="erudition-tabs" aria-label="Разделы эрудиции">
+    <a class="erudition-tab active" href="geography.html">География Дагестана</a>
+  </nav>
+  <section class="quiz-layout">
+    <div class="map-card">
+      <div class="map-topline"><span class="map-label"><span class="live-dot"></span> Республика Дагестан</span><span id="mapStatus" class="map-status">Загрузка границ…</span></div>
+      <div id="dagestan-map" role="img" aria-label="Карта административных районов Дагестана"></div>
+      <div class="map-legend"><span class="legend-swatch"></span> Какой это район?</div>
+    </div>
+    <aside class="quiz-card">
+      <div class="question-number" id="questionNumber">ВОПРОС 01</div>
+      <h2>Как называется выделенный район?</h2>
+      <p class="quiz-hint">Рассмотри форму и расположение территории на карте.</p>
+      <div id="answerOptions" class="answer-options">
+        <div class="loading-option">Подготавливаем варианты…</div>
+      </div>
+      <div id="feedback" class="feedback" aria-live="polite"></div>
+      <div class="quiz-footer"><span id="scoreLabel">Верных ответов: 0</span><button id="nextQuestion" class="next-button" disabled>Следующий вопрос <span aria-hidden="true">→</span></button></div>
+    </aside>
+  </section>
+  <p class="data-note">Границы административных территорий загружаются из открытых данных OpenStreetMap. Для навигации и обучения; официальные юридические границы следует сверять с государственными источниками.</p>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/osmtogeojson@3.0.0/osmtogeojson.js"></script>
+<script src="js/header.js"></script>
+<script src="js/weather-widget.js"></script>
+<script src="js/geography.js"></script>
+</body>
+</html>
