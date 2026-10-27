@@ -14,7 +14,9 @@
         return;
     }
 
-    const map = L.map(mapNode, { zoomControl:true, scrollWheelZoom:true }).setView([42.8913,47.6397],13);
+    const map = L.map(mapNode, { zoomControl:true, scrollWheelZoom:true, attributionControl:false }).setView([42.8913,47.6397],13);
+    // Не показываем брендинг Leaflet; сохраняем обязательную атрибуцию OpenStreetMap.
+    L.control.attribution({ prefix:false }).addTo(map);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom:19,
         attribution:"© OpenStreetMap contributors"
