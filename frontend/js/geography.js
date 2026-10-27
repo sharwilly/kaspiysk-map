@@ -213,7 +213,20 @@
 
       const group = L.featureGroup();
       districts.forEach(district => {
-        const layer = L.geoJSON(district.feature, { style: styleBase, interactive: false }).addTo(map);
+        const layer = L.geoJSON(district.feature, {
+          style: styleBase,
+          interactive: true,
+          onEachFeature: (feature, featureLayer) => {
+            featureLayer.on('click', event => {
+              if (mode !== 'training') return;
+              L.popup({ closeButton: true, autoPan: true, className: 'district-name-popup' })
+                .setLatLng(event.latlng)
+                .setContent('Район: <strong></strong>')
+                .openOn(map)
+                .getElement()?.querySelector('strong') && (map._container.querySelector('.district-name-popup strong').textContent = district.name);
+            });
+          }
+        }).addTo(map);
         layersByName.set(district.name, layer);
         group.addLayer(layer);
       });
