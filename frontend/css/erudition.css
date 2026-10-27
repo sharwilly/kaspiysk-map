@@ -1,0 +1,42 @@
+:root{--geo-ink:#172033;--geo-muted:#68758b;--geo-blue:#2563eb;--geo-border:#e4eaf2}
+.geo-page{max-width:1500px;margin:0 auto;padding:28px 32px 44px}
+.geo-heading{max-width:780px;margin:14px 0 24px}
+.geo-eyebrow{font-size:11px;font-weight:800;letter-spacing:.16em;color:#2563eb;margin-bottom:12px}
+.geo-heading h1{font-size:clamp(32px,4vw,48px);line-height:1.08;margin:0 0 12px;color:#172033}
+.geo-heading p{font-size:16px;max-width:700px;margin:0;color:#68758b}
+.erudition-tabs{display:flex;gap:8px;border-bottom:1px solid #e4eaf2;margin-bottom:22px}
+.erudition-tab{display:inline-flex;padding:13px 17px;text-decoration:none;color:#5b6578;font-size:14px;font-weight:650;border-bottom:2px solid transparent}
+.erudition-tab.active{color:#2563eb;border-bottom-color:#2563eb}
+.quiz-layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(310px,.8fr);gap:20px;align-items:stretch}
+.map-card,.quiz-card{background:#fff;border:1px solid #e7edf5;border-radius:24px;box-shadow:0 12px 34px rgba(30,55,90,.06);overflow:hidden}
+.map-topline{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid #edf1f6}
+.map-label{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:700;color:#29364a}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#14b8a6;box-shadow:0 0 0 4px #d9f8f1}
+.map-status{font-size:12px;color:#8792a4}
+#dagestan-map{height:clamp(390px,55vw,610px);background:#edf4f8}
+#dagestan-map .leaflet-container{height:100%;width:100%;border-radius:0}
+.map-legend{display:flex;align-items:center;gap:9px;padding:14px 20px;font-size:12px;color:#68758b;border-top:1px solid #edf1f6}
+.legend-swatch{width:13px;height:13px;border-radius:4px;background:#f97316;border:1px solid #ea580c}
+.quiz-card{padding:28px;display:flex;flex-direction:column;min-height:490px}
+.question-number{font-size:11px;letter-spacing:.14em;font-weight:800;color:#2563eb;margin-bottom:16px}
+.quiz-card h2{font-size:25px;line-height:1.2;margin:0 0 10px;color:#172033}
+.quiz-hint{font-size:14px;margin:0 0 23px;color:#748096}
+.answer-options{display:grid;gap:10px}
+.answer-option{display:flex;align-items:center;gap:12px;width:100%;min-height:54px;padding:10px 13px;text-align:left;background:#fff;border:1px solid #e1e7f0;border-radius:14px;color:#29364a;font:600 14px Inter,sans-serif;cursor:pointer;transition:border-color .18s,background .18s,transform .18s}
+.answer-option:hover:not(:disabled){border-color:#8bb1ff;background:#f7faff;transform:translateY(-1px)}
+.option-letter{width:29px;height:29px;display:grid;place-items:center;flex:none;border-radius:9px;background:#f0f4f9;color:#64748b;font-size:12px;font-weight:800}
+.answer-option.correct{border-color:#16a34a;background:#f0fdf4;color:#166534}
+.answer-option.correct .option-letter{background:#dcfce7;color:#15803d}
+.answer-option.incorrect{border-color:#f87171;background:#fff5f5;color:#b91c1c}
+.answer-option.incorrect .option-letter{background:#fee2e2;color:#b91c1c}
+.answer-option:disabled{cursor:default}
+.loading-option{padding:18px;color:#68758b;font-size:14px}
+.feedback{min-height:42px;padding-top:14px;font-size:13px;font-weight:600;line-height:1.45}
+.feedback.good{color:#15803d}.feedback.bad{color:#b91c1c}.feedback.neutral{color:#68758b}
+.quiz-footer{margin-top:auto;padding-top:16px;border-top:1px solid #edf1f6;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+#scoreLabel{font-size:12px;color:#68758b;font-weight:600}
+.next-button{height:42px;border:0;border-radius:12px;padding:0 15px;background:#2563eb;color:#fff;font:650 13px Inter,sans-serif;cursor:pointer}
+.next-button:disabled{background:#e8edf5;color:#a1aaba;cursor:not-allowed}
+.data-note{font-size:11px;line-height:1.6;color:#8a95a7;margin:18px 4px 0}
+@media(max-width:900px){.quiz-layout{grid-template-columns:1fr}.quiz-card{min-height:0}.geo-page{padding:20px 16px 34px}#dagestan-map{height:440px}}
+@media(max-width:480px){.geo-page{padding:12px 12px 28px}.map-topline{padding:0 14px}.quiz-card{padding:21px}.quiz-card h2{font-size:22px}#dagestan-map{height:370px}.map-status{font-size:10px}}
