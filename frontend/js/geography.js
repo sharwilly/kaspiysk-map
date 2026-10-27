@@ -345,12 +345,21 @@
               centerLabel.textContent = centerName || 'не указан в справочнике';
               centerLine.appendChild(centerLabel);
               popupContent.appendChild(centerLine);
+              // Keep the center marker tied to this popup's lifetime.
+              const removeCenterMarker = () => {
+                if (centerMarker) {
+                  map.removeLayer(centerMarker);
+                  centerMarker = null;
+                }
+              };
               const popup = L.popup({ closeButton: true, autoPan: true, className: 'district-name-popup' })
                 .setLatLng(event.latlng)
-                .setContent(popupContent)
-                .openOn(map);
+                .setContent(popupContent);
 
-              if (centerMarker) map.removeLayer(centerMarker);
+              popup.on('remove', removeCenterMarker);
+              popup.openOn(map);
+
+              removeCenterMarker();
               if (centerName) {
                 centerLabel.textContent = centerName + ' (ищем на карте…)';
                 locateAdministrativeCenter(centerName).then(coords => {
