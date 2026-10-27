@@ -13,7 +13,14 @@
   const nextBtn = document.getElementById('nextQuestion');
   const scoreLabel = document.getElementById('scoreLabel');
   const questionNumber = document.getElementById('questionNumber');
-  let districts = [], layersByName = new Map(), target = null, answered = false, question = 0, score = 0;
+  const livesLabel = document.getElementById('livesLabel');
+  let districts = [], layersByName = new Map(), target = null, answered = false, question = 0, score = 0, lives = 3, gameOver = false;
+
+  function updateLives() {
+    livesLabel.textContent = 'Жизни: ' + '♥ '.repeat(lives) + '♡ '.repeat(3 - lives);
+    livesLabel.setAttribute('aria-label', 'Осталось жизней: ' + lives + ' из 3');
+    livesLabel.classList.toggle('no-lives', lives === 1);
+  }
 
   const nameOf = f => {
     const p = f.properties || {};
@@ -40,6 +47,7 @@
       optionsEl.innerHTML = '<div class="loading-option">Не удалось получить четыре района. Попробуй обновить страницу позже.</div>';
       return;
     }
+    gameOver = false;
     question++;
     answered = false;
     target = districts[Math.floor(Math.random() * districts.length)];
@@ -50,6 +58,7 @@
     feedbackEl.textContent = '';
     feedbackEl.className = 'feedback';
     nextBtn.disabled = true;
+    nextBtn.innerHTML = 'Следующий вопрос <span aria-hidden="true">→</span>';
 
     choices.forEach((district, i) => {
       const button = document.createElement('button');
@@ -77,19 +86,39 @@
       feedbackEl.textContent = 'Верно! Это ' + target.name + '.';
       feedbackEl.className = 'feedback good';
     } else {
+      lives--;
+      updateLives();
       button.classList.add('incorrect');
       [...optionsEl.children].forEach(b => {
         if (b.lastElementChild.textContent === target.name) b.classList.add('correct');
       });
-      feedbackEl.textContent = 'Не совсем. Правильный ответ: ' + target.name + '.';
-      feedbackEl.className = 'feedback bad';
+      if (lives > 0) {
+        feedbackEl.textContent = 'Не совсем. Правильный ответ: ' + target.name + '. Осталось жизней: ' + lives + '.';
+        feedbackEl.className = 'feedback bad';
+      } else {
+        gameOver = true;
+        feedbackEl.textContent = 'Жизни закончились! Игра начнётся заново. Твой результат: ' + score + ' верных ответов.';
+        feedbackEl.className = 'feedback bad';
+        nextBtn.innerHTML = 'Начать заново <span aria-hidden="true">↻</span>';
+      }
     }
     [...optionsEl.children].forEach(b => b.disabled = true);
     scoreLabel.textContent = 'Верных ответов: ' + score + ' из ' + question;
     nextBtn.disabled = false;
   }
 
-  nextBtn.addEventListener('click', beginQuestion);
+  nextBtn.addEventListener('click', () => {
+    if (gameOver) {
+      question = 0;
+      score = 0;
+      lives = 3;
+      updateLives();
+      scoreLabel.textContent = 'Верных ответов: 0';
+      beginQuestion();
+      return;
+    }
+    beginQuestion();
+  });
 
   async function loadDistricts() {
     try {
@@ -185,6 +214,7 @@
         console.warn('Не удалось загрузить отдельный контур региона:', outlineError);
       }
       statusEl.textContent = districts.length + ' районов загружено';
+      updateLives();
       beginQuestion();
     } catch (error) {
       console.error('Не удалось загрузить границы районов Дагестана:', error);
@@ -192,5 +222,6 @@
       optionsEl.innerHTML = '<div class="loading-option">Не удалось загрузить геоданные. Причина: ' + String(error && error.message || 'неизвестная ошибка').replace(/[<>&\"']/g, '') + '</div>';
     }
   }
+  updateLives();
   loadDistricts();
 })();
