@@ -128,27 +128,58 @@
 
   async function locateAdministrativeCenter(centerName) {
     if (centerCoordinatesCache.has(centerName)) return centerCoordinatesCache.get(centerName);
-    const query = encodeURIComponent(centerName + ', Республика Дагестан, Россия');
-    const response = await fetch('https://photon.komoot.io/api/?q=' + query + '&limit=8&lang=ru');
-    if (!response.ok) throw new Error('Не удалось найти координаты центра (HTTP ' + response.status + ')');
-    const data = await response.json();
-    const candidates = (data.features || []).filter(feature => {
-      const coordinates = feature.geometry && feature.geometry.coordinates;
-      return Array.isArray(coordinates) && coordinates.length >= 2 &&
-        Number.isFinite(coordinates[0]) && Number.isFinite(coordinates[1]) &&
-        coordinates[1] >= 40.9 && coordinates[1] <= 44.9 &&
-        coordinates[0] >= 45.0 && coordinates[0] <= 49.2;
-    });
-    if (!candidates.length) throw new Error('Координаты населённого пункта «' + centerName + '» не найдены');
-    const exact = candidates.find(feature => {
-      const props = feature.properties || {};
-      return normalizeDistrictName(props.name) === normalizeDistrictName(centerName);
-    });
-    const chosen = exact || candidates[0];
-    const coords = chosen.geometry.coordinates;
-    const result = { lat: coords[1], lon: coords[0] };
-    centerCoordinatesCache.set(centerName, result);
-    return result;
+
+    // A long comma-separated query can be over-restrictive for small Dagestani villages.
+    // Try the village name first and use a Dagestan bounding box + location bias.
+    const queries = [
+      centerName,
+      centerName + ', Dagestan',
+      centerName + ', Russia'
+    ];
+    let lastError = null;
+
+    for (const term of queries) {
+      try {
+        const params = new URLSearchParams({
+          q: term,
+          limit: '10',
+          lang: 'ru',
+          bbox: '45.0,40.9,49.2,44.9',
+          lon: '47.2',
+          lat: '42.45',
+          zoom: '7',
+          location_bias_scale: '0.2'
+        });
+        const response = await fetch('https://photon.komoot.io/api/?' + params.toString());
+        if (!response.ok) throw new Error('Photon HTTP ' + response.status);
+        const data = await response.json();
+        const candidates = (data.features || []).filter(feature => {
+          const coordinates = feature.geometry && feature.geometry.coordinates;
+          const props = feature.properties || {};
+          return Array.isArray(coordinates) && coordinates.length >= 2 &&
+            Number.isFinite(coordinates[0]) && Number.isFinite(coordinates[1]) &&
+            coordinates[1] >= 40.9 && coordinates[1] <= 44.9 &&
+            coordinates[0] >= 45.0 && coordinates[0] <= 49.2 &&
+            (!props.countrycode || String(props.countrycode).toLowerCase() === 'ru');
+        });
+        if (!candidates.length) continue;
+
+        const exact = candidates.find(feature => {
+          const props = feature.properties || {};
+          return normalizeDistrictName(props.name) === normalizeDistrictName(centerName);
+        });
+        const chosen = exact || candidates[0];
+        const coords = chosen.geometry.coordinates;
+        const result = { lat: coords[1], lon: coords[0] };
+        centerCoordinatesCache.set(centerName, result);
+        return result;
+      } catch (error) {
+        lastError = error;
+        console.warn('Ошибка поиска координат для «' + centerName + '» по запросу «' + term + '»:', error);
+      }
+    }
+
+    throw lastError || new Error('Геокодер не вернул результаты для «' + centerName + '» в пределах Дагестана');
   }
 
   const styleBase = { color: '#64748b', weight: 1.35, opacity: .98, fillColor: '#dce8f2', fillOpacity: .58 };
