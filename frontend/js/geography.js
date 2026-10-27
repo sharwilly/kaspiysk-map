@@ -352,11 +352,12 @@
                   centerMarker = null;
                 }
               };
-              // Place the district popup a little higher on screen than the clicked point,
-              // leaving room for the administrative-center marker below it.
-              const popupLatLng = map.containerPointToLatLng(
-                map.latLngToContainerPoint(event.latlng).subtract([0, 72])
-              );
+              // Anchor the popup just above the administrative-center marker's screen position.
+              const popupLatLng = centerMarker
+                ? map.containerPointToLatLng(
+                    map.latLngToContainerPoint(centerMarker.getLatLng()).subtract([0, 12])
+                  )
+                : event.latlng;
               const popup = L.popup({
                 closeButton: true,
                 autoPan: true,
