@@ -352,19 +352,21 @@
                   centerMarker = null;
                 }
               };
+              // Place the district popup a little higher on screen than the clicked point,
+              // leaving room for the administrative-center marker below it.
+              const popupLatLng = map.containerPointToLatLng(
+                map.latLngToContainerPoint(event.latlng).subtract([0, 72])
+              );
               const popup = L.popup({
                 closeButton: true,
                 autoPan: true,
-                className: 'district-name-popup',
-                zIndexOffset: 1000
+                className: 'district-name-popup'
               })
-                .setLatLng(event.latlng)
+                .setLatLng(popupLatLng)
                 .setContent(popupContent);
 
               popup.on('remove', removeCenterMarker);
               popup.openOn(map);
-              // Keep Leaflet's popup pane above marker icons so they never overlap visually.
-              popup.getElement()?.style.setProperty('z-index', '1000');
 
               removeCenterMarker();
               if (centerName) {
