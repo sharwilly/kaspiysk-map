@@ -28,7 +28,7 @@ module.exports = function installTelegramBot(app) {
             '/trucks': { title: '🚛 Карта коммунальной техники', url: 'https://kaspiysk-map.vercel.app/trucks.html', description: 'Карта коммунальной техники и мусоровозов.' },
             '/procurements': { title: '📍 Карта госзакупок', url: 'https://kaspiysk-map.vercel.app/procurements.html', description: 'Посмотрите объекты и сведения о государственных закупках на карте.' },
             '/weather': { title: '🌦 Погода', url: 'https://kaspiysk-map.vercel.app/weather.html', description: 'Погодная информация для Каспийска.' },
-            '/geography': { title: '🌍 География города', url: 'https://kaspiysk-map.vercel.app/geography.html', description: 'Географическая информация и материалы о городе.' },
+            '/geography': { title: '🌍 География Дагестана', url: 'https://kaspiysk-map.vercel.app/geography.html', description: 'Интерактивная карта административных районов Дагестана и географическая викторина.' },
             '/about': { title: 'ℹ️ О проекте', url: 'https://kaspiysk-map.vercel.app/about.html', description: 'Узнайте о проекте «Открытый Каспийск».' }
         };
         const menuCommands = ['/problem', '/outages', '/trucks', '/procurements', '/weather', '/geography', '/about'];
@@ -72,7 +72,7 @@ module.exports = function installTelegramBot(app) {
             { command: 'trucks', description: 'Карта коммунальной техники' },
             { command: 'procurements', description: 'Карта госзакупок' },
             { command: 'weather', description: 'Погода в Каспийске' },
-            { command: 'geography', description: 'География города' },
+            { command: 'geography', description: 'География Дагестана' },
             { command: 'about', description: 'О проекте' },
             { command: 'help', description: 'Список разделов' }
         ];
