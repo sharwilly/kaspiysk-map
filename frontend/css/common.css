@@ -1028,3 +1028,121 @@ h1 {
     line-height:1;
 
 }
+
+/* Compact header and safe horizontal sizing on mobile / Telegram Mini App */
+html,
+body {
+    max-width: 100%;
+}
+
+@media (max-width: 600px) {
+    .glass-header {
+        width: auto;
+        min-width: 0;
+        height: auto;
+        min-height: 64px;
+        margin: 10px;
+        padding: 8px 10px;
+        gap: 8px;
+        border-radius: 18px;
+    }
+
+    .brand {
+        min-width: 0;
+        flex: 1 1 auto;
+        gap: 8px;
+    }
+
+    .brand img {
+        width: 34px;
+        height: 34px;
+        flex: 0 0 34px;
+    }
+
+    .brand-text {
+        min-width: 0;
+    }
+
+    .brand-text h2 {
+        font-size: 13px;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+
+    .brand-text span {
+        display: none;
+    }
+
+    .header-actions {
+        flex: 0 0 auto;
+        gap: 4px;
+    }
+
+    .header-actions button {
+        width: 34px;
+        min-width: 34px;
+        height: 34px;
+        padding: 0 4px;
+        border-radius: 11px;
+    }
+
+    .header-actions .header-weather {
+        width: auto;
+        min-width: 56px;
+        padding: 0 7px !important;
+        gap: 3px;
+    }
+
+    .header-weather .weather-icon {
+        font-size: 16px;
+    }
+
+    .header-weather #weatherTemp {
+        font-size: 13px;
+    }
+
+    .weather-popover {
+        position: fixed;
+        top: 82px;
+        right: 10px;
+        left: 10px;
+        width: auto;
+        max-width: calc(100vw - 20px);
+        box-sizing: border-box;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 100%;
+        padding-right: 16px;
+        padding-left: 16px;
+    }
+
+    img,
+    video,
+    iframe {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 380px) {
+    .glass-header {
+        margin: 8px;
+        padding: 7px 8px;
+    }
+
+    .brand img {
+        width: 30px;
+        height: 30px;
+        flex-basis: 30px;
+    }
+
+    .brand-text h2 {
+        font-size: 12px;
+    }
+
+    .header-actions button {
+        width: 30px;
+        min-width: 30px;
+    }
+}
