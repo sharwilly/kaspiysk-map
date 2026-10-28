@@ -19,6 +19,9 @@ app.set("trust proxy", 1);
 app.use(cors());
 app.use(express.json());
 
+// Telegram commands and webhook registration.
+require('./telegram-bot')(app);
+
 const rateLimit = require("express-rate-limit");
 
 cloudinary.config({
