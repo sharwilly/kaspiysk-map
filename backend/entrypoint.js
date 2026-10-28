@@ -51,29 +51,37 @@ app.post('/telegram/webhook', async (req, res) => {
     const chatId = message && message.chat && message.chat.id;
     if (!chatId || !text) return;
 
-    const command = text.trim().split(' ')[0].split('@')[0].toLowerCase();
-    if (command !== '/problem') return;
+    const command = text.split(/\s+/)[0].split('@')[0].toLowerCase();
+    const pages = {
+        '/problem': { title: '🗺 Карта проблем города', url: 'https://kaspiysk-map.vercel.app/problems.html', description: 'Посмотрите обращения жителей и сообщите о проблеме в Каспийске.' },
+        '/outages': { title: '⚡ Отключения света', url: 'https://kaspiysk-map.vercel.app/outages.html', description: 'Информация об отключениях электроэнергии и карта отключений.' },
+        '/trucks': { title: '🚛 Карта коммунальной техники', url: 'https://kaspiysk-map.vercel.app/trucks.html', description: 'Карта коммунальной техники и мусоровозов.' },
+        '/procurements': { title: '📍 Карта госзакупок', url: 'https://kaspiysk-map.vercel.app/procurements.html', description: 'Посмотрите объекты и сведения о государственных закупках на карте.' },
+        '/weather': { title: '🌦 Погода', url: 'https://kaspiysk-map.vercel.app/weather.html', description: 'Погодная информация для Каспийска.' },
+        '/geography': { title: '🌍 География города', url: 'https://kaspiysk-map.vercel.app/geography.html', description: 'Географическая информация и материалы о городе.' },
+        '/about': { title: 'ℹ️ О проекте', url: 'https://kaspiysk-map.vercel.app/about.html', description: 'Узнайте о проекте «Открытый Каспийск».' }
+    };
+    const menuCommands = ['/problem', '/outages', '/trucks', '/procurements', '/weather', '/geography', '/about'];
+    const isMenuCommand = command === '/start' || command === '/help';
+    if (!pages[command] && !isMenuCommand) return;
+
+    const selectedPages = isMenuCommand ? menuCommands.map(key => pages[key]) : [pages[command]];
+    const keyboard = selectedPages.map(page => [{ text: page.title, web_app: { url: page.url } }]);
+    const messageText = isMenuCommand
+        ? 'Добро пожаловать в «Открытый Каспийск»! Выберите нужный раздел:'
+        : pages[command].description;
 
     try {
-        const response = await fetch(`${telegramApi}/sendMessage`, {
+        const response = await fetch(\`\${telegramApi}/sendMessage\`, {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: chatId,
-                text: 'Карта проблем Каспийска: откройте карту, чтобы посмотреть обращения жителей и добавить новое сообщение о проблеме.',
-                reply_markup: {
-                    inline_keyboard: [[{
-                        text: '🗺 Открыть карту проблем',
-                        web_app: { url: 'https://kaspiysk-map.vercel.app/problems.html' }
-                    }]]
-                }
-            })
+            body: JSON.stringify({ chat_id: chatId, text: messageText, reply_markup: { inline_keyboard: keyboard } })
         });
         if (!response.ok) {
             console.error('Telegram sendMessage failed:', response.status, await response.text());
         }
     } catch (error) {
-        console.error('Telegram /problem command failed:', error.message);
+        console.error(\`Telegram \${command} command failed:\`, error.message);
     }
 });
 
@@ -93,6 +101,30 @@ if (telegramApi && telegramWebhookSecret && process.env.TELEGRAM_WEBHOOK_URL) {
             console.error('Telegram setWebhook failed:', result.description || response.status);
         } else {
             console.log('Telegram webhook registered');
+            fetch(\`\${telegramApi}/setMyCommands\`, {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({
+                    commands: [
+                        { command: 'start', description: 'Открыть меню разделов' },
+                        { command: 'problem', description: 'Карта проблем города' },
+                        { command: 'outages', description: 'Отключения электроэнергии' },
+                        { command: 'trucks', description: 'Карта коммунальной техники' },
+                        { command: 'procurements', description: 'Карта госзакупок' },
+                        { command: 'weather', description: 'Погода в Каспийске' },
+                        { command: 'geography', description: 'География города' },
+                        { command: 'about', description: 'О проекте' },
+                        { command: 'help', description: 'Список разделов' }
+                    ]
+                })
+            }).then(async commandResponse => {
+                const commandResult = await commandResponse.json().catch(() => ({}));
+                if (!commandResponse.ok || !commandResult.ok) {
+                    console.error('Telegram setMyCommands failed:', commandResult.description || commandResponse.status);
+                } else {
+                    console.log('Telegram bot commands registered');
+                }
+            }).catch(error => console.error('Telegram setMyCommands error:', error.message));
         }
     }).catch(error => console.error('Telegram setWebhook error:', error.message));
 }
