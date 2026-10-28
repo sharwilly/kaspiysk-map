@@ -51,7 +51,7 @@ app.post('/telegram/webhook', async (req, res) => {
     const chatId = message && message.chat && message.chat.id;
     if (!chatId || !text) return;
 
-    const command = text.split(/\\s+/)[0].split('@')[0].toLowerCase();
+    const command = text.trim().split(' ')[0].split('@')[0].toLowerCase();
     if (command !== '/problem') return;
 
     try {
