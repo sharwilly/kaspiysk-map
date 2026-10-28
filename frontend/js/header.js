@@ -37,3 +37,13 @@ fetch("components/header.html")
     .catch(error => {
         console.error("Ошибка загрузки шапки:", error);
     });
+
+
+// Telegram Mini App: enable native viewport/theme integration on pages with the shared header.
+(function () {
+    if (document.querySelector('script[data-telegram-webapp-init]')) return;
+    const script = document.createElement('script');
+    script.src = 'js/telegram-webapp.js';
+    script.dataset.telegramWebappInit = 'true';
+    document.head.appendChild(script);
+})();
