@@ -72,7 +72,7 @@ app.post('/telegram/webhook', async (req, res) => {
         : pages[command].description;
 
     try {
-        const response = await fetch(\`\${telegramApi}/sendMessage\`, {
+        const response = await fetch(`${telegramApi}/sendMessage`, {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify({ chat_id: chatId, text: messageText, reply_markup: { inline_keyboard: keyboard } })
@@ -81,7 +81,7 @@ app.post('/telegram/webhook', async (req, res) => {
             console.error('Telegram sendMessage failed:', response.status, await response.text());
         }
     } catch (error) {
-        console.error(\`Telegram \${command} command failed:\`, error.message);
+        console.error(`Telegram ${command} command failed:`, error.message);
     }
 });
 
@@ -101,7 +101,7 @@ if (telegramApi && telegramWebhookSecret && process.env.TELEGRAM_WEBHOOK_URL) {
             console.error('Telegram setWebhook failed:', result.description || response.status);
         } else {
             console.log('Telegram webhook registered');
-            fetch(\`\${telegramApi}/setMyCommands\`, {
+            fetch(`${telegramApi}/setMyCommands`, {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
                 body: JSON.stringify({
