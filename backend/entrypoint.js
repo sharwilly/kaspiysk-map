@@ -24,7 +24,78 @@ child.on('exit', (code, signal) => {
 
 const app = express();
 app.disable('x-powered-by');
+app.use(express.json({ limit: '256kb' }));
 installTruckRoutes(app);
+
+// Telegram bot commands. Configure TELEGRAM_BOT_TOKEN and
+// TELEGRAM_WEBHOOK_SECRET in Render; the secret is checked on every webhook call.
+const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
+const telegramWebhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+const telegramApi = telegramBotToken
+    ? `https://api.telegram.org/bot${telegramBotToken}`
+    : null;
+
+app.post('/telegram/webhook', async (req, res) => {
+    if (!telegramBotToken || !telegramWebhookSecret) {
+        return res.status(503).json({ error: 'Telegram bot is not configured' });
+    }
+
+    if (req.get('x-telegram-bot-api-secret-token') !== telegramWebhookSecret) {
+        return res.sendStatus(403);
+    }
+
+    // Acknowledge Telegram quickly; process the update asynchronously.
+    res.sendStatus(200);
+    const message = req.body && (req.body.message || req.body.edited_message);
+    const text = message && typeof message.text === 'string' ? message.text.trim() : '';
+    const chatId = message && message.chat && message.chat.id;
+    if (!chatId || !text) return;
+
+    const command = text.split(/\\s+/)[0].split('@')[0].toLowerCase();
+    if (command !== '/problem') return;
+
+    try {
+        const response = await fetch(`${telegramApi}/sendMessage`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: chatId,
+                text: 'Карта проблем Каспийска: откройте карту, чтобы посмотреть обращения жителей и добавить новое сообщение о проблеме.',
+                reply_markup: {
+                    inline_keyboard: [[{
+                        text: '🗺 Открыть карту проблем',
+                        web_app: { url: 'https://kaspiysk-map.vercel.app/problems.html' }
+                    }]]
+                }
+            })
+        });
+        if (!response.ok) {
+            console.error('Telegram sendMessage failed:', response.status, await response.text());
+        }
+    } catch (error) {
+        console.error('Telegram /problem command failed:', error.message);
+    }
+});
+
+// Register the webhook automatically when both public URL and credentials are set.
+if (telegramApi && telegramWebhookSecret && process.env.TELEGRAM_WEBHOOK_URL) {
+    fetch(`${telegramApi}/setWebhook`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+            url: process.env.TELEGRAM_WEBHOOK_URL,
+            secret_token: telegramWebhookSecret,
+            allowed_updates: ['message']
+        })
+    }).then(async response => {
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.ok) {
+            console.error('Telegram setWebhook failed:', result.description || response.status);
+        } else {
+            console.log('Telegram webhook registered');
+        }
+    }).catch(error => console.error('Telegram setWebhook error:', error.message));
+}
 
 // Proxy every existing backend endpoint to the original server.
 // Truck endpoints are handled directly above so they work regardless of
