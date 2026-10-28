@@ -232,6 +232,8 @@ function loadActive() {
 
             id: "outage_" + outage.id,
 
+            outageId: outage.id,
+
             type: "электричество",
 
             address:
@@ -493,7 +495,7 @@ function createProblemCard(problem) {
         `
         <button
         class="done-button"
-        onclick="finishOutage(${problem.id})">
+        onclick="finishOutage(${problem.outageId ?? problem.id})">
 
             Завершить вручную
 
@@ -872,6 +874,7 @@ function loadOutages(){
 
         currentData = data.map(outage => ({
             id: outage.id,
+            outageId: outage.id,
             outage: true,
             type: "электричество",
             feeder: outage.feeder,
